@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://jsdev.arcgis.com/4.8/esri/css/main.css">
     <link rel="stylesheet" href="app/main.css">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.min.js"></script>
+
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
       window.dojoConfig = {
@@ -16,7 +18,8 @@
           }
         ],
         has: {
-          "esri-featurelayer-webgl": 1
+          "esri-featurelayer-webgl": 1,
+          "esri-promise-compatibility": 1
         }
       };
     </script>
@@ -24,7 +27,17 @@
   </head>
   <body>
     <div id="viewDiv"></div>
-    <div id="panel"></div>
+    <div id="panel">
+      <div>
+        Feature: <span id="feature-value"></span>
+      </div>
+      <div>
+        Neighbors Avg: <span id="neighbors-difference"></span>
+      </div>
+      <div>
+        Dataset Avg: <span id="dataset-difference"></span>
+      </div>
+    </div>
     <script>require(["app/main"]);</script>
   </body>
 </html>

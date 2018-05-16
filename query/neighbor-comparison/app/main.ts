@@ -8,7 +8,6 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 import Graphic = require("esri/Graphic");
 import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 
-import { Chart } from "chart.js";
 
 const map = new WebMap({
   portalItem: {
@@ -31,23 +30,31 @@ const view = new MapView({
 
 let attribute: number;
 
-view.on("pointer-move", (event) => {
-  view.hitTest(event)
-    .then( response => {
-      const results = response.results;
-      const hitResult = results.filter( (result) => result.graphic.layer.type !== "vector-tile")[0].graphic;
-      const attributes = hitResult.attributes;
-      attribute = attributes[ fieldName ];
+const neighborsDifferenceElement = document.getElementById("neighbors-difference");
+const featureValueElement = document.getElementById("feature-value");
+const datasetDifferenceElement = document.getElementById("dataset-difference");
 
-      return findNeighbors(hitResult);
-    }).then( (stats) => {
-      const neighborAverage = stats[`${fieldName}_AVG`];
-      const difference = attribute - neighborAverage;
-      const perChange =  Math.round(( difference / neighborAverage ) * 100);
+view.on("pointer-move", pointerMove);
 
-      console.log(perChange);
-    });
-});
+async function pointerMove (event: any) {
+
+  const hitResult = await view.hitTest(event);
+
+  const selectedFeature = hitResult.results && hitResult.results.filter( (result) => result.graphic.layer.type !== "vector-tile")[0].graphic;
+  const attributes = selectedFeature.attributes;
+  attribute = attributes[ fieldName ];
+
+  const neighborAverage = await findNeighborsAverage(selectedFeature) as number;
+  const difference = attribute - neighborAverage;
+  const perChange =  Math.round(( difference / neighborAverage ) * 100);
+
+  console.table({
+    feature: attribute, 
+    neighbor_avg: neighborAverage,
+    per_chang: perChange
+  });
+    
+}
 
 let chart: any;
 
@@ -80,25 +87,28 @@ interface FindNeighborsParams {
   centerFeature: Graphic
 }
 
-function findNeighbors(feature: Graphic){
+async function findNeighborsAverage(feature: Graphic){
   const layer = view.map.layers.getItemAt(0);
 
-  return view.whenLayerView(layer)
-    .then( (layerView: esri.FeatureLayerView) => {
+  const layerView = await view.whenLayerView(layer) as esri.FeatureLayerView;
 
-      return queryNeighborIds({
-        layerView: layerView,
-        centerFeature: feature
-      })
-      .then(queryStatsByIds)
-      .then(displayStats);
-    })
-    .catch( (error) => { console.error(error) });
+  const ids = await queryNeighborIds({
+    layerView: layerView,
+    centerFeature: feature
+  });
+
+  const value = await queryStatsByIds({
+    layerView: layerView,
+    ids: ids,
+    field: fieldName
+  });
+
+  return value;
 }
 
 let highlight: any;
 
-function queryNeighborIds(params: FindNeighborsParams){
+async function queryNeighborIds(params: FindNeighborsParams){
   const layerView = params.layerView;
   const geometry = params.centerFeature.geometry;
   const layer = layerView.layer as esri.FeatureLayer;
@@ -109,20 +119,15 @@ function queryNeighborIds(params: FindNeighborsParams){
   queryParams.returnGeometry = false;
   queryParams.where = `OBJECTID <> ${params.centerFeature.attributes.OBJECTID}`;
 
-  return layerView.queryObjectIds(queryParams)
-    .then( (ids)  => {
-      if (highlight) {
-        highlight.remove();
-        highlight = null;
-      }
+  const ids = await layerView.queryObjectIds(queryParams);
+      
+  if (highlight) {
+    highlight.remove();
+    highlight = null;
+  }
+  highlight = layerView.highlight(ids);
 
-      highlight = layerView.highlight(ids);
-      return {
-        layerView: layerView,
-        ids: ids,
-        field: fieldName
-      };
-    });
+  return ids;
 }
 
 function highlightFeatures(ids: Number[]){
@@ -132,10 +137,10 @@ function highlightFeatures(ids: Number[]){
 interface QueryStatsByIdsParams {
   layerView: esri.FeatureLayerView,
   ids: number[],
-  field: string[]
+  field: string
 }
 
-function queryStatsByIds(params: QueryStatsByIdsParams) {
+async function queryStatsByIds(params: QueryStatsByIdsParams) {
   const layerView = params.layerView;
   const layer = layerView.layer as FeatureLayer;
   const ids = params.ids;
@@ -150,39 +155,40 @@ function queryStatsByIds(params: QueryStatsByIdsParams) {
     statisticType: "avg"
   };
 
-  // statDefinition as esri.StatisticDefinition;
+  statsQuery.outStatistics = [ statDefinition ] as esri.StatisticDefinition[];
 
-  statsQuery.outStatistics = [ statDefinition ];// as esri.StatisticDefinition[];
-
-  return layerView.queryFeatures(statsQuery);
+  const stats = await layerView.queryFeatures(statsQuery);
+  const averageValue = stats[0].attributes[`${fieldName}_AVG`] as number;
+  return averageValue;
 }
 
 interface QueryAllStatsParams {
   layer: esri.FeatureLayer,
-  field: string[]
+  field: string
 }
 
-function queryAllStats(params: QueryAllStatsParams){
+async function queryAllStats(params: QueryAllStatsParams){
   const layer = params.layer;
   const fieldName = params.field;
 
   const statsQuery = layer.createQuery();
 
-  const statDefinition = new StatisticDefinition({
+  const statDefinition = {
     onStatisticField: fieldName,
     outStatisticFieldName: `${fieldName}_AVG`,
     statisticType: "avg"
-  });
+  };
 
-  statsQuery.outStatistics = [ statDefinition ];// as esri.StatisticDefinition[];
+  statsQuery.outStatistics = [ statDefinition ] as esri.StatisticDefinition[];
 
-  return layer.queryFeatures(statsQuery);
+  const stats = await layer.queryFeatures(statsQuery);
+  const datasetAverage = stats[0].attributes[fieldName];
+  return datasetAverage;
 }
 
 function displayStats(response: esri.Graphic[]): Object {
-  const stats = response[0].attributes;
-  console.log(stats);
-  return stats;
+  const neighborAverage = response[0].attributes[`${fieldName}_AVG`];
+  return neighborAverage;
 }
 
 // helper function for returning a layer instance
