@@ -20,6 +20,26 @@
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="controlsDiv" class="esri-widget">
+      <div>
+        Variable: 
+        <select id="fieldSelect" class="esri-widget"></select>
+      </div>
+      <div>
+        Divide by:
+        <select id="normalizationFieldSelect" class="esri-widget"></select>
+      </div>
+      <div>
+        Theme:
+        <select id="themeSelect" class="esri-widget">
+          <option value="high-to-low" selected>high to low</option>
+          <option value="above-and-below">above and below</option>
+          <option value="extremes">extremes</option>
+          <option value="centered-on">centered on</option>
+        </select>
+      </div>
+      <div id="sliderDiv"></div>
+    </div>
     <script>require(["app/main"]);</script>
   </body>
 </html>
