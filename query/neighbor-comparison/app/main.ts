@@ -8,8 +8,7 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 import Graphic = require("esri/Graphic");
 import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 
-// import Chart = require("Chart");
-
+import { Chart } from "chart.js";
 
 const map = new WebMap({
   portalItem: {
@@ -63,9 +62,11 @@ function updateChart(data: number[]) {
 
     chart = new Chart( canvasElement.getContext("2d"), {
       type: "bar",
-      data: data,
-      options: {
-
+      data: {
+        labels: [ "feature" ],
+        datasets: [{
+          data: data
+        }]
       }
     });
   } else {
