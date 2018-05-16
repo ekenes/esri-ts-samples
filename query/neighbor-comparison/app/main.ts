@@ -8,6 +8,7 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 import Graphic = require("esri/Graphic");
 import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 
+declare var Chart: any;
 
 const map = new WebMap({
   portalItem: {
@@ -28,11 +29,9 @@ const view = new MapView({
   }
 });
 
-let attribute: number;
+view.ui.add("panel", "top-right");
 
-const neighborsDifferenceElement = document.getElementById("neighbors-difference");
-const featureValueElement = document.getElementById("feature-value");
-const datasetDifferenceElement = document.getElementById("dataset-difference");
+let attribute: number;
 
 view.on("pointer-move", pointerMove);
 
@@ -40,19 +39,28 @@ async function pointerMove (event: any) {
 
   const hitResult = await view.hitTest(event);
 
-  const selectedFeature = hitResult.results && hitResult.results.filter( (result) => result.graphic.layer.type !== "vector-tile")[0].graphic;
-  const attributes = selectedFeature.attributes;
-  attribute = attributes[ fieldName ];
+  const featureHitResult = hitResult && hitResult.results && hitResult.results.filter( (result) => result.graphic.layer.type !== "vector-tile")[0];
 
-  const neighborAverage = await findNeighborsAverage(selectedFeature) as number;
-  const difference = attribute - neighborAverage;
-  const perChange =  Math.round(( difference / neighborAverage ) * 100);
+  if(featureHitResult && featureHitResult.graphic){
+    const selectedFeature = featureHitResult.graphic;
+    const attributes = selectedFeature.attributes;
+    attribute = attributes[ fieldName ];
 
-  console.table({
-    feature: attribute, 
-    neighbor_avg: neighborAverage,
-    per_chang: perChange
-  });
+    const neighborAverage = await findNeighborsAverage(selectedFeature) as number;
+    const difference = attribute - neighborAverage;
+    const perChange =  Math.round(( difference / neighborAverage ) * 100);
+
+    displayResults({
+      featureValue: attribute,
+      neighborsDifference: perChange
+    });
+
+    console.table({
+      feature: attribute, 
+      neighbor_avg: neighborAverage,
+      per_chang: perChange
+    });
+  }
     
 }
 
@@ -106,8 +114,6 @@ async function findNeighborsAverage(feature: Graphic){
   return value;
 }
 
-let highlight: any;
-
 async function queryNeighborIds(params: FindNeighborsParams){
   const layerView = params.layerView;
   const geometry = params.centerFeature.geometry;
@@ -120,18 +126,19 @@ async function queryNeighborIds(params: FindNeighborsParams){
   queryParams.where = `OBJECTID <> ${params.centerFeature.attributes.OBJECTID}`;
 
   const ids = await layerView.queryObjectIds(queryParams);
-      
+  highlightFeatures(layerView, ids);
+
+  return ids;
+}
+
+let highlight: any;
+
+function highlightFeatures(layerView: esri.FeatureLayerView, ids: number[]){
   if (highlight) {
     highlight.remove();
     highlight = null;
   }
   highlight = layerView.highlight(ids);
-
-  return ids;
-}
-
-function highlightFeatures(ids: Number[]){
-  
 }
 
 interface QueryStatsByIdsParams {
@@ -186,9 +193,19 @@ async function queryAllStats(params: QueryAllStatsParams){
   return datasetAverage;
 }
 
-function displayStats(response: esri.Graphic[]): Object {
-  const neighborAverage = response[0].attributes[`${fieldName}_AVG`];
-  return neighborAverage;
+interface displayResultsParams {
+  featureValue: number,
+  neighborsDifference: number,
+  // datasetDifference: number
+}
+
+function displayResults (params: displayResultsParams) {
+  const neighborsDifferenceElement = document.getElementById("neighbors-difference");
+  const featureValueElement = document.getElementById("feature-value");
+  const datasetDifferenceElement = document.getElementById("dataset-difference");
+
+  featureValueElement.innerHTML = numberWithCommas( params.featureValue );
+  neighborsDifferenceElement.innerHTML = `${numberWithCommas (params.neighborsDifference)}%`;
 }
 
 // helper function for returning a layer instance
