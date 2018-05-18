@@ -9,4 +9,18 @@ body, #viewDiv {
 
 #panel {
   padding: 10px;
+  max-width: 425px;
+}
+
+select {
+  max-width: 350px;
+}
+
+.numbers {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+div{
+  padding-bottom: 10px;
 }

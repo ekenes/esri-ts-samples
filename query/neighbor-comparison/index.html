@@ -28,15 +28,18 @@
   <body>
     <div id="viewDiv"></div>
     <div id="panel" class="esri-widget">
-      <div>
-        The selected feature's value is <span id="feature-value"></span>,
+      <h2 id="title"></h2>
+      <div id="field-select-container">
+        Select an attainment level:
       </div>
       <div>
-        which is a <span id="neighbors-difference"></span> difference from neighboring features.
+         <span id="feature-value" class="numbers"></span> of the population attained this education level, which is
       </div>
       <div>
-        Dataset Avg: <span id="dataset-difference"></span>
+        <span id="above-below-style"><span id="neighbors-difference" class="numbers"></span> points <span id="neighbors-above-below"></span></span> neighboring features.
       </div>
+      <div id="chart-div"></div>
+      <div id="legend-div"></div>
     </div>
     <script>require(["app/main"]);</script>
   </body>
