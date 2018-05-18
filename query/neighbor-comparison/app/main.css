@@ -9,7 +9,7 @@ body, #viewDiv {
 
 #panel {
   padding: 10px;
-  max-width: 425px;
+  max-width: 400px;
 }
 
 select {
@@ -21,6 +21,6 @@ select {
   font-weight: 600;
 }
 
-div{
+.containers{
   padding-bottom: 10px;
 }

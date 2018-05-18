@@ -28,7 +28,8 @@ const view = new MapView({
   popup: {
     dockEnabled: true,
     dockOptions: {
-      breakpoint: false
+      breakpoint: false,
+      position: "bottom-left"
     }
   }
 });
@@ -116,13 +117,15 @@ async function pointerMove (event: any) {
     const selectedFeature = featureHitResult.graphic;
     const attributes = selectedFeature.attributes;
     attribute = getPercentage( attributes[ fieldName ], attributes[ normalizationFieldName ] );
+    const cityName = attributes["NAME"];
 
     const neighborAverage = await findNeighborsAverage(selectedFeature) as number;
     const difference = attribute - neighborAverage;
 
     displayResults({
       featureValue: attribute,
-      neighborsDifference: difference
+      neighborsDifference: difference,
+      cityName: cityName
     });
 
     updateChart([ attribute, neighborAverage, datasetAverage ]);
@@ -148,9 +151,8 @@ function updateChart(data: number[]) {
     chart = new Chart( canvasElement.getContext("2d"), {
       type: "bar",
       data: {
-        labels: [ "Center geography", "Neighbors", "Dataset" ],
+        labels: [ "Selected City", "Neighbors", "Dataset" ],
         datasets: [{
-          label: "",
           data: data,
           fill: false,
           backgroundColor: ["rgba(216, 0, 255, 0.2)", "rgba(0, 255, 255, 0.2)", "rgba(255,170, 0,0.2)" ],
@@ -159,12 +161,19 @@ function updateChart(data: number[]) {
         }]
       },
       options: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: `% ${fieldSelect.selectedOptions[0].text}`
+        },
+        // barPercentage: 0.5,
         scales: {
           yAxes: [{
             ticks: {
               beginAtZero: true,
-              max: 60,
-              min: 0
+              // max: 60
             }
           }]
         }
@@ -172,6 +181,7 @@ function updateChart(data: number[]) {
     });
   } else {
     chart.data.datasets[0].data = data;
+    chart.options.title.text = `% ${fieldSelect.selectedOptions[0].text}`;
     chart.update();
   }
 }
@@ -300,7 +310,7 @@ async function queryAllStats(params: QueryAllStatsParams){
 interface displayResultsParams {
   featureValue: number,
   neighborsDifference: number,
-  // datasetDifference: number
+  cityName: string
 }
 
 function displayResults (params: displayResultsParams) {
@@ -308,6 +318,7 @@ function displayResults (params: displayResultsParams) {
   const featureValueElement = document.getElementById("feature-value");
   const neighborsAboveBelowElement = document.getElementById("neighbors-above-below");
   const aboveBelowStyleElement = document.getElementById("above-below-style");
+  const cityNameElement = document.getElementById("city-name");
   let neighborsAboveBelow = params.neighborsDifference > 0 ? "above" : "below";
 
   if(params.neighborsDifference >= 0){
@@ -321,6 +332,7 @@ function displayResults (params: displayResultsParams) {
   featureValueElement.innerHTML = `${numberWithCommas( params.featureValue )}%`;
   neighborsDifferenceElement.innerHTML = `${numberWithCommas (Math.abs(params.neighborsDifference))}`;
   neighborsAboveBelowElement.innerHTML = neighborsAboveBelow;
+  cityNameElement.innerHTML = params.cityName;
 }
 
 // helper function for returning a layer instance
