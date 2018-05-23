@@ -13,13 +13,18 @@
             name: "app",
             location: locationPath + "/app"
           }
-        ]
+        ],
+        has: {
+          "esri-featurelayer-webgl": 1,
+          "esri-promise-compatibility": 1
+        }
       };
     </script>
     <script src="https://js.arcgis.com/4.7"></script>
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="panel" class="esri-widget"></div>
     <script>require(["app/main"]);</script>
   </body>
 </html>
