@@ -39,6 +39,15 @@ import lang = require("esri/core/lang");
     fields: string[]
   }
   const title = "2014 Educational Attainment";
+
+  const appDescription = `
+    Educational attainment refers to the 
+    highest level of education that an 
+    individual has completed. People
+    who completed higher levels of
+    education are not included in counts
+    of lower education levels.
+  `;
   const variables: FieldInfoForArcade[] = [
     {
       value: "no-school",
@@ -75,6 +84,12 @@ import lang = require("esri/core/lang");
     titleElement.style.textAlign = "center";
     titleElement.innerText = title;
     panelDiv.appendChild(titleElement);
+
+    const descriptionElement = document.createElement("div");
+    descriptionElement.style.textAlign = "center";
+    descriptionElement.style.paddingBottom = "10px";
+    descriptionElement.innerText = appDescription;
+    panelDiv.appendChild(descriptionElement);
 
     const selectElement = createSelect(variables);
     panelDiv.appendChild(selectElement);
