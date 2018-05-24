@@ -10,6 +10,10 @@ import lang = require("esri/core/lang");
 
 (async () => {
 
+  //
+  // Create map with a single FeatureLayer 
+  //
+
   const layer = new FeatureLayer({
     portalItem: {
       id: "b975d17543fb4ab2a106415dca478684"
@@ -28,16 +32,6 @@ import lang = require("esri/core/lang");
     zoom: 7
   });
 
-  interface GetValueExpressionResult {
-    valueExpression: string,
-    valueExpressionTitle?: string
-  }
-
-  interface FieldInfoForArcade {
-    value: string,
-    description: string,
-    fields: string[]
-  }
   const title = "2014 Educational Attainment";
 
   const appDescription = `
@@ -48,6 +42,21 @@ import lang = require("esri/core/lang");
     education are not included in counts
     of lower education levels.
   `;
+
+  // 
+  // Configure aggregated fields for generating Arcade expressions
+  // Some field values are a subset of a larger variable. For example,
+  // all people who earned a bachelor's, master's, and doctorate degree
+  // are all considered "university graduates", so all of those fields
+  // are added together to simplify the visualization
+  //
+
+  interface FieldInfoForArcade {
+    value: string,
+    description: string,
+    fields: string[]
+  }
+
   const variables: FieldInfoForArcade[] = [
     {
       value: "no-school",
@@ -72,33 +81,56 @@ import lang = require("esri/core/lang");
     }
   ];
 
+  // This field will be used to normalize the value of each category
+  // to form a percentage
+
   const normalizationVariable = "EDUCA_BASE";
 
   await view.when();
   updatePanel();
 
+  /**
+   * Creates the DOM elements needed to render basic UI and contextual information, 
+   * including the title, description, and attribute field select
+   */
   function updatePanel (){
     const panelDiv = document.getElementById("panel");
+
+    // title
 
     const titleElement = document.createElement("h2");
     titleElement.style.textAlign = "center";
     titleElement.innerText = title;
     panelDiv.appendChild(titleElement);
 
+    // description
+    
     const descriptionElement = document.createElement("div");
     descriptionElement.style.textAlign = "center";
     descriptionElement.style.paddingBottom = "10px";
     descriptionElement.innerText = appDescription;
     panelDiv.appendChild(descriptionElement);
 
+    // attribute field select
+
     const selectElement = createSelect(variables);
     panelDiv.appendChild(selectElement);
     view.ui.add(panelDiv, "bottom-left");
     selectElement.addEventListener("change", selectVariable);
 
+    // generate the renderer for the first selected attribute
     selectVariable();
   }
 
+  /**
+   * Creates the HTML select element for the given field info objects.
+   * 
+   * @param {FieldInfoForArcade[]} fieldInfos - An array of FieldInfoForArcade objects,
+   *   defining the name ane description of known values. The description is 
+   *   used in the text of each option.
+   * 
+   * @returns {HTMLSelectElement} 
+   */
   function createSelect(fieldInfos: FieldInfoForArcade[]): HTMLSelectElement {
 
     const selectElement = document.createElement("select");
@@ -118,9 +150,17 @@ import lang = require("esri/core/lang");
 
   let colorSlider: ColorSlider;
 
+  /**
+   * Callback that executes each time the user selects a new variable 
+   * to visualize. 
+   * 
+   * @param event 
+   */
   async function selectVariable(event?: any){
     const selectedValue = event ? event.target.value : variables[0].value;
     const selectedInfo = findVariableByValue(selectedValue);
+
+    // generates the renderer with the given variable value
 
     const rendererResponse = await generateRenderer({
       layer: layer,
@@ -129,7 +169,11 @@ import lang = require("esri/core/lang");
       normalize: true
     });
 
+    // update the layer with the generated renderer
     layer.renderer = rendererResponse.renderer;
+
+    // updates the ColorSlider with the stats and histogram 
+    // generated from the smart mapping generator
 
     colorSlider = updateSlider({
       statistics: rendererResponse.statistics,
@@ -138,10 +182,33 @@ import lang = require("esri/core/lang");
     }, colorSlider);
   }
 
+  /**
+   * Returns the object with the associated description and fields for the
+   * given value.
+   * 
+   * @param {string} value - The value of the selected variable. For example,
+   *   this value could be "no-school".
+   * 
+   * @returns {FieldInfoForArcade}
+   */
   function findVariableByValue (value: string): FieldInfoForArcade {
     return variables.filter( (info) => { return info.value === value } )[0];
   }
 
+  interface GetValueExpressionResult {
+    valueExpression: string,
+    valueExpressionTitle?: string
+  }
+
+  /**
+   * Generates an Arcade Expression and a title for the expression to use in the 
+   * Legend widget.
+   * 
+   * @param {string} value - The value selected by the user. For example, "no-school".
+   * @param {boolean} [normalize]  - indicates whether to normalize by the normalizationField.
+   * 
+   * @returns {GetValueExpressionResult}
+   */
   function getValueExpression(value: string, normalize?: boolean): GetValueExpressionResult {
 
     // See variables array above
@@ -155,6 +222,14 @@ import lang = require("esri/core/lang");
     };
   }
 
+  /**
+   * Generates an Arcade expression with the given fields and normalization field.
+   * 
+   * @param {string[]} fields - The fields making up the numerator of the percentage. 
+   * @param {string} normalizationField - The field making up the denominator of the percentage.
+   * 
+   * @returns {string}
+   */
   function generateArcade(fields: string[], normalizationField?: string): string {
     const value = fields.reduce( (a: string, c: string, i: number) => i === 1 ? `$feature.${a} + $feature.${c}` : `${a} + $feature.${c}` );
     const percentValue = normalizationField ? `( ( ${value} ) / $feature.${normalizationField} ) * 100` : value;
@@ -168,6 +243,14 @@ import lang = require("esri/core/lang");
     normalize?: boolean
   }
 
+  /**
+   * Generates a renderer with a continuous color ramp for the given layer and 
+   * Arcade expression.
+   * 
+   * @param {GenerateRendererParams} params 
+   * 
+   * @return {Object}
+   */
   async function generateRenderer(params: GenerateRendererParams) {
 
     const valueExpressionInfo = getValueExpression(params.value, params.normalize);
@@ -203,6 +286,15 @@ import lang = require("esri/core/lang");
     visualVariable: esri.ColorVisualVariable
   }
 
+  /**
+   * Creates a ColorSlider instance if it doesn't already exist. Updates it with the
+   * given parameters if it does exist.
+   * 
+   * @param {UpdateSliderParams} params 
+   * @param {ColorSlider} slider 
+   * 
+   * @returns {ColorSlider}
+   */
   function updateSlider (params: UpdateSliderParams, slider?: ColorSlider): ColorSlider {
 
     if(!slider){

@@ -38,23 +38,40 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
+        /**
+         * Creates the DOM elements needed to render basic UI and contextual information,
+         * including the title, description, and attribute field select
+         */
         function updatePanel() {
             var panelDiv = document.getElementById("panel");
+            // title
             var titleElement = document.createElement("h2");
             titleElement.style.textAlign = "center";
             titleElement.innerText = title;
             panelDiv.appendChild(titleElement);
+            // description
             var descriptionElement = document.createElement("div");
             descriptionElement.style.textAlign = "center";
             descriptionElement.style.paddingBottom = "10px";
             descriptionElement.innerText = appDescription;
             panelDiv.appendChild(descriptionElement);
+            // attribute field select
             var selectElement = createSelect(variables);
             panelDiv.appendChild(selectElement);
             view.ui.add(panelDiv, "bottom-left");
             selectElement.addEventListener("change", selectVariable);
+            // generate the renderer for the first selected attribute
             selectVariable();
         }
+        /**
+         * Creates the HTML select element for the given field info objects.
+         *
+         * @param {FieldInfoForArcade[]} fieldInfos - An array of FieldInfoForArcade objects,
+         *   defining the name ane description of known values. The description is
+         *   used in the text of each option.
+         *
+         * @returns {HTMLSelectElement}
+         */
         function createSelect(fieldInfos) {
             var selectElement = document.createElement("select");
             selectElement.className = "esri-widget";
@@ -67,6 +84,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
             });
             return selectElement;
         }
+        /**
+         * Callback that executes each time the user selects a new variable
+         * to visualize.
+         *
+         * @param event
+         */
         function selectVariable(event) {
             return __awaiter(this, void 0, void 0, function () {
                 var selectedValue, selectedInfo, rendererResponse;
@@ -83,7 +106,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                                 })];
                         case 1:
                             rendererResponse = _a.sent();
+                            // update the layer with the generated renderer
                             layer.renderer = rendererResponse.renderer;
+                            // updates the ColorSlider with the stats and histogram 
+                            // generated from the smart mapping generator
                             colorSlider = updateSlider({
                                 statistics: rendererResponse.statistics,
                                 histogram: rendererResponse.histogram,
@@ -94,9 +120,27 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                 });
             });
         }
+        /**
+         * Returns the object with the associated description and fields for the
+         * given value.
+         *
+         * @param {string} value - The value of the selected variable. For example,
+         *   this value could be "no-school".
+         *
+         * @returns {FieldInfoForArcade}
+         */
         function findVariableByValue(value) {
             return variables.filter(function (info) { return info.value === value; })[0];
         }
+        /**
+         * Generates an Arcade Expression and a title for the expression to use in the
+         * Legend widget.
+         *
+         * @param {string} value - The value selected by the user. For example, "no-school".
+         * @param {boolean} [normalize]  - indicates whether to normalize by the normalizationField.
+         *
+         * @returns {GetValueExpressionResult}
+         */
         function getValueExpression(value, normalize) {
             // See variables array above
             var fieldInfo = findVariableByValue(value);
@@ -106,11 +150,27 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                 valueExpressionTitle: fieldInfo.description
             };
         }
+        /**
+         * Generates an Arcade expression with the given fields and normalization field.
+         *
+         * @param {string[]} fields - The fields making up the numerator of the percentage.
+         * @param {string} normalizationField - The field making up the denominator of the percentage.
+         *
+         * @returns {string}
+         */
         function generateArcade(fields, normalizationField) {
             var value = fields.reduce(function (a, c, i) { return i === 1 ? "$feature." + a + " + $feature." + c : a + " + $feature." + c; });
             var percentValue = normalizationField ? "( ( " + value + " ) / $feature." + normalizationField + " ) * 100" : value;
             return "Round( " + percentValue + " )";
         }
+        /**
+         * Generates a renderer with a continuous color ramp for the given layer and
+         * Arcade expression.
+         *
+         * @param {GenerateRendererParams} params
+         *
+         * @return {Object}
+         */
         function generateRenderer(params) {
             return __awaiter(this, void 0, void 0, function () {
                 var valueExpressionInfo, rendererParams, rendererResponse, rendererHistogram;
@@ -146,6 +206,15 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                 });
             });
         }
+        /**
+         * Creates a ColorSlider instance if it doesn't already exist. Updates it with the
+         * given parameters if it does exist.
+         *
+         * @param {UpdateSliderParams} params
+         * @param {ColorSlider} slider
+         *
+         * @returns {ColorSlider}
+         */
         function updateSlider(params, slider) {
             if (!slider) {
                 var sliderContainer = document.createElement("div");
