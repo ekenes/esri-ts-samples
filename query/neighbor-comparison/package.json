@@ -1,0 +1,17 @@
+{
+  "name": "neighbor-comparison",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/arcgis-js-api": "^4.7.0",
+    "@types/chart.js": "^2.7.18",
+    "chart.js": "^2.7.2"
+  },
+  "description": ""
+}
