@@ -44,14 +44,13 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
          */
         function updatePanel() {
             var panelDiv = document.getElementById("panel");
+            panelDiv.style.textAlign = "center";
             // title
             var titleElement = document.createElement("h2");
-            titleElement.style.textAlign = "center";
             titleElement.innerText = title;
             panelDiv.appendChild(titleElement);
             // description
             var descriptionElement = document.createElement("div");
-            descriptionElement.style.textAlign = "center";
             descriptionElement.style.paddingBottom = "10px";
             descriptionElement.innerText = appDescription;
             panelDiv.appendChild(descriptionElement);
@@ -78,7 +77,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
             fieldInfos.forEach(function (info, i) {
                 var option = document.createElement("option");
                 option.value = info.value;
-                option.text = info.description;
+                option.text = info.label;
                 option.selected = i === 0;
                 selectElement.appendChild(option);
             });
@@ -106,8 +105,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                                 })];
                         case 1:
                             rendererResponse = _a.sent();
-                            // update the layer with the generated renderer
+                            // update the layer with the generated renderer and popup template
                             layer.renderer = rendererResponse.renderer;
+                            layer.popupTemplate = rendererResponse.popupTemplate;
                             // updates the ColorSlider with the stats and histogram 
                             // generated from the smart mapping generator
                             colorSlider = updateSlider({
@@ -147,7 +147,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
             var normalizationField = normalize ? normalizationVariable : null;
             return {
                 valueExpression: generateArcade(fieldInfo.fields, normalizationField),
-                valueExpressionTitle: fieldInfo.description
+                valueExpressionTitle: fieldInfo.label,
+                valueExpressionDescription: fieldInfo.description
             };
         }
         /**
@@ -173,7 +174,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
          */
         function generateRenderer(params) {
             return __awaiter(this, void 0, void 0, function () {
-                var valueExpressionInfo, rendererParams, rendererResponse, rendererHistogram;
+                var valueExpressionInfo, rendererParams, rendererResponse, rendererHistogram, popupTemplate;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -196,8 +197,16 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                                 })];
                         case 2:
                             rendererHistogram = _a.sent();
+                            popupTemplate = createPopupTemplate({
+                                valueExpression: valueExpressionInfo.valueExpression,
+                                valueExpressionTitle: valueExpressionInfo.valueExpressionTitle,
+                                name: nameField,
+                                description: valueExpressionInfo.valueExpressionDescription,
+                                totalField: normalizationVariable
+                            });
                             return [2 /*return*/, {
                                     renderer: rendererResponse.renderer,
+                                    popupTemplate: popupTemplate,
                                     statistics: rendererResponse.statistics,
                                     histogram: rendererHistogram,
                                     visualVariable: rendererResponse.visualVariable
@@ -238,7 +247,36 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
             }
             return slider;
         }
-        var layer, map, view, title, appDescription, variables, normalizationVariable, colorSlider;
+        /**
+         * Creates a popup template specific to the generated renderer
+         *
+         * @param {UpdatePopupTemplateParams} params
+         */
+        function createPopupTemplate(params) {
+            return {
+                title: "{" + params.name + "}",
+                content: "\n        {expression/expression-from-renderer}% of the {" + params.totalField + "} people ages 14+ in {" + params.name + "} " + params.description + "\n      ",
+                expressionInfos: [{
+                        name: "expression-from-renderer",
+                        title: params.valueExpressionTitle,
+                        expression: params.valueExpression
+                    }],
+                fieldInfos: [{
+                        fieldName: "expression/expression-from-renderer",
+                        format: {
+                            digitSeparator: true,
+                            places: 0
+                        }
+                    }, {
+                        fieldName: params.totalField,
+                        format: {
+                            digitSeparator: true,
+                            places: 0
+                        }
+                    }]
+            };
+        }
+        var layer, map, view, title, appDescription, variables, normalizationVariable, nameField, colorSlider;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -262,31 +300,38 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
                     variables = [
                         {
                             value: "no-school",
-                            description: "% population that didn't complete any education level",
+                            label: "% with no formal education completed",
+                            description: "didn't complete any level of formal education.",
                             fields: ["EDUC01_CY", "EDUC02_CY", "EDUC03_CY"]
                         }, {
                             value: "primary",
-                            description: "% population with primary education",
+                            label: "% that completed primary school",
+                            description: "completed primary school, but didn't advance beyond that.",
                             fields: ["EDUC04_CY", "EDUC05_CY", "EDUC07_CY"]
                         }, {
                             value: "secondary",
-                            description: "% population with secondary education",
+                            label: "% that completed secondary school",
+                            description: "completed secondary school, but didn't advance beyond that.",
                             fields: ["EDUC06_CY", "EDUC08_CY"]
                         }, {
                             value: "high-school",
-                            description: "% population with high school education",
+                            label: "% that completed high school",
+                            description: "completed high school, but didn't advance beyond that.",
                             fields: ["EDUC09_CY", "EDUC11_CY"]
                         }, {
                             value: "university",
-                            description: "% population with university education",
+                            label: "% that completed university degree",
+                            description: "completed a university or other advanced degree.",
                             fields: ["EDUC10_CY", "EDUC12_CY", "EDUC13_CY", "EDUC14_CY", "EDUC15_CY"]
                         }
                     ];
                     normalizationVariable = "EDUCA_BASE";
+                    nameField = "NAME";
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
                     updatePanel();
+                    ;
                     return [2 /*return*/];
             }
         });

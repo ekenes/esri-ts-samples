@@ -53,6 +53,7 @@ import lang = require("esri/core/lang");
 
   interface FieldInfoForArcade {
     value: string,
+    label: string,
     description: string,
     fields: string[]
   }
@@ -60,23 +61,28 @@ import lang = require("esri/core/lang");
   const variables: FieldInfoForArcade[] = [
     {
       value: "no-school",
-      description: "% population that didn't complete any education level",
+      label: "% with no formal education completed",
+      description: "didn't complete any level of formal education.",
       fields: [ "EDUC01_CY", "EDUC02_CY", "EDUC03_CY" ]
     }, {
       value: "primary",
-      description: "% population with primary education",
+      label: "% that completed primary school",
+      description: "completed primary school, but didn't advance beyond that.",
       fields: [ "EDUC04_CY", "EDUC05_CY", "EDUC07_CY" ]
     }, {
       value: "secondary",
-      description: "% population with secondary education",
+      label: "% that completed secondary school",
+      description: "completed secondary school, but didn't advance beyond that.",
       fields: [ "EDUC06_CY", "EDUC08_CY" ]
     }, {
       value: "high-school",
-      description: "% population with high school education",
+      label: "% that completed high school",
+      description: "completed high school, but didn't advance beyond that.",
       fields: [ "EDUC09_CY", "EDUC11_CY" ]
     }, {
       value: "university",
-      description: "% population with university education",
+      label: "% that completed university degree",
+      description: "completed a university or other advanced degree.",
       fields: [ "EDUC10_CY", "EDUC12_CY", "EDUC13_CY", "EDUC14_CY", "EDUC15_CY" ]
     }
   ];
@@ -85,6 +91,7 @@ import lang = require("esri/core/lang");
   // to form a percentage
 
   const normalizationVariable = "EDUCA_BASE";
+  const nameField = "NAME";
 
   await view.when();
   updatePanel();
@@ -95,18 +102,16 @@ import lang = require("esri/core/lang");
    */
   function updatePanel (){
     const panelDiv = document.getElementById("panel");
-
+    panelDiv.style.textAlign = "center";
     // title
 
     const titleElement = document.createElement("h2");
-    titleElement.style.textAlign = "center";
     titleElement.innerText = title;
     panelDiv.appendChild(titleElement);
 
     // description
     
     const descriptionElement = document.createElement("div");
-    descriptionElement.style.textAlign = "center";
     descriptionElement.style.paddingBottom = "10px";
     descriptionElement.innerText = appDescription;
     panelDiv.appendChild(descriptionElement);
@@ -139,7 +144,7 @@ import lang = require("esri/core/lang");
     fieldInfos.forEach( (info, i) => {
       const option = document.createElement("option");
       option.value = info.value;
-      option.text = info.description;
+      option.text = info.label;
       option.selected = i === 0;
 
       selectElement.appendChild(option);
@@ -169,8 +174,9 @@ import lang = require("esri/core/lang");
       normalize: true
     });
 
-    // update the layer with the generated renderer
+    // update the layer with the generated renderer and popup template
     layer.renderer = rendererResponse.renderer;
+    layer.popupTemplate = rendererResponse.popupTemplate;
 
     // updates the ColorSlider with the stats and histogram 
     // generated from the smart mapping generator
@@ -197,7 +203,8 @@ import lang = require("esri/core/lang");
 
   interface GetValueExpressionResult {
     valueExpression: string,
-    valueExpressionTitle?: string
+    valueExpressionTitle?: string,
+    valueExpressionDescription?: string
   }
 
   /**
@@ -218,7 +225,8 @@ import lang = require("esri/core/lang");
     
     return {
       valueExpression: generateArcade(fieldInfo.fields, normalizationField),
-      valueExpressionTitle: fieldInfo.description
+      valueExpressionTitle: fieldInfo.label,
+      valueExpressionDescription: fieldInfo.description
     };
   }
 
@@ -272,8 +280,17 @@ import lang = require("esri/core/lang");
       view: params.view
     });
 
+    const popupTemplate = createPopupTemplate({
+      valueExpression: valueExpressionInfo.valueExpression,
+      valueExpressionTitle: valueExpressionInfo.valueExpressionTitle,
+      name: nameField,
+      description: valueExpressionInfo.valueExpressionDescription,
+      totalField: normalizationVariable
+    })
+
     return {
       renderer: rendererResponse.renderer,
+      popupTemplate: popupTemplate,
       statistics: rendererResponse.statistics,
       histogram: rendererHistogram,
       visualVariable: rendererResponse.visualVariable
@@ -321,5 +338,45 @@ import lang = require("esri/core/lang");
     
     return slider;
   }
+  
+  interface UpdatePopupTemplateParams {
+    valueExpression: string,
+    valueExpressionTitle: string,
+    description: string,
+    name: string,
+    totalField: string
+  }
+
+  /**
+   * Creates a popup template specific to the generated renderer
+   * 
+   * @param {UpdatePopupTemplateParams} params 
+   */
+  function createPopupTemplate (params: UpdatePopupTemplateParams): esri.PopupTemplate {
+    return {
+      title: `{${params.name}}`,
+      content: `
+        {expression/expression-from-renderer}% of the {${params.totalField}} people ages 14+ in {${params.name}} ${params.description}
+      `,
+      expressionInfos: [{
+        name: "expression-from-renderer",
+        title: params.valueExpressionTitle,
+        expression: params.valueExpression
+      }],
+      fieldInfos: [{
+        fieldName: "expression/expression-from-renderer",
+        format: {
+          digitSeparator: true,
+          places: 0
+        }
+      }, {
+        fieldName: params.totalField,
+        format: {
+          digitSeparator: true,
+          places: 0
+        }
+      }]
+    } as esri.PopupTemplate;
+  };
 
 })();
