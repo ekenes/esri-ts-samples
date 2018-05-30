@@ -160,7 +160,13 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/renderers/
          * @returns {string}
          */
         function generateArcade(fields, normalizationField) {
-            var value = fields.reduce(function (a, c, i) { return i === 1 ? "$feature." + a + " + $feature." + c : a + " + $feature." + c; });
+            var value;
+            if (fields.length === 1) {
+                value = "$feature." + fields[0];
+            }
+            else {
+                value = fields.reduce(function (a, c, i) { return i === 1 ? "$feature." + a + " + $feature." + c : a + " + $feature." + c; });
+            }
             var percentValue = normalizationField ? "( ( " + value + " ) / $feature." + normalizationField + " ) * 100" : value;
             return "Round( " + percentValue + " )";
         }
