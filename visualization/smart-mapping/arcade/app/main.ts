@@ -2,10 +2,12 @@ import esri = __esri;
 
 import EsriMap = require("esri/Map");
 import MapView = require("esri/views/MapView");
+import FeatureLayer = require("esri/layers/FeatureLayer");
+
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
 import histogram = require("esri/renderers/smartMapping/statistics/histogram");
 import ColorSlider = require("esri/widgets/ColorSlider");
-import FeatureLayer = require("esri/layers/FeatureLayer");
+
 import lang = require("esri/core/lang");
 
 (async () => {
@@ -52,10 +54,10 @@ import lang = require("esri/core/lang");
   //
 
   interface FieldInfoForArcade {
-    value: string,
-    label: string,
-    description: string,
-    fields: string[]
+    value: string,  // e.g. "no-school"
+    label: string,  // e.g. "% with no formal education completed"
+    description: string,  // e.g. "didn't complete any level of formal education."
+    fields: string[]  // e.g. [ "EDUC01_CY", "EDUC02_CY", "EDUC03_CY" ]
   }
 
   const variables: FieldInfoForArcade[] = [
