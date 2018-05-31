@@ -292,7 +292,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         }
                     });
                     map = new EsriMap({
-                        basemap: "streets",
+                        basemap: "gray",
                         layers: [layer]
                     });
                     view = new MapView({

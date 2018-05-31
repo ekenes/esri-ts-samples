@@ -23,7 +23,7 @@ import lang = require("esri/core/lang");
   });
 
   const map = new EsriMap({
-    basemap: "streets",
+    basemap: "gray",
     layers: [ layer ]
   });
 
