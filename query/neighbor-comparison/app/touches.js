@@ -220,9 +220,8 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                             layer = layerView.layer;
                             queryParams = layer.createQuery();
                             queryParams.geometry = geometry;
-                            queryParams.spatialRelationship = "intersects";
+                            queryParams.spatialRelationship = "touches";
                             queryParams.returnGeometry = false;
-                            queryParams.where = "OBJECTID <> " + params.centerFeature.attributes.OBJECTID;
                             return [4 /*yield*/, layerView.queryObjectIds(queryParams)];
                         case 1:
                             ids = _a.sent();
@@ -393,4 +392,4 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
         });
     }); })();
 });
-//# sourceMappingURL=main.js.map
+//# sourceMappingURL=touches.js.map

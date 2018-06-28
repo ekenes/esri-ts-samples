@@ -4,10 +4,7 @@ import WebMap = require("esri/WebMap");
 import MapView = require("esri/views/MapView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
-import LayerList = require("esri/widgets/LayerList");
-import watchUtils = require("esri/core/watchUtils");
 import Graphic = require("esri/Graphic");
-import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
 import Legend = require("esri/widgets/Legend");
 
@@ -210,9 +207,8 @@ declare var Chart: any;
 
     const queryParams = layer.createQuery();
     queryParams.geometry = geometry;
-    queryParams.spatialRelationship = "intersects";
+    queryParams.spatialRelationship = "touches";
     queryParams.returnGeometry = false;
-    queryParams.where = `OBJECTID <> ${params.centerFeature.attributes.OBJECTID}`;
 
     const ids = await layerView.queryObjectIds(queryParams);
     highlightFeatures(layerView, ids);
