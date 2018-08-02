@@ -26,6 +26,7 @@ declare var Chart: any;
     container: "viewDiv",
     map: map,
     popup: {
+      highlightEnabled: false,
       dockEnabled: true,
       dockOptions: {
         breakpoint: false,

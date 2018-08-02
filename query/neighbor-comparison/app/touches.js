@@ -376,6 +376,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                         container: "viewDiv",
                         map: map,
                         popup: {
+                            highlightEnabled: false,
                             dockEnabled: true,
                             dockOptions: {
                                 breakpoint: false,
