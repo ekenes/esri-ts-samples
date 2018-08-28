@@ -2,11 +2,10 @@ import esri = __esri;
 
 import EsriMap = require("esri/Map");
 import MapView = require("esri/views/MapView");
+import LayerList = require("esri/widgets/LayerList");
 
 import MapImageLayer = require("esri/layers/MapImageLayer");
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
-import LayerList = require("esri/widgets/LayerList");
-import Collection = require("esri/core/Collection");
 
 (async () => {
 
@@ -95,8 +94,7 @@ import Collection = require("esri/core/Collection");
   // different ancestry types.
   await ancestryFeatureLayer.load();
 
-  const fields = new Collection(ancestryFeatureLayer.fields);
-  fields.filter(function(field){
+  ancestryFeatureLayer.fields.filter(function(field){
     return field.name.slice(0,8) === "ancestry"
       && field.name.indexOf("OBJECTID") === -1
       && field.name.indexOf("State") === -1;

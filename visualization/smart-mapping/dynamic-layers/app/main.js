@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/MapImageLayer", "esri/renderers/smartMapping/creators/color", "esri/widgets/LayerList", "esri/core/Collection"], function (require, exports, EsriMap, MapView, MapImageLayer, colorRendererCreator, LayerList, Collection) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/LayerList", "esri/layers/MapImageLayer", "esri/renderers/smartMapping/creators/color"], function (require, exports, EsriMap, MapView, LayerList, MapImageLayer, colorRendererCreator) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -92,7 +92,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Map
                 });
             });
         }
-        var map, view, ancestrySelect, classSelect, layerList, layer, ancestrySublayer, ancestryFeatureLayer, fields;
+        var map, view, ancestrySelect, classSelect, layerList, layer, ancestrySublayer, ancestryFeatureLayer;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -160,8 +160,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Map
                     // Populate one of the select elements with options for exploring
                     // different ancestry types.
                     _a.sent();
-                    fields = new Collection(ancestryFeatureLayer.fields);
-                    fields.filter(function (field) {
+                    ancestryFeatureLayer.fields.filter(function (field) {
                         return field.name.slice(0, 8) === "ancestry"
                             && field.name.indexOf("OBJECTID") === -1
                             && field.name.indexOf("State") === -1;
