@@ -126,17 +126,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/La
                                 id: 0,
                                 opacity: 0.75,
                                 source: {
-                                    type: "data-layer",
                                     dataSource: {
-                                        type: "join-table",
                                         leftTableSource: {
-                                            type: "map-layer",
                                             mapLayerId: 3
                                         },
                                         rightTableSource: {
-                                            type: "data-layer",
                                             dataSource: {
-                                                type: "table",
                                                 workspaceId: "CensusFileGDBWorkspaceID",
                                                 dataSourceName: "ancestry"
                                             }
