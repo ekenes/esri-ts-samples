@@ -118,7 +118,7 @@ import colorRendererCreator = require("esri/renderers/smartMapping/creators/colo
       layer: ancestryFeatureLayer,
       basemap: map.basemap,
       // Arcade is used to normalize and round the data
-      valueExpression: "Round( ( $feature['" + ancestrySelect.value + "'] / $feature['states.POP2007'] ) * 100, 1);",
+      valueExpression: `Round( ( $feature['${ancestrySelect.value}'] / $feature['states.POP2007'] ) * 100, 1);`,
       view: view,  // required with valueExpression
       classificationMethod: classSelect.value
     };
@@ -135,8 +135,8 @@ import colorRendererCreator = require("esri/renderers/smartMapping/creators/colo
     // Update the popupTemplate to display data from the selected field
     ancestrySublayer.popupTemplate = {
       title: "{states.STATE_NAME}",
-      content: "{ancestry." + selectedAncestry + "} of the {states.POP2007} people in {states.STATE_NAME} have "
-        + selectedAncestry + " ancestry.",
+      content: `{ancestry.${selectedAncestry}} of the {states.POP2007} people 
+        in {states.STATE_NAME} have ${selectedAncestry} ancestry.`,
       expressionInfos: [{
         name: "per_ancestry",
         expression: response.renderer.valueExpression
@@ -148,7 +148,7 @@ import colorRendererCreator = require("esri/renderers/smartMapping/creators/colo
           places: 0
         }
       }, {
-        fieldName: "ancestry." + selectedAncestry,
+        fieldName: `ancestry.${selectedAncestry}`,
         format: {
           digitSeparator: true,
           places: 0

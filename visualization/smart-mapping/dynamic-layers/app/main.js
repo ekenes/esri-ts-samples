@@ -67,8 +67,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/La
                             // Update the popupTemplate to display data from the selected field
                             ancestrySublayer.popupTemplate = {
                                 title: "{states.STATE_NAME}",
-                                content: "{ancestry." + selectedAncestry + "} of the {states.POP2007} people in {states.STATE_NAME} have "
-                                    + selectedAncestry + " ancestry.",
+                                content: "{ancestry." + selectedAncestry + "} of the {states.POP2007} people \n        in {states.STATE_NAME} have " + selectedAncestry + " ancestry.",
                                 expressionInfos: [{
                                         name: "per_ancestry",
                                         expression: response.renderer.valueExpression
