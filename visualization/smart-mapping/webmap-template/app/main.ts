@@ -1,3 +1,5 @@
+import esri = __esri;
+
 import WebMap = require("esri/WebMap");
 import MapView = require("esri/views/MapView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
@@ -47,14 +49,13 @@ function createDomElements(){
 
   const layer = getVisibleLayer(view);
 
-  // fieldSelect = document.getElementById("fieldSelect");
-
-  const selectList = document.getElementsByTagName("select");
-  const fieldSelect = selectList[0];
-  const normalizationFieldSelect = selectList[1];
+  const fieldSelect = document.getElementById("fieldSelect") as HTMLSelectElement;
+  const normalizationFieldSelect = document.getElementById("normalizationFieldSelect") as HTMLSelectElement;
 
   addOptionsToSelectFromFields(fieldSelect, layer.fields);
   addOptionsToSelectFromFields(normalizationFieldSelect, layer.fields);
+
+  createSlider
 }
 
 // helper function for returning a layer instance
@@ -66,10 +67,10 @@ function findLayerByTitle(view: MapView, title: string) {
 }
 
 // Gets the first visible layer in the view
-function getVisibleLayer(view: MapView) {
+function getVisibleLayer(view: MapView): esri.FeatureLayer {
   return view.map.layers.find(function(layer) {
     return layer.visible;
-  });
+  }) as esri.FeatureLayer;
 }
 
 function addOptionsToSelectFromFields(select: HTMLSelectElement, fields: Field[]){
@@ -92,3 +93,31 @@ function numberWithCommas(value: number) {
   value = value || 0;
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+function createSlider(layer: FeatureLayer): ColorSlider | SizeSlider {
+  const renderer = layer.renderer as esri.ClassBreaksRenderer;
+  const authoringInfoVV = renderer.authoringInfo.visualVariables;
+  const vvInfo: esri.AuthoringInfoVisualVariable = authoringInfoVV.filter( vv => vv.type === "size" || vv.type === "color" )[0];
+  const rendererVisualVariable: esri.ColorVisualVariable | esri.BoundedMinMax = renderer.visualVariables.filter( vv => vv.type === vvInfo.type )[0];
+
+  let stats = {};
+
+  if (vvInfo.type === "size"){
+    stats.min = rendererVisualVariable.minDataValue;
+  }
+
+  const sliderParams = {
+    maxValue: vvInfo.maxSliderValue,
+    minValue: vvInfo.minSliderValue,
+    numHandles: 2,//depends on theme,
+    statistics: {
+      min: rendererVisualVariable.stops[0],
+    },
+    syncedHandles: true,//depends on theme
+    visualVariable: rendererVisualVariable
+  };
+
+  return vvInfo.type === "color" ? new ColorSlider(sliderParams) : new SizeSlider(sliderParams);
+}
+
+// function queryStatistics(layer: FeatureLayer)

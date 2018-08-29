@@ -1,4 +1,4 @@
-define(["require", "exports", "esri/WebMap", "esri/views/MapView"], function (require, exports, WebMap, MapView) {
+define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/widgets/ColorSlider", "esri/widgets/SizeSlider"], function (require, exports, WebMap, MapView, ColorSlider, SizeSlider) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var map = new WebMap({
@@ -28,12 +28,11 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView"], function (re
         view.ui.add("controlsDiv", "bottom-left");
         themeSelect = document.getElementById("themeSelect");
         var layer = getVisibleLayer(view);
-        // fieldSelect = document.getElementById("fieldSelect");
-        var selectList = document.getElementsByTagName("select");
-        var fieldSelect = selectList[0];
-        var normalizationFieldSelect = selectList[1];
+        var fieldSelect = document.getElementById("fieldSelect");
+        var normalizationFieldSelect = document.getElementById("normalizationFieldSelect");
         addOptionsToSelectFromFields(fieldSelect, layer.fields);
         addOptionsToSelectFromFields(normalizationFieldSelect, layer.fields);
+        createSlider;
     }
     // helper function for returning a layer instance
     // based on a given layer title
@@ -66,5 +65,27 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView"], function (re
         value = value || 0;
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
+    function createSlider(layer) {
+        var renderer = layer.renderer;
+        var authoringInfoVV = renderer.authoringInfo.visualVariables;
+        var vvInfo = authoringInfoVV.filter(function (vv) { return vv.type === "size" || vv.type === "color"; })[0];
+        var rendererVisualVariable = renderer.visualVariables.filter(function (vv) { return vv.type === vvInfo.type; })[0];
+        var stats = {};
+        if (vvInfo.type === "size") {
+            stats.min = rendererVisualVariable.minDataValue;
+        }
+        var sliderParams = {
+            maxValue: vvInfo.maxSliderValue,
+            minValue: vvInfo.minSliderValue,
+            numHandles: 2,
+            statistics: {
+                min: rendererVisualVariable.stops[0],
+            },
+            syncedHandles: true,
+            visualVariable: rendererVisualVariable
+        };
+        return vvInfo.type === "color" ? new ColorSlider(sliderParams) : new SizeSlider(sliderParams);
+    }
 });
+// function queryStatistics(layer: FeatureLayer)
 //# sourceMappingURL=main.js.map
