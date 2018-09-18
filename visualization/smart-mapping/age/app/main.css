@@ -6,3 +6,13 @@ body,
   height: 100%;
   width: 100%;
 }
+
+#containerDiv {
+  background-color: white;
+  padding: 3px;
+  text-align: center;
+}
+
+#title {
+  font-size: 14pt;
+}
