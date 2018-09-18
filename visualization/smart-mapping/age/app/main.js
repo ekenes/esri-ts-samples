@@ -46,36 +46,26 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         portalItem: {
                             id: "c8efe865f4184a2ca5c3581c025684b6"
                         },
-                        popupTemplate: { // autocasts as new PopupTemplate()
-                        // title: "{NAME}",
-                        // content: [{
-                        //   type: "fields",
-                        //   fieldInfos: [
-                        //   {
-                        //     fieldName: "CNSTRCT_YR",
-                        //     label: "Construction year"
-                        //   }, {
-                        //     fieldName: "HEIGHTROOF",
-                        //     label: "Height (ft)"
-                        //   }, {
-                        //     fieldName: "NUM_FLOORS",
-                        //     label: "Floors"
-                        //   }]
-                        // }],
-                        // fieldInfos: [
-                        // {
-                        //   fieldName: "HEIGHTROOF",
-                        //   format: {
-                        //     digitSeparator: true,
-                        //     places: 2
-                        //   }
-                        // }, {
-                        //   fieldName: "NUM_FLOORS",
-                        //   format: {
-                        //     digitSeparator: true,
-                        //     places: 0
-                        //   }
-                        // }]
+                        popupTemplate: {
+                            title: "{STREET_O_NAME_1}",
+                            content: [{
+                                    type: "fields",
+                                    fieldInfos: [
+                                        {
+                                            fieldName: "CONST_YR",
+                                            label: "Construction year"
+                                        }, {
+                                            fieldName: "INSPECTION_DATE",
+                                            label: "Last Inspection"
+                                        }, {
+                                            fieldName: "STREET_F_NAME_1",
+                                            label: "From"
+                                        }, {
+                                            fieldName: "STREET_T_NAME_1",
+                                            label: "To"
+                                        }
+                                    ]
+                                }]
                         }
                     });
                     map = new EsriMap({
