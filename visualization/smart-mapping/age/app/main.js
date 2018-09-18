@@ -102,7 +102,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     rendererResponse = _a.sent();
                     // set the renderer to the layer and add it to the map
                     layer.renderer = rendererResponse.renderer;
-                    map.add(layer);
                     return [4 /*yield*/, histogram({
                             layer: ageParams.layer,
                             view: ageParams.view,

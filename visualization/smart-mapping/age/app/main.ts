@@ -77,8 +77,6 @@ import lang = require("esri/core/lang");
     maxValue: 15
   };
 
-  
-
   // Generate a continuous color renderer based on the
   // statistics of the data in the provided layer
   // and field.
@@ -92,7 +90,6 @@ import lang = require("esri/core/lang");
   // set the renderer to the layer and add it to the map
 
   layer.renderer = rendererResponse.renderer;
-  map.add(layer);
 
   const histogramResult = await histogram({
     layer: ageParams.layer,
@@ -105,7 +102,7 @@ import lang = require("esri/core/lang");
   // input the slider parameters in the slider's constructor
   // and add it to the view's UI
 
-  var colorSlider = new ColorSlider({
+  const colorSlider = new ColorSlider({
     numHandles: 3,
     syncedHandles: true,
     container: "slider",
@@ -121,7 +118,7 @@ import lang = require("esri/core/lang");
 
   colorSlider.on("data-change", function() {
     const oldRenderer = layer.renderer as esri.ClassBreaksRenderer;
-    var newRenderer = oldRenderer.clone();
+    const newRenderer = oldRenderer.clone();
     newRenderer.visualVariables = [lang.clone(colorSlider.visualVariable)];
     layer.renderer = newRenderer;
   });
