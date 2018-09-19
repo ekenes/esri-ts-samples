@@ -6,3 +6,9 @@ body,
   height: 100%;
   width: 100%;
 }
+
+#infoDiv {
+  background-color: #242424;
+  padding: 10px;
+  overflow: auto;
+}
