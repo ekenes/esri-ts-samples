@@ -6,3 +6,12 @@ body,
   height: 100%;
   width: 100%;
 }
+
+#panelDiv {
+  padding: 10px;
+  text-align: center;
+}
+
+#description {
+  padding: 10px;
+}

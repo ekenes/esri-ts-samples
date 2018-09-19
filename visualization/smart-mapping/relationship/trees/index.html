@@ -2,8 +2,8 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-    <title>ArcGIS JSAPI 4.8 TypeScript Demo</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+    <title>Relationship explorer trees</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/themes/dark-blue/main.css">
     <link rel="stylesheet" href="app/main.css">
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
@@ -21,5 +21,10 @@
   <body>
     <div id="viewDiv"></div>
     <script>require(["app/main"]);</script>
+    <div id="panelDiv" class="esri-widget">
+      <div id="description" class="esri-widget">
+        Choose two fields to explore their relationship
+      </div>
+    </div>
   </body>
 </html>
