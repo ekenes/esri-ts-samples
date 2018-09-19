@@ -182,6 +182,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/S
                     return [2 /*return*/];
             }
         });
-    }); });
+    }); })();
 });
 //# sourceMappingURL=main.js.map

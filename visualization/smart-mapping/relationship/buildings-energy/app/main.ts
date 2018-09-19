@@ -160,10 +160,7 @@ import { UniqueValueRenderer } from "esri/renderers";
     // the legend renders as a square
 
     renderer.authoringInfo.focus = showDescriptiveLabels ? "HH" : null;
-
     return renderer;
   }
 
-  
-
-});
+})();
