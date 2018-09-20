@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/statistics/histogram", "esri/widgets/ColorSlider", "esri/core/lang"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, histogram, ColorSlider, lang) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/statistics/histogram", "esri/core/lang", "esri/widgets/ColorSlider", "esri/widgets/Expand", "esri/widgets/Legend"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, histogram, lang, ColorSlider, Expand, Legend) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -78,6 +78,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         center: [-93.2746, 44.9802],
                         zoom: 13
                     });
+                    view.ui.add(new Expand({
+                        view: view,
+                        content: new Legend({ view: view }),
+                        group: "top-left",
+                        expanded: true
+                    }), "top-left");
                     ageParams = {
                         layer: layer,
                         view: view,
@@ -92,6 +98,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     rendererResponse = _a.sent();
                     // set the renderer to the layer and add it to the map
                     layer.renderer = rendererResponse.renderer;
+                    console.log("Age arcade: \n\n", rendererResponse.renderer.valueExpression);
                     return [4 /*yield*/, histogram({
                             layer: ageParams.layer,
                             view: ageParams.view,
@@ -109,7 +116,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         visualVariable: rendererResponse.visualVariable,
                         histogram: histogramResult
                     });
-                    view.ui.add("containerDiv", "bottom-left");
+                    view.ui.add(new Expand({
+                        view: view,
+                        group: "top-left",
+                        content: document.getElementById("containerDiv"),
+                        expandIconClass: "esri-icon-chart"
+                    }), "top-left");
                     // when the user slides the handle(s), update the renderer
                     // with the updated color visual variable object
                     colorSlider.on("data-change", function () {

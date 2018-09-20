@@ -6,8 +6,11 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
 import histogram = require("esri/renderers/smartMapping/statistics/histogram");
-import ColorSlider = require("esri/widgets/ColorSlider");
 import lang = require("esri/core/lang");
+
+import ColorSlider = require("esri/widgets/ColorSlider");
+import Expand = require("esri/widgets/Expand");
+import Legend = require("esri/widgets/Legend");
 
 (async() => {
 
@@ -51,6 +54,14 @@ import lang = require("esri/core/lang");
     zoom: 13
   });
 
+  view.ui.add(
+    new Expand({
+      view,
+      content: new Legend({ view }),
+      group: "top-left",
+      expanded: true
+    }), "top-left");
+
   // configure parameters for the color renderer generator
   // the layer must be specified along with a field name
   // or arcade expression. The basemap and other properties determine
@@ -80,6 +91,8 @@ import lang = require("esri/core/lang");
 
   layer.renderer = rendererResponse.renderer;
 
+  console.log("Age arcade: \n\n", rendererResponse.renderer.valueExpression);
+
   const histogramResult = await histogram({
     layer: ageParams.layer,
     view: ageParams.view,
@@ -100,7 +113,12 @@ import lang = require("esri/core/lang");
     visualVariable: rendererResponse.visualVariable,
     histogram: histogramResult
   });
-  view.ui.add("containerDiv", "bottom-left");
+  view.ui.add(new Expand({
+    view,
+    group: "top-left",
+    content: document.getElementById("containerDiv"),
+    expandIconClass: "esri-icon-chart"
+  }), "top-left");
 
   // when the user slides the handle(s), update the renderer
   // with the updated color visual variable object
