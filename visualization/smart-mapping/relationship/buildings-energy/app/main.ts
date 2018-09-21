@@ -7,6 +7,7 @@ import Legend = require("esri/widgets/Legend");
 
 import relationshipRendererCreator = require("esri/renderers/smartMapping/creators/relationship");
 import { UniqueValueRenderer } from "esri/renderers";
+import { FillSymbol3DLayer, MeshSymbol3D } from "esri/symbols";
 
 (async() => {
 
@@ -14,15 +15,11 @@ import { UniqueValueRenderer } from "esri/renderers";
     portalItem: {
       id: "16111531d25348c6b03f6b743e1874f1"
     },
-    // popupTemplate: { // autocasts as new PopupTemplate()
-    //   title: "{Cmn_Name}",
-    //   content: "<i>{Sci_Name}</i><br>" +
-    //     "This tree is in {Condition} condition and is {Height} feet in height."
-    // }
+    title: "Energy use in Manhattan"
   });
 
   const map = new EsriMap({
-    basemap: "satellite",
+    basemap: "gray",
     ground: "world-elevation",
     layers: [ layer ]
   });
@@ -71,8 +68,6 @@ import { UniqueValueRenderer } from "esri/renderers";
     const newRenderer = oldRenderer.clone();
     layer.renderer = changeRendererLabels(newRenderer, showDescriptiveLabelsElement.checked);
   });
-  
-  // await layer.when();
 
   const rendererResponse = await createRelationshipRenderer();
   applyRenderer(rendererResponse);
@@ -119,6 +114,18 @@ import { UniqueValueRenderer } from "esri/renderers";
       return info;
     });
     renderer.uniqueValueInfos = uniqueValueInfos;
+    renderer.defaultSymbol = new MeshSymbol3D({
+      symbolLayers: [ new FillSymbol3DLayer({
+        material: {
+          color: [ 128, 128, 128, 0.4 ]
+        },
+        edges: {
+          type: "solid",
+          color: [ 50, 50, 50 ]
+        }
+      }) ]
+    });
+    renderer.defaultLabel = "No energy score";
     layer.renderer = renderer;
   }
 

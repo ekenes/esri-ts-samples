@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/SceneLayer", "esri/widgets/Legend", "esri/renderers/smartMapping/creators/relationship"], function (require, exports, EsriMap, SceneView, SceneLayer, Legend, relationshipRendererCreator) {
+define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/SceneLayer", "esri/widgets/Legend", "esri/renderers/smartMapping/creators/relationship", "esri/symbols"], function (require, exports, EsriMap, SceneView, SceneLayer, Legend, relationshipRendererCreator, symbols_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -80,6 +80,18 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/S
                 return info;
             });
             renderer.uniqueValueInfos = uniqueValueInfos;
+            renderer.defaultSymbol = new symbols_1.MeshSymbol3D({
+                symbolLayers: [new symbols_1.FillSymbol3DLayer({
+                        material: {
+                            color: [128, 128, 128, 0.4]
+                        },
+                        edges: {
+                            type: "solid",
+                            color: [50, 50, 50]
+                        }
+                    })]
+            });
+            renderer.defaultLabel = "No energy score";
             layer.renderer = renderer;
         }
         /**
@@ -126,9 +138,10 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/S
                         portalItem: {
                             id: "16111531d25348c6b03f6b743e1874f1"
                         },
+                        title: "Energy use in Manhattan"
                     });
                     map = new EsriMap({
-                        basemap: "satellite",
+                        basemap: "gray",
                         ground: "world-elevation",
                         layers: [layer]
                     });
