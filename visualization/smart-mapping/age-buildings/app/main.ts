@@ -5,7 +5,6 @@ import MapView = require("esri/views/MapView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
-import histogram = require("esri/renderers/smartMapping/statistics/histogram");
 import ColorSlider = require("esri/widgets/ColorSlider");
 import lang = require("esri/core/lang");
 
@@ -66,13 +65,6 @@ import lang = require("esri/core/lang");
   // set the renderer to the layer and add it to the map
 
   layer.renderer = rendererResponse.renderer;
-
-  const histogramResult = await histogram({
-    layer: ageParams.layer,
-    view: ageParams.view,
-    valueExpression: rendererResponse.renderer.valueExpression,
-    numBins: 30
-  });
       
   // input the slider parameters in the slider's constructor
   // and add it to the view's UI
@@ -83,7 +75,6 @@ import lang = require("esri/core/lang");
     container: "slider",
     statistics: rendererResponse.statistics,
     visualVariable: rendererResponse.visualVariable,
-    histogram: histogramResult,
     minValue: 0
   });
   view.ui.add("containerDiv", "bottom-left");
