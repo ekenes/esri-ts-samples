@@ -2,7 +2,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
-    <title>ArcGIS JSAPI 4.8 TypeScript Demo</title>
+    <title>Predominant housing explorer</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
     <link rel="stylesheet" href="app/main.css">
     <script>
@@ -20,6 +20,37 @@
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="panel" class="esri-widget">
+      <div style="padding: 10px">
+        <h3>Predominant decade in which homes were built</h3>
+        <div style="padding-bottom: 10px">
+          This map colors Census Block Groups by the predominant decade, or the
+          most common decade in which
+          homes were built. <strong>Selecting two or more decades</strong>
+          will visualize construction year predominance for only those decades.
+          <strong>Use
+            Ctrl or Cmd to select and deselect values.</strong>
+        </div>
+        <select id="fieldList" multiple="multiple" size=10 class="esri-widget">
+          <option value="ACSBLT1939" selected>Before 1940</option>
+          <option value="ACSBLT1940" selected>1940-1949</option>
+          <option value="ACSBLT1950" selected>1950-1959</option>
+          <option value="ACSBLT1960" selected>1960-1969</option>
+          <option value="ACSBLT1970" selected>1970-1979</option>
+          <option value="ACSBLT1980" selected>1980-1989</option>
+          <option value="ACSBLT1990" selected>1990-1999</option>
+          <option value="ACSBLT2000" selected>2000-2009</option>
+          <option value="ACSBLT2010" selected>2010-2013</option>
+          <option value="ACSBLT2014" selected>After 2013</option>
+        </select>
+        <div id="checkboxDiv">
+          <input type="checkbox" class="esri-widget" id="includeSize" checked> Show total
+          number of homes<br>
+          <input type="checkbox" class="esri-widget" id="includeOpacity"> Show %
+          of total homes comprised by predominant decade
+        </div>
+      </div>
+    </div>
     <script>require(["app/main"]);</script>
   </body>
 </html>
