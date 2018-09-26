@@ -109,8 +109,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         legendOptions: {
                             title: "Most common decade in which homes were built"
                         },
-                        includeOpacityVariable: true,
-                        includeSizeVariable: true
                     };
                     return [4 /*yield*/, predominanceRendererCreator.createRenderer(params)];
                 case 2:

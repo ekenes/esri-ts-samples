@@ -78,8 +78,8 @@ import predominanceRendererCreator = require("esri/renderers/smartMapping/creato
     legendOptions: {
       title: "Most common decade in which homes were built"
     },
-    includeOpacityVariable: true,
-    includeSizeVariable: true
+    // includeOpacityVariable: true,
+    // includeSizeVariable: true
   };
 
   const predominanceResponse = await predominanceRendererCreator.createRenderer(params);
