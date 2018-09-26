@@ -54,9 +54,11 @@ import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size"
   elements.forEach(function(element){
     element.addEventListener("change", async () => {
       const predominanceResponse = await createPredominanceRenderer();
-      applyRenderer(predominanceResponse);
+      layer.renderer = predominanceResponse.renderer;
     });
   });
+
+  // Gets all the predominance schemes available in the JS API
 
   const schemes = predominanceSchemes.getSchemes({
     basemap: map.basemap,
@@ -64,15 +66,21 @@ import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size"
     numColors: 10
   });
 
-  const predominanceResponse = await createPredominanceRenderer();
-  applyRenderer(predominanceResponse);
+  // create a predominance renderer once the app loads
 
-  function createPredominanceRenderer(){
+  const predominanceResponse = await createPredominanceRenderer();
+  layer.renderer = predominanceResponse.renderer;
+
+  /**
+   * Creates a predominance renderer if 2 or more fields are selected,
+   * or a continuous size renderer if 1 field is selected
+   */
+  function createPredominanceRenderer() {
 
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
 
     if (selectedOptions.length === 1){
-      return createSizeRenderer(selectedOptions[0].value);
+      return createSizeRenderer(selectedOptions[0]);
     }
 
     const fields = selectedOptions.map(function(option: HTMLOptionElement){
@@ -99,25 +107,21 @@ import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size"
     return predominanceRendererCreator.createRenderer(params);
   }
 
-  async function createSizeRenderer(field: string): Promise <esri.sizeContinuousRendererResult> {
+  async function createSizeRenderer(option: HTMLOptionElement): Promise <esri.sizeContinuousRendererResult> {
     return sizeRendererCreator.createContinuousRenderer({
       layer,
       basemap: map.basemap,
-      field,
+      field: option.value,
       legendOptions: {
-        title: "Number of homes built"
+        title: `Number of homes built (${option.text})`
       }
     });
-  }
-
-  function applyRenderer(response: any){
-    layer.renderer = response.renderer;
   }
 
   // Add popup template listing the values of each field in order
   // of highest to lowest
   
-  const popupArcade = `
+  const top10Arcade = `
     var numTopValues = 10;
 
     var groups = [
@@ -203,13 +207,31 @@ import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size"
     getTopGroups(groups);
   `;
 
+  const totalArcade = `
+    Text( Sum( $feature.ACSBLT1939,
+         $feature.ACSBLT1940,
+         $feature.ACSBLT1950,
+         $feature.ACSBLT1960,
+         $feature.ACSBLT1970,
+         $feature.ACSBLT1980,
+         $feature.ACSBLT1990,
+         $feature.ACSBLT2000,
+         $feature.ACSBLT2010,
+         $feature.ACSBLT2014),
+    "#,###");
+  `;
+
   layer.popupTemplate = {
-    title: "Number of homes built by decade",
-    content: "{expression/ordered-list-arcade}",
+    title: `{expression/total-arcade} total homes built`,
+    content: `{expression/ordered-list-arcade}`,
     expressionInfos: [{
       name: "ordered-list-arcade",
       title: "Top 10",
-      expression: popupArcade
+      expression: top10Arcade
+    }, {
+      name: "total-arcade",
+      title: "Total homes",
+      expression: totalArcade
     }]
   } as esri.PopupTemplate;
 
