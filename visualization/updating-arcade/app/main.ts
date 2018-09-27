@@ -2,14 +2,14 @@ import esri = __esri;
 
 import WebMap = require("esri/WebMap");
 import MapView = require("esri/views/MapView");
-import { SimpleRenderer, UniqueValueRenderer } from "esri/renderers";
+import { UniqueValueRenderer } from "esri/renderers";
 import { SimpleFillSymbol } from "esri/symbols";
 
 import Legend = require("esri/widgets/Legend");
 
 ( async () => {
 
-  const visualizationField = "EDUC02_CY";
+  const visualizationField = "EDUC01_CY";
   const allFields = [
     "EDUC01_CY",  // no education
     "EDUC02_CY",  // Primary School
@@ -18,8 +18,10 @@ import Legend = require("esri/widgets/Legend");
     "EDUC05_CY",  // Junior College
     "EDUC06_CY"  // University and Above
   ];
-  const description = "% population completed college";
+  const description = "Education in mainland China";
   const startValue = 5;
+
+
 
   const map = new WebMap({
     portalItem: {
@@ -47,6 +49,7 @@ import Legend = require("esri/widgets/Legend");
 
   const chinaLayer = map.layers.getItemAt(0) as esri.FeatureLayer;
   chinaLayer.when();
+
   chinaLayer.title = `${description}`;
   chinaLayer.renderer = new UniqueValueRenderer({
     valueExpression: createArcade( startValue ),
@@ -58,6 +61,10 @@ import Legend = require("esri/widgets/Legend");
       value: "Below",
       symbol: createSymbol("orange"),
       label: `Below ${startValue}%`
+    }, {
+      value: "Similar",
+      symbol: createSymbol("green"),
+      label: `Similar (within +/- 1%)`
     }],
     defaultLabel: "No data",
     defaultSymbol: createSymbol("gray")
@@ -78,18 +85,18 @@ import Legend = require("esri/widgets/Legend");
     });
 
     const midPoint = Math.round(( newValue / totalValue ) * 100);
-    updateRenderer( midPoint );
-
-    console.log("total value: ", totalValue);
+    const name = attributes.NAME;
+    updateRenderer( name, midPoint );
   });
 
-  function updateRenderer (newValue: number) {
+  function updateRenderer (name: string, newValue: number) {
     const oldRenderer = chinaLayer.renderer as UniqueValueRenderer;
     const newRenderer = oldRenderer.clone();
     newRenderer.valueExpression = createArcade(newValue);
-    newRenderer.uniqueValueInfos.forEach( info => {
-      info.label = `${info.label.substring(0,5)} ${newValue}%`;
-    })
+    newRenderer.uniqueValueInfos.forEach( (info, i) => {
+      info.label = i < 2 ? `${info.label.substring(0,5)} ${newValue}%` : `Within +/- 1% of ${name} (${newValue}%)`;
+    });
+    newRenderer.valueExpressionTitle = `% population without formal education relative to ${name}`;
     chinaLayer.renderer = newRenderer;
   }
 
@@ -100,8 +107,10 @@ import Legend = require("esri/widgets/Legend");
         $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );
 
       var percentTotalFeature = Round( ($feature.${visualizationField} / total) * 100);
-      console(value);
-      IIF( percentTotalFeature > value, "Above", "Below" );
+      When( percentTotalFeature <= value + 1 && 
+                     percentTotalFeature >= value - 1, "Similar",
+                     percentTotalFeature > value, "Above",
+                     "Below" );
     `;
   }
 

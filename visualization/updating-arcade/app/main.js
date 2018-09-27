@@ -38,17 +38,18 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        function updateRenderer(newValue) {
+        function updateRenderer(name, newValue) {
             var oldRenderer = chinaLayer.renderer;
             var newRenderer = oldRenderer.clone();
             newRenderer.valueExpression = createArcade(newValue);
-            newRenderer.uniqueValueInfos.forEach(function (info) {
-                info.label = info.label.substring(0, 5) + " " + newValue + "%";
+            newRenderer.uniqueValueInfos.forEach(function (info, i) {
+                info.label = i < 2 ? info.label.substring(0, 5) + " " + newValue + "%" : "Within +/- 1% of " + name + " (" + newValue + "%)";
             });
+            newRenderer.valueExpressionTitle = "% population without formal education relative to " + name;
             chinaLayer.renderer = newRenderer;
         }
         function createArcade(value) {
-            return "\n      var value = " + value + ";\n      var total = Sum( $feature.EDUC01_CY, $feature.EDUC02_CY, $feature.EDUC03_CY, \n        $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );\n\n      var percentTotalFeature = Round( ($feature." + visualizationField + " / total) * 100);\n      console(value);\n      IIF( percentTotalFeature > value, \"Above\", \"Below\" );\n    ";
+            return "\n      var value = " + value + ";\n      var total = Sum( $feature.EDUC01_CY, $feature.EDUC02_CY, $feature.EDUC03_CY, \n        $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );\n\n      var percentTotalFeature = Round( ($feature." + visualizationField + " / total) * 100);\n      When( percentTotalFeature <= value + 1 && \n                     percentTotalFeature >= value - 1, \"Similar\",\n                     percentTotalFeature > value, \"Above\",\n                     \"Below\" );\n    ";
         }
         function createSymbol(color) {
             return new symbols_1.SimpleFillSymbol({
@@ -64,7 +65,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    visualizationField = "EDUC02_CY";
+                    visualizationField = "EDUC01_CY";
                     allFields = [
                         "EDUC01_CY",
                         "EDUC02_CY",
@@ -73,7 +74,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                         "EDUC05_CY",
                         "EDUC06_CY" // University and Above
                     ];
-                    description = "% population completed college";
+                    description = "Education in mainland China";
                     startValue = 5;
                     map = new WebMap({
                         portalItem: {
@@ -111,12 +112,16 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                                 value: "Below",
                                 symbol: createSymbol("orange"),
                                 label: "Below " + startValue + "%"
+                            }, {
+                                value: "Similar",
+                                symbol: createSymbol("green"),
+                                label: "Similar (within +/- 1%)"
                             }],
                         defaultLabel: "No data",
                         defaultSymbol: createSymbol("gray")
                     });
                     view.on("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
-                        var hitTestResponse, result, attributes, newValue, totalValue, midPoint;
+                        var hitTestResponse, result, attributes, newValue, totalValue, midPoint, name;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0: return [4 /*yield*/, view.hitTest(event)];
@@ -132,8 +137,8 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                                         totalValue += attributes[fieldName];
                                     });
                                     midPoint = Math.round((newValue / totalValue) * 100);
-                                    updateRenderer(midPoint);
-                                    console.log("total value: ", totalValue);
+                                    name = attributes.NAME;
+                                    updateRenderer(name, midPoint);
                                     return [2 /*return*/];
                             }
                         });
