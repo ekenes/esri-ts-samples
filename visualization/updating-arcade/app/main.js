@@ -33,11 +33,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/renderers", "esri/symbols", "esri/widgets/Legend"], function (require, exports, WebMap, MapView, renderers_1, symbols_1, Legend) {
+define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers", "esri/symbols", "esri/widgets/Legend"], function (require, exports, WebMap, MapView, FeatureLayer, renderers_1, symbols_1, Legend) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
+        // Updates the renderer with the new Arcade expression and the 
+        // updated text reflecting the new value obtained from the clicked feature
         function updateRenderer(name, newValue) {
             var oldRenderer = chinaLayer.renderer;
             var newRenderer = oldRenderer.clone();
@@ -48,6 +50,8 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
             newRenderer.valueExpressionTitle = "% population without formal education relative to " + name;
             chinaLayer.renderer = newRenderer;
         }
+        // Creates an Arcade expression that categories each feature as either
+        // above or below the input value
         function createArcade(value) {
             return "\n      var value = " + value + ";\n      var total = Sum( $feature.EDUC01_CY, $feature.EDUC02_CY, $feature.EDUC03_CY, \n        $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );\n\n      var percentTotalFeature = Round( ($feature." + visualizationField + " / total) * 100);\n      When( percentTotalFeature <= value + 1 && \n            percentTotalFeature >= value - 1, \"Similar\",\n            percentTotalFeature > value, \"Above\",\n            \"Below\" );\n    ";
         }
@@ -61,7 +65,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                 style: style ? style : "solid"
             });
         }
-        var visualizationField, allFields, description, startValue, map, view, chinaLayer;
+        var visualizationField, allFields, description, startValue, chinaLayer, map, view, chinaLayerView, highlight;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -77,33 +81,41 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                     ];
                     description = "Education in mainland China";
                     startValue = 5;
-                    map = new WebMap({
+                    chinaLayer = new FeatureLayer({
                         portalItem: {
-                            id: "b8f443e2378344e79566fa64430a3c25"
-                        }
+                            id: "7b1fb95ab77f40bf8aa09c8b59045449"
+                        },
+                        opacity: 0.7,
+                        title: "" + description
+                    });
+                    map = new WebMap({
+                        basemap: {
+                            portalItem: {
+                                id: "eee15c389eec43ef98f1f55124b6a0cf"
+                            }
+                        },
+                        layers: [chinaLayer]
                     });
                     view = new MapView({
                         map: map,
                         container: "viewDiv",
-                        popup: {
-                            dockEnabled: true,
-                            dockOptions: {
-                                position: "top-right",
-                                breakpoint: false
-                            }
-                        },
                         highlightOptions: {
                             color: [0, 0, 0],
                             fillOpacity: 0
-                        }
+                        },
+                        center: [104.2530, 33.8218],
+                        zoom: 5
                     });
                     view.ui.add(new Legend({ view: view }), "bottom-left");
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
-                    chinaLayer = map.layers.getItemAt(0);
-                    chinaLayer.popupEnabled = false;
-                    chinaLayer.when();
+                    return [4 /*yield*/, chinaLayer.when()];
+                case 2:
+                    _a.sent();
+                    return [4 /*yield*/, view.whenLayerView(chinaLayer)];
+                case 3:
+                    chinaLayerView = _a.sent();
                     // render the layer with an Arcade expression
                     // Features where more than 5% of the population didn't 
                     // complete formal education are rendered in red. Features
@@ -111,7 +123,6 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                     // formal education will be rendered in orange
                     // Features where 5% of the population didn't complete
                     // formal education will be rendered in gray
-                    chinaLayer.title = "" + description;
                     chinaLayer.renderer = new renderers_1.UniqueValueRenderer({
                         valueExpression: createArcade(startValue),
                         valueExpressionTitle: "% population without formal education",
@@ -131,7 +142,6 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                         defaultLabel: "No data",
                         defaultSymbol: createSymbol("black", "backward-diagonal")
                     });
-                    // When the user clicks a feture
                     view.on("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
                         var hitTestResponse, result, attributes, newValue, totalValue, midPoint, name;
                         return __generator(this, function (_a) {
@@ -154,6 +164,10 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                                     midPoint = Math.round((newValue / totalValue) * 100);
                                     name = attributes.NAME;
                                     updateRenderer(name, midPoint);
+                                    if (highlight) {
+                                        highlight.remove();
+                                    }
+                                    highlight = chinaLayerView.highlight(attributes.OBJECTID);
                                     return [2 /*return*/];
                             }
                         });

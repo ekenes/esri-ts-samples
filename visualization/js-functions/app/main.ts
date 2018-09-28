@@ -2,6 +2,8 @@ import esri = __esri;
 
 import WebMap = require("esri/WebMap");
 import MapView = require("esri/views/MapView");
+import FeatureLayer = require("esri/layers/FeatureLayer");
+
 import { UniqueValueRenderer } from "esri/renderers";
 import { SimpleFillSymbol } from "esri/symbols";
 
@@ -21,36 +23,34 @@ import Legend = require("esri/widgets/Legend");
   const description = "Education in mainland China";
   let value = 5;
 
-  const map = new WebMap({
+  const chinaLayer = new FeatureLayer({
     portalItem: {
-      id: "b8f443e2378344e79566fa64430a3c25"
-    }
+      id: "7b1fb95ab77f40bf8aa09c8b59045449"
+    },
+    opacity: 0.7,
+    title: `${description}`,
+    outFields: allFields
+  })
+
+  const map = new WebMap({
+    basemap:  {
+      portalItem: {
+        id: "eee15c389eec43ef98f1f55124b6a0cf"
+      }
+    },
+    layers: [ chinaLayer ]
   });
 
   const view = new MapView({
     map: map,
     container: "viewDiv",
-    popup: {
-      dockEnabled: true,
-      dockOptions: {
-        position: "top-right",
-        breakpoint: false
-      }
-    },
-    highlightOptions: {
-      color: [ 0, 0, 0 ],
-      fillOpacity: 0
-    }
+    center: [ 104.2530, 33.8218 ],
+    zoom: 5
   });
   view.ui.add(new Legend({ view }), "bottom-left");
 
   await view.when();
 
-  const chinaLayer = map.layers.getItemAt(0) as esri.FeatureLayer;
-  chinaLayer.popupEnabled = false;
-  chinaLayer.when();
-
-  chinaLayer.title = `${description}`;
   chinaLayer.renderer = new UniqueValueRenderer({
     field: valueFunction,
     legendOptions: {

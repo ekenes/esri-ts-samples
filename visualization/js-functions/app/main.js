@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/renderers", "esri/symbols", "esri/widgets/Legend"], function (require, exports, WebMap, MapView, renderers_1, symbols_1, Legend) {
+define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers", "esri/symbols", "esri/widgets/Legend"], function (require, exports, WebMap, MapView, FeatureLayer, renderers_1, symbols_1, Legend) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -76,7 +76,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                 style: style ? style : "solid"
             });
         }
-        var visualizationField, allFields, description, value, map, view, chinaLayer;
+        var visualizationField, allFields, description, value, chinaLayer, map, view;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -92,34 +92,32 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                     ];
                     description = "Education in mainland China";
                     value = 5;
-                    map = new WebMap({
+                    chinaLayer = new FeatureLayer({
                         portalItem: {
-                            id: "b8f443e2378344e79566fa64430a3c25"
-                        }
+                            id: "7b1fb95ab77f40bf8aa09c8b59045449"
+                        },
+                        opacity: 0.7,
+                        title: "" + description,
+                        outFields: allFields
+                    });
+                    map = new WebMap({
+                        basemap: {
+                            portalItem: {
+                                id: "eee15c389eec43ef98f1f55124b6a0cf"
+                            }
+                        },
+                        layers: [chinaLayer]
                     });
                     view = new MapView({
                         map: map,
                         container: "viewDiv",
-                        popup: {
-                            dockEnabled: true,
-                            dockOptions: {
-                                position: "top-right",
-                                breakpoint: false
-                            }
-                        },
-                        highlightOptions: {
-                            color: [0, 0, 0],
-                            fillOpacity: 0
-                        }
+                        center: [104.2530, 33.8218],
+                        zoom: 5
                     });
                     view.ui.add(new Legend({ view: view }), "bottom-left");
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
-                    chinaLayer = map.layers.getItemAt(0);
-                    chinaLayer.popupEnabled = false;
-                    chinaLayer.when();
-                    chinaLayer.title = "" + description;
                     chinaLayer.renderer = new renderers_1.UniqueValueRenderer({
                         field: valueFunction,
                         legendOptions: {
