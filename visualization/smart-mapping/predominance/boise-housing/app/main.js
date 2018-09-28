@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/predominance", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/creators/size"], function (require, exports, EsriMap, MapView, Legend, FeatureLayer, predominanceRendererCreator, predominanceSchemes, sizeRendererCreator) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/predominance", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/creators/size", "app/ArcadeExpressions"], function (require, exports, EsriMap, MapView, Legend, FeatureLayer, predominanceRendererCreator, predominanceSchemes, sizeRendererCreator, ArcadeExpressions_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -82,7 +82,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse, top10Arcade, totalArcade;
+        var layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -145,19 +145,19 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 case 2:
                     predominanceResponse = _a.sent();
                     layer.renderer = predominanceResponse.renderer;
-                    top10Arcade = "\n    var numTopValues = 10;\n\n    var groups = [\n      {\n        value: $feature.ACSBLT1939,\n        alias: \"Before 1940\"\n      }, {\n        value: $feature.ACSBLT1940,\n        alias: \"1940s\"\n      }, {\n        value: $feature.ACSBLT1950,\n        alias: \"1950s\"\n      }, {\n        value: $feature.ACSBLT1960,\n        alias: \"1960s\"\n      }, {\n        value: $feature.ACSBLT1970,\n        alias: \"1970s\"\n      }, {\n        value: $feature.ACSBLT1980,\n        alias: \"1980s\"\n      }, {\n        value: $feature.ACSBLT1990,\n        alias: \"1990s\"\n      }, {\n        value: $feature.ACSBLT2000,\n        alias: \"2000s\"\n      }, {\n        value: $feature.ACSBLT2010,\n        alias: \"2010-2014\"\n      }, {\n        value: $feature.ACSBLT2014,\n        alias: \"After 2014\"\n      }\n    ];\n\n    function getValuesArray(a){\n      var valuesArray = []\n      for(var i in a){\n        valuesArray[i] = a[i].value;\n      }\n      return valuesArray;\n    }\n\n    function findAliases(top5a,fulla){\n      var aliases = [];\n      var found = \"\";\n      for(var i in top5a){\n        for(var k in fulla){\n          if(top5a[i] == fulla[k].value && Find(fulla[k].alias, found) == -1){\n            found += fulla[k].alias;\n            aliases[Count(aliases)] = {\n              alias: fulla[k].alias,\n              value: top5a[i]\n            };\n          }\n        }\n      }\n      return aliases;\n    }\n    \n    function getTopGroups(groupsArray){\n        \n      var values = getValuesArray(groupsArray);\n      var top5Values = IIF(Max(values) > 0, Top(Reverse(Sort(values)),numTopValues), \"no data\");\n      var top5Aliases = findAliases(top5Values,groupsArray);\n        \n      if(TypeOf(top5Values) == \"String\"){\n        return top5Values;\n      } else {\n        var content = \"\";\n        for(var i in top5Aliases){\n          if(top5Aliases[i].value > 0){\n            content += (i+1) + \". \" + top5Aliases[i].alias + \" (\" + Text(top5Aliases[i].value, \"#,###\") + \")\";\n            content += IIF(i < numTopValues-1, TextFormatting.NewLine, \"\");\n          }\n        }\n      }\n        \n      return content;\n    }\n    \n    getTopGroups(groups);\n  ";
-                    totalArcade = "\n    Text( Sum( $feature.ACSBLT1939,\n         $feature.ACSBLT1940,\n         $feature.ACSBLT1950,\n         $feature.ACSBLT1960,\n         $feature.ACSBLT1970,\n         $feature.ACSBLT1980,\n         $feature.ACSBLT1990,\n         $feature.ACSBLT2000,\n         $feature.ACSBLT2010,\n         $feature.ACSBLT2014),\n    \"#,###\");\n  ";
+                    // Add popup template listing the values of each field in order
+                    // of highest to lowest
                     layer.popupTemplate = {
                         title: "{expression/total-arcade} total homes built",
                         content: "{expression/ordered-list-arcade}",
                         expressionInfos: [{
                                 name: "ordered-list-arcade",
                                 title: "Top 10",
-                                expression: top10Arcade
+                                expression: ArcadeExpressions_1.top10Arcade
                             }, {
                                 name: "total-arcade",
                                 title: "Total homes",
-                                expression: totalArcade
+                                expression: ArcadeExpressions_1.totalArcade
                             }]
                     };
                     return [2 /*return*/];
