@@ -1,0 +1,55 @@
+
+.widgets-drop-target {
+  display: none;
+
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  pointer-events: none;
+}
+
+
+.widgets-drop-target.widgets-drop-target--visible {
+  display: flex;
+}
+
+.widgets-drop-target .widgets-drop-target--background {
+  flex: 1 1 100%;
+  padding: 5%;
+
+  display: flex;
+}
+
+.widgets-drop-target.widgets-drop-target--valid .widgets-drop-target--background {
+  background: rgba(39, 175, 141, 0.44);
+}
+
+.widgets-drop-target.widgets-drop-target--invalid .widgets-drop-target--background {
+  background: rgba(175, 39, 39, 0.44);
+}
+
+.widgets-drop-target .widgets-drop-target--border {
+  flex: 1 1 100%;
+  border: 10px dashed;
+  border-radius: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.widgets-drop-target.widgets-drop-target--valid .widgets-drop-target--border {
+  border-color: #FFFFFF;
+}
+
+.widgets-drop-target.widgets-drop-target--invalid .widgets-drop-target--border {
+  border-color: rgba(175, 39, 39, 1);
+}
+
+.widgets-drop-target .widgets-drop-target--label {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 800%;
+  color: white;
+}
