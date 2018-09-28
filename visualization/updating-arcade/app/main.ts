@@ -40,7 +40,8 @@ import Legend = require("esri/widgets/Legend");
       }
     },
     highlightOptions: {
-      color: "green"
+      color: [ 0, 0, 0 ],
+      fillOpacity: 0
     }
   });
   view.ui.add(new Legend({ view }), "bottom-left");
@@ -48,26 +49,28 @@ import Legend = require("esri/widgets/Legend");
   await view.when();
 
   const chinaLayer = map.layers.getItemAt(0) as esri.FeatureLayer;
+  chinaLayer.popupEnabled = false;
   chinaLayer.when();
 
   chinaLayer.title = `${description}`;
   chinaLayer.renderer = new UniqueValueRenderer({
     valueExpression: createArcade( startValue ),
-    uniqueValueInfos: [{
+    valueExpressionTitle: "% population without formal education",
+    uniqueValueInfos: [{ 
       value: "Above",
-      symbol: createSymbol("purple"),
+      symbol: createSymbol("#b30000"),
       label: `Above ${startValue}%`
+    }, {
+      value: "Similar",
+      symbol: createSymbol("gray"),
+      label: `Similar (within +/- 1%)`
     }, {
       value: "Below",
       symbol: createSymbol("orange"),
       label: `Below ${startValue}%`
-    }, {
-      value: "Similar",
-      symbol: createSymbol("green"),
-      label: `Similar (within +/- 1%)`
     }],
     defaultLabel: "No data",
-    defaultSymbol: createSymbol("gray")
+    defaultSymbol: createSymbol("black", "backward-diagonal")
   })
 
   view.on("click", async (event) => {
@@ -94,7 +97,7 @@ import Legend = require("esri/widgets/Legend");
     const newRenderer = oldRenderer.clone();
     newRenderer.valueExpression = createArcade(newValue);
     newRenderer.uniqueValueInfos.forEach( (info, i) => {
-      info.label = i < 2 ? `${info.label.substring(0,5)} ${newValue}%` : `Within +/- 1% of ${name} (${newValue}%)`;
+      info.label = ( i !== 1 ) ? `${info.label.substring(0,5)} ${newValue}%` : `Within +/- 1% of ${name} (${newValue}%)`;
     });
     newRenderer.valueExpressionTitle = `% population without formal education relative to ${name}`;
     chinaLayer.renderer = newRenderer;
@@ -108,19 +111,20 @@ import Legend = require("esri/widgets/Legend");
 
       var percentTotalFeature = Round( ($feature.${visualizationField} / total) * 100);
       When( percentTotalFeature <= value + 1 && 
-                     percentTotalFeature >= value - 1, "Similar",
-                     percentTotalFeature > value, "Above",
-                     "Below" );
+            percentTotalFeature >= value - 1, "Similar",
+            percentTotalFeature > value, "Above",
+            "Below" );
     `;
   }
 
-  function createSymbol (color: any): SimpleFillSymbol {
+  function createSymbol (color: any, style?: string): SimpleFillSymbol {
     return new SimpleFillSymbol({
       color,
       outline: {
         color: "white",
         width: 0.75
-      }
+      },
+      style: style ? style : "solid"
     });
   }
 

@@ -43,21 +43,22 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
             var newRenderer = oldRenderer.clone();
             newRenderer.valueExpression = createArcade(newValue);
             newRenderer.uniqueValueInfos.forEach(function (info, i) {
-                info.label = i < 2 ? info.label.substring(0, 5) + " " + newValue + "%" : "Within +/- 1% of " + name + " (" + newValue + "%)";
+                info.label = (i !== 1) ? info.label.substring(0, 5) + " " + newValue + "%" : "Within +/- 1% of " + name + " (" + newValue + "%)";
             });
             newRenderer.valueExpressionTitle = "% population without formal education relative to " + name;
             chinaLayer.renderer = newRenderer;
         }
         function createArcade(value) {
-            return "\n      var value = " + value + ";\n      var total = Sum( $feature.EDUC01_CY, $feature.EDUC02_CY, $feature.EDUC03_CY, \n        $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );\n\n      var percentTotalFeature = Round( ($feature." + visualizationField + " / total) * 100);\n      When( percentTotalFeature <= value + 1 && \n                     percentTotalFeature >= value - 1, \"Similar\",\n                     percentTotalFeature > value, \"Above\",\n                     \"Below\" );\n    ";
+            return "\n      var value = " + value + ";\n      var total = Sum( $feature.EDUC01_CY, $feature.EDUC02_CY, $feature.EDUC03_CY, \n        $feature.EDUC04_CY, $feature.EDUC05_CY, $feature.EDUC06_CY );\n\n      var percentTotalFeature = Round( ($feature." + visualizationField + " / total) * 100);\n      When( percentTotalFeature <= value + 1 && \n            percentTotalFeature >= value - 1, \"Similar\",\n            percentTotalFeature > value, \"Above\",\n            \"Below\" );\n    ";
         }
-        function createSymbol(color) {
+        function createSymbol(color, style) {
             return new symbols_1.SimpleFillSymbol({
                 color: color,
                 outline: {
                     color: "white",
                     width: 0.75
-                }
+                },
+                style: style ? style : "solid"
             });
         }
         var visualizationField, allFields, description, startValue, map, view, chinaLayer;
@@ -92,7 +93,8 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                             }
                         },
                         highlightOptions: {
-                            color: "green"
+                            color: [0, 0, 0],
+                            fillOpacity: 0
                         }
                     });
                     view.ui.add(new Legend({ view: view }), "bottom-left");
@@ -100,25 +102,27 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                 case 1:
                     _a.sent();
                     chinaLayer = map.layers.getItemAt(0);
+                    chinaLayer.popupEnabled = false;
                     chinaLayer.when();
                     chinaLayer.title = "" + description;
                     chinaLayer.renderer = new renderers_1.UniqueValueRenderer({
                         valueExpression: createArcade(startValue),
+                        valueExpressionTitle: "% population without formal education",
                         uniqueValueInfos: [{
                                 value: "Above",
-                                symbol: createSymbol("purple"),
+                                symbol: createSymbol("#b30000"),
                                 label: "Above " + startValue + "%"
+                            }, {
+                                value: "Similar",
+                                symbol: createSymbol("gray"),
+                                label: "Similar (within +/- 1%)"
                             }, {
                                 value: "Below",
                                 symbol: createSymbol("orange"),
                                 label: "Below " + startValue + "%"
-                            }, {
-                                value: "Similar",
-                                symbol: createSymbol("green"),
-                                label: "Similar (within +/- 1%)"
                             }],
                         defaultLabel: "No data",
-                        defaultSymbol: createSymbol("gray")
+                        defaultSymbol: createSymbol("black", "backward-diagonal")
                     });
                     view.on("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
                         var hitTestResponse, result, attributes, newValue, totalValue, midPoint, name;
