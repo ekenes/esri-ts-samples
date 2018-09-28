@@ -104,6 +104,13 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                     chinaLayer = map.layers.getItemAt(0);
                     chinaLayer.popupEnabled = false;
                     chinaLayer.when();
+                    // render the layer with an Arcade expression
+                    // Features where more than 5% of the population didn't 
+                    // complete formal education are rendered in red. Features
+                    // where less than 5% of the population didn't complete
+                    // formal education will be rendered in orange
+                    // Features where 5% of the population didn't complete
+                    // formal education will be rendered in gray
                     chinaLayer.title = "" + description;
                     chinaLayer.renderer = new renderers_1.UniqueValueRenderer({
                         valueExpression: createArcade(startValue),
@@ -124,6 +131,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                         defaultLabel: "No data",
                         defaultSymbol: createSymbol("black", "backward-diagonal")
                     });
+                    // When the user clicks a feture
                     view.on("click", function (event) { return __awaiter(_this, void 0, void 0, function () {
                         var hitTestResponse, result, attributes, newValue, totalValue, midPoint, name;
                         return __generator(this, function (_a) {
@@ -134,6 +142,9 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                                     result = hitTestResponse.results && hitTestResponse.results.filter(function (result) {
                                         return result.graphic.layer.type === "feature";
                                     })[0];
+                                    if (!result) {
+                                        return [2 /*return*/, null];
+                                    }
                                     attributes = result.graphic.attributes;
                                     newValue = attributes[visualizationField];
                                     totalValue = 0;

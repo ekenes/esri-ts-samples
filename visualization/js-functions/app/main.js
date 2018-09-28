@@ -151,6 +151,9 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/rendere
                                     result = hitTestResponse.results && hitTestResponse.results.filter(function (result) {
                                         return result.graphic.layer.type === "feature";
                                     })[0];
+                                    if (!result) {
+                                        return [2 /*return*/, null];
+                                    }
                                     attributes = result.graphic.attributes;
                                     newValue = attributes[visualizationField];
                                     totalValue = 0;

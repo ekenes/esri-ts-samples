@@ -79,6 +79,10 @@ import Legend = require("esri/widgets/Legend");
       return result.graphic.layer.type === "feature";
     })[0];
 
+    if(!result){
+      return null;
+    }
+
     const attributes = result.graphic.attributes;
     const newValue = attributes[visualizationField];
     let totalValue = 0;

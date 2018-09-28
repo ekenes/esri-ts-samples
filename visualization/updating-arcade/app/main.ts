@@ -21,8 +21,6 @@ import Legend = require("esri/widgets/Legend");
   const description = "Education in mainland China";
   const startValue = 5;
 
-
-
   const map = new WebMap({
     portalItem: {
       id: "b8f443e2378344e79566fa64430a3c25"
@@ -48,9 +46,19 @@ import Legend = require("esri/widgets/Legend");
 
   await view.when();
 
+  // Get the first layer from the web map
+
   const chinaLayer = map.layers.getItemAt(0) as esri.FeatureLayer;
   chinaLayer.popupEnabled = false;
   chinaLayer.when();
+
+  // render the layer with an Arcade expression
+  // Features where more than 5% of the population didn't 
+  // complete formal education are rendered in red. Features
+  // where less than 5% of the population didn't complete
+  // formal education will be rendered in orange
+  // Features where 5% of the population didn't complete
+  // formal education will be rendered in gray
 
   chinaLayer.title = `${description}`;
   chinaLayer.renderer = new UniqueValueRenderer({
@@ -71,13 +79,21 @@ import Legend = require("esri/widgets/Legend");
     }],
     defaultLabel: "No data",
     defaultSymbol: createSymbol("black", "backward-diagonal")
-  })
+  });
+
+  // When the user clicks a feature, the renderer will update 
+  // to color features based on whether their value is above 
+  // or below the value of the clicked feature
 
   view.on("click", async (event) => {
     const hitTestResponse = await view.hitTest(event);
     const result = hitTestResponse.results && hitTestResponse.results.filter( result => {
       return result.graphic.layer.type === "feature";
     })[0];
+
+    if (!result){
+      return null;
+    }
 
     const attributes = result.graphic.attributes;
     const newValue = attributes[visualizationField];
@@ -92,6 +108,9 @@ import Legend = require("esri/widgets/Legend");
     updateRenderer( name, midPoint );
   });
 
+  // Updates the renderer with the new Arcade expression and the 
+  // updated text reflecting the new value obtained from the clicked feature
+
   function updateRenderer (name: string, newValue: number) {
     const oldRenderer = chinaLayer.renderer as UniqueValueRenderer;
     const newRenderer = oldRenderer.clone();
@@ -103,6 +122,9 @@ import Legend = require("esri/widgets/Legend");
     chinaLayer.renderer = newRenderer;
   }
 
+  // Creates an Arcade expression that categories each feature as either
+  // above or below the input value
+  
   function createArcade(value: number): string {
     return `
       var value = ${value};
