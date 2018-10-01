@@ -98,7 +98,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/layers/
                         },
                         opacity: 0.7,
                         title: "" + description,
-                        outFields: allFields
+                        outFields: allFields.concat(["name"])
                     });
                     map = new WebMap({
                         basemap: {

@@ -29,7 +29,7 @@ import Legend = require("esri/widgets/Legend");
     },
     opacity: 0.7,
     title: `${description}`,
-    outFields: allFields
+    outFields: allFields.concat(["name"])
   })
 
   const map = new WebMap({

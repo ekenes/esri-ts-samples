@@ -28,7 +28,8 @@ import Legend = require("esri/widgets/Legend");
       id: "7b1fb95ab77f40bf8aa09c8b59045449"
     },
     opacity: 0.7,
-    title: `${description}`
+    title: `${description}`,
+    outFields: allFields.concat(["name"])
   })
 
   const map = new WebMap({
