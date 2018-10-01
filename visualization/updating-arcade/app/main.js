@@ -108,6 +108,7 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/layers/
                         zoom: 5
                     });
                     view.ui.add(new Legend({ view: view }), "bottom-left");
+                    view.ui.add(document.getElementById("infoDiv"), "top-right");
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();

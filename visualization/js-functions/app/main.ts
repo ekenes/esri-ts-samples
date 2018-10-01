@@ -48,6 +48,7 @@ import Legend = require("esri/widgets/Legend");
     zoom: 5
   });
   view.ui.add(new Legend({ view }), "bottom-left");
+  view.ui.add(document.getElementById("infoDiv"), "top-right");
 
   await view.when();
 

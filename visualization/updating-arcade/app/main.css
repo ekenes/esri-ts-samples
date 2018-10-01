@@ -6,3 +6,9 @@ body,
   height: 100%;
   width: 100%;
 }
+
+#infoDiv {
+  padding: 10px;
+  max-width: 40%;
+  font-size: 12pt;
+}
