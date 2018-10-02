@@ -105,7 +105,10 @@ define(["require", "exports", "esri/WebMap", "esri/views/MapView", "esri/layers/
                             fillOpacity: 0
                         },
                         center: [104.2530, 33.8218],
-                        zoom: 5
+                        zoom: 5,
+                        constraints: {
+                            minZoom: 4
+                        }
                     });
                     view.ui.add(new Legend({ view: view }), "bottom-left");
                     view.ui.add(document.getElementById("infoDiv"), "top-right");
