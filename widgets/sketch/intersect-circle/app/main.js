@@ -39,6 +39,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
         function addGraphic(event) {
+            view.graphics.removeAll();
             // Create a new graphic and set its geometry to
             // `create-complete` event geometry.
             var graphic = new Graphic({
@@ -49,6 +50,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
             // createArcade(event.geometry);
             layer.popupTemplate = createPopupTemplate(event.geometry);
             console.log(layer.popupTemplate);
+            setActiveButton(drawCircleButton);
         }
         function createPopupTemplate(geometry) {
             return new PopupTemplate({
@@ -66,16 +68,15 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
         function setActiveButton(selectedButton) {
             // focus the view to activate keyboard shortcuts for sketching
             view.focus();
-            var elements = document.getElementsByClassName("active");
-            for (var i = 0; i < elements.length; i++) {
-                elements[i].classList.remove("active");
+            if (selectedButton.classList.contains("active")) {
+                selectedButton.classList.remove("active");
             }
-            if (selectedButton) {
+            else {
                 selectedButton.classList.add("active");
             }
+            ;
         }
         var layer, map, view, polygonSymbol, sketchViewModel, drawCircleButton;
-        var _this = this;
         return __generator(this, function (_a) {
             layer = new FeatureLayer({
                 portalItem: {
@@ -100,11 +101,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 }
             });
             polygonSymbol = new symbols_1.SimpleFillSymbol({
-                color: "rgba(138,43,226, 0.8)",
-                style: "solid",
+                style: "none",
                 outline: {
                     color: "white",
-                    width: 1
+                    width: 2
                 }
             });
             sketchViewModel = new SketchViewModel({
@@ -115,7 +115,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
             drawCircleButton = document.getElementById("circleButton");
             drawCircleButton.addEventListener("click", function () {
                 sketchViewModel.create("circle");
-                setActiveButton(_this);
+                setActiveButton(drawCircleButton);
             });
             return [2 /*return*/];
         });

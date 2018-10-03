@@ -40,11 +40,10 @@ import { SimpleFillSymbol } from "esri/symbols";
   });
 
   const polygonSymbol = new SimpleFillSymbol({
-    color: "rgba(138,43,226, 0.8)",
-    style: "solid",
+    style: "none",
     outline: {
       color: "white",
-      width: 1
+      width: 2
     }
   });
 
@@ -56,6 +55,7 @@ import { SimpleFillSymbol } from "esri/symbols";
   sketchViewModel.on("create-complete", addGraphic);
 
   function addGraphic(event: any) {
+    view.graphics.removeAll();
     // Create a new graphic and set its geometry to
     // `create-complete` event geometry.
     const graphic = new Graphic({
@@ -68,6 +68,7 @@ import { SimpleFillSymbol } from "esri/symbols";
 
     layer.popupTemplate = createPopupTemplate(event.geometry);
     console.log(layer.popupTemplate);
+    setActiveButton(drawCircleButton);
   }
 
   function createPopupTemplate (geometry: Polygon): PopupTemplate {
@@ -94,22 +95,22 @@ import { SimpleFillSymbol } from "esri/symbols";
     `;
   }
 
-  const drawCircleButton = document.getElementById("circleButton");
+  const drawCircleButton = document.getElementById("circleButton") as HTMLButtonElement;
   drawCircleButton.addEventListener("click", () => {
     sketchViewModel.create("circle");
-    setActiveButton(this);
+    setActiveButton(drawCircleButton);
   });
 
   function setActiveButton(selectedButton: HTMLButtonElement) {
     // focus the view to activate keyboard shortcuts for sketching
     view.focus();
-    const elements = document.getElementsByClassName("active");
-    for (let i = 0; i < elements.length; i++) {
-      elements[i].classList.remove("active");
-    }
-    if (selectedButton) {
+
+    if( selectedButton.classList.contains("active") ){
+      selectedButton.classList.remove("active");
+    } 
+    else {
       selectedButton.classList.add("active");
-    }
+    };
   }
 
 })();
