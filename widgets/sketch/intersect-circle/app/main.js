@@ -33,21 +33,89 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView"], function (require, exports, EsriMap, MapView) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/widgets/Sketch/SketchViewModel", "esri/Graphic", "esri/PopupTemplate", "esri/symbols"], function (require, exports, EsriMap, MapView, FeatureLayer, SketchViewModel, Graphic, PopupTemplate, symbols_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        var map, view;
+        function addGraphic(event) {
+            // Create a new graphic and set its geometry to
+            // `create-complete` event geometry.
+            var graphic = new Graphic({
+                geometry: event.geometry,
+                symbol: sketchViewModel.graphic.symbol
+            });
+            view.graphics.add(graphic);
+            // createArcade(event.geometry);
+            layer.popupTemplate = createPopupTemplate(event.geometry);
+            console.log(layer.popupTemplate);
+        }
+        function createPopupTemplate(geometry) {
+            return new PopupTemplate({
+                expressionInfos: [{
+                        expression: createArcade(geometry),
+                        name: "circle"
+                    }],
+                content: "{expression/circle}"
+            });
+        }
+        function createArcade(geometry) {
+            var geometryJson = JSON.stringify(geometry.toJSON());
+            return "\n      var circle = Polygon(" + geometryJson + ");\n      var featureArea = GeodesicArea( $feature, \"square-kilometers\" );\n      var intersectedArea = IIF( Intersects( $feature, circle ), \n        GeodesicArea( Intersection( $feature, circle ) , \"square-kilometers\" ), \n        featureArea \n      );\n\n      return ( intersectedArea / featureArea );\n    ";
+        }
+        function setActiveButton(selectedButton) {
+            // focus the view to activate keyboard shortcuts for sketching
+            view.focus();
+            var elements = document.getElementsByClassName("active");
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].classList.remove("active");
+            }
+            if (selectedButton) {
+                selectedButton.classList.add("active");
+            }
+        }
+        var layer, map, view, polygonSymbol, sketchViewModel, drawCircleButton;
+        var _this = this;
         return __generator(this, function (_a) {
+            layer = new FeatureLayer({
+                portalItem: {
+                    id: "2bd5af2e50484ea483d5ff1a2c24d605"
+                }
+            });
             map = new EsriMap({
-                basemap: "streets"
+                basemap: "streets",
+                layers: [layer]
             });
             view = new MapView({
                 map: map,
                 container: "viewDiv",
-                center: [-118.244, 34.052],
-                zoom: 12
+                extent: {
+                    spatialReference: {
+                        wkid: 3857
+                    },
+                    xmin: -29633185,
+                    ymin: 3308563,
+                    xmax: -27145618,
+                    ymax: 5226215
+                }
+            });
+            polygonSymbol = new symbols_1.SimpleFillSymbol({
+                color: "rgba(138,43,226, 0.8)",
+                style: "solid",
+                outline: {
+                    color: "white",
+                    width: 1
+                }
+            });
+            sketchViewModel = new SketchViewModel({
+                view: view,
+                polygonSymbol: polygonSymbol
+            });
+            sketchViewModel.on("create-complete", addGraphic);
+            drawCircleButton = document.getElementById("circleButton");
+            drawCircleButton.addEventListener("click", function () {
+                sketchViewModel.create("circle");
+                setActiveButton(_this);
             });
             return [2 /*return*/];
         });
