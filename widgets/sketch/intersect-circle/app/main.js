@@ -47,7 +47,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 symbol: sketchViewModel.graphic.symbol
             });
             view.graphics.add(graphic);
-            // createArcade(event.geometry);
             layer.popupTemplate = createPopupTemplate(event.geometry);
             console.log(layer.popupTemplate);
             setActiveButton(drawCircleButton);
@@ -63,7 +62,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
         }
         function createArcade(geometry) {
             var geometryJson = JSON.stringify(geometry.toJSON());
-            return "\n      var circle = Polygon(" + geometryJson + ");\n      var featureArea = GeodesicArea( $feature, \"square-kilometers\" );\n      var intersectedArea = IIF( Intersects( $feature, circle ), \n        GeodesicArea( Intersection( $feature, circle ) , \"square-kilometers\" ), \n        featureArea \n      );\n\n      return ( intersectedArea / featureArea );\n    ";
+            return "\n      // GeodesicArea(), Intersects(), Intersection()\n      // all coming at 4.10\n\n      var unit = \"square-kilometers\";\n      var circle = Polygon(" + geometryJson + ");\n      var featureArea = GeodesicArea( $feature, unit );\n      var intersectedArea = IIF( Intersects( $feature, circle ), \n        GeodesicArea( Intersection( $feature, circle ), unit ), \n        featureArea \n      );\n\n      return ( intersectedArea / featureArea );\n    ";
         }
         function setActiveButton(selectedButton) {
             // focus the view to activate keyboard shortcuts for sketching

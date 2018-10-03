@@ -64,8 +64,6 @@ import { SimpleFillSymbol } from "esri/symbols";
     });
     view.graphics.add(graphic);
 
-    // createArcade(event.geometry);
-
     layer.popupTemplate = createPopupTemplate(event.geometry);
     console.log(layer.popupTemplate);
     setActiveButton(drawCircleButton);
@@ -84,10 +82,14 @@ import { SimpleFillSymbol } from "esri/symbols";
   function createArcade(geometry: Polygon): string {
     const geometryJson = JSON.stringify(geometry.toJSON());
     return `
+      // GeodesicArea(), Intersects(), Intersection()
+      // all coming at 4.10
+
+      var unit = "square-kilometers";
       var circle = Polygon(${geometryJson});
-      var featureArea = GeodesicArea( $feature, "square-kilometers" );
+      var featureArea = GeodesicArea( $feature, unit );
       var intersectedArea = IIF( Intersects( $feature, circle ), 
-        GeodesicArea( Intersection( $feature, circle ) , "square-kilometers" ), 
+        GeodesicArea( Intersection( $feature, circle ), unit ), 
         featureArea 
       );
 
