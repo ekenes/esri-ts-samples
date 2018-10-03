@@ -93,7 +93,7 @@ import { SimpleFillSymbol } from "esri/symbols";
         featureArea 
       );
 
-      return ( intersectedArea / featureArea );
+      return ( intersectedArea / featureArea ) * $feature.Average_HDI;
     `;
   }
 

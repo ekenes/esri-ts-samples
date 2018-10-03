@@ -62,7 +62,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
         }
         function createArcade(geometry) {
             var geometryJson = JSON.stringify(geometry.toJSON());
-            return "\n      // GeodesicArea(), Intersects(), Intersection()\n      // all coming at 4.10\n\n      var unit = \"square-kilometers\";\n      var circle = Polygon(" + geometryJson + ");\n      var featureArea = GeodesicArea( $feature, unit );\n      var intersectedArea = IIF( Intersects( $feature, circle ), \n        GeodesicArea( Intersection( $feature, circle ), unit ), \n        featureArea \n      );\n\n      return ( intersectedArea / featureArea );\n    ";
+            return "\n      // GeodesicArea(), Intersects(), Intersection()\n      // all coming at 4.10\n\n      var unit = \"square-kilometers\";\n      var circle = Polygon(" + geometryJson + ");\n      var featureArea = GeodesicArea( $feature, unit );\n      var intersectedArea = IIF( Intersects( $feature, circle ), \n        GeodesicArea( Intersection( $feature, circle ), unit ), \n        featureArea \n      );\n\n      return ( intersectedArea / featureArea ) * $feature.Average_HDI;\n    ";
         }
         function setActiveButton(selectedButton) {
             // focus the view to activate keyboard shortcuts for sketching
