@@ -21,7 +21,7 @@ import { PointSymbol3D, ObjectSymbol3DLayer, SimpleMarkerSymbol, WebStyleSymbol 
   });
 
   const map = new EsriMap({
-    basemap: "dark-gray",
+    basemap: "osm",
     ground: "world-elevation",
     layers: [ layer ]
   });

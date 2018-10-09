@@ -173,7 +173,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         }
                     });
                     map = new EsriMap({
-                        basemap: "dark-gray",
+                        basemap: "osm",
                         ground: "world-elevation",
                         layers: [layer]
                     });
