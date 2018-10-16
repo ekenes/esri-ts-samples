@@ -5,6 +5,7 @@ import MapView = require("esri/views/MapView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
+import histogram = require("esri/renderers/smartMapping/statistics/histogram");
 import ColorSlider = require("esri/widgets/ColorSlider");
 import lang = require("esri/core/lang");
 
@@ -65,6 +66,14 @@ import lang = require("esri/core/lang");
   // set the renderer to the layer and add it to the map
 
   layer.renderer = rendererResponse.renderer;
+
+  const sliderHistogram = await histogram({
+    layer,
+    view,
+    valueExpression: ageParams.valueExpression,
+    numBins: 30,
+    minValue: 0
+  });
       
   // input the slider parameters in the slider's constructor
   // and add it to the view's UI
@@ -75,6 +84,7 @@ import lang = require("esri/core/lang");
     container: "slider",
     statistics: rendererResponse.statistics,
     visualVariable: rendererResponse.visualVariable,
+    histogram: sliderHistogram,
     minValue: 0
   });
   view.ui.add("containerDiv", "bottom-left");
@@ -87,6 +97,22 @@ import lang = require("esri/core/lang");
     const newRenderer = oldRenderer.clone();
     newRenderer.visualVariables = [lang.clone(colorSlider.visualVariable)];
     layer.renderer = newRenderer;
+  });
+
+  // when the user changes the min/max values of the slider
+  // the histogram should be updated
+
+  colorSlider.on("data-value-change", async function(event: any) {
+    const sliderHistogram = await histogram({
+      layer,
+      view,
+      valueExpression: ageParams.valueExpression,
+      numBins: 30,
+      minValue: colorSlider.minValue,
+      maxValue: colorSlider.maxValue
+    });
+
+    colorSlider.set("histogram", sliderHistogram);
   });
 
 })();

@@ -33,12 +33,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/widgets/ColorSlider", "esri/core/lang"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, ColorSlider, lang) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/statistics/histogram", "esri/widgets/ColorSlider", "esri/core/lang"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, histogram, ColorSlider, lang) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        var layer, map, view, ageParams, rendererResponse, colorSlider;
+        var layer, map, view, ageParams, rendererResponse, sliderHistogram, colorSlider;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -100,12 +100,22 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     rendererResponse = _a.sent();
                     // set the renderer to the layer and add it to the map
                     layer.renderer = rendererResponse.renderer;
+                    return [4 /*yield*/, histogram({
+                            layer: layer,
+                            view: view,
+                            valueExpression: ageParams.valueExpression,
+                            numBins: 30,
+                            minValue: 0
+                        })];
+                case 4:
+                    sliderHistogram = _a.sent();
                     colorSlider = new ColorSlider({
                         numHandles: 3,
                         syncedHandles: true,
                         container: "slider",
                         statistics: rendererResponse.statistics,
                         visualVariable: rendererResponse.visualVariable,
+                        histogram: sliderHistogram,
                         minValue: 0
                     });
                     view.ui.add("containerDiv", "bottom-left");
@@ -116,6 +126,29 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         var newRenderer = oldRenderer.clone();
                         newRenderer.visualVariables = [lang.clone(colorSlider.visualVariable)];
                         layer.renderer = newRenderer;
+                    });
+                    // when the user changes the min/max values of the slider
+                    // the histogram should be updated
+                    colorSlider.on("data-value-change", function (event) {
+                        return __awaiter(this, void 0, void 0, function () {
+                            var sliderHistogram;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0: return [4 /*yield*/, histogram({
+                                            layer: layer,
+                                            view: view,
+                                            valueExpression: ageParams.valueExpression,
+                                            numBins: 30,
+                                            minValue: colorSlider.minValue,
+                                            maxValue: colorSlider.maxValue
+                                        })];
+                                    case 1:
+                                        sliderHistogram = _a.sent();
+                                        colorSlider.set("histogram", sliderHistogram);
+                                        return [2 /*return*/];
+                                }
+                            });
+                        });
                     });
                     return [2 /*return*/];
             }
