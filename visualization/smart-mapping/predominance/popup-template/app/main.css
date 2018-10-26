@@ -1,0 +1,35 @@
+html,
+    body {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    #viewDiv {
+      position: absolute;
+      left: 0;
+      right: 250px;
+      top: 0;
+      bottom: 0;
+      height: 100%;
+    }
+
+    #panel {
+      position: absolute;
+      right: 0;
+      height: 100%;
+      width: 250px;
+      overflow: scroll;
+      text-align: center;
+    }
+
+    #fieldList{
+      width:100%;
+    }
+
+    #checkboxDiv {
+      text-align: left;
+      padding-top: 10px;
+    }

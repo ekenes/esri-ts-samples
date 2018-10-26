@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Predominance popup template</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+    <link rel="stylesheet" href="app/main.css">
+    <script>
+      var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
+      window.dojoConfig = {
+        packages: [
+          {
+            name: "app",
+            location: locationPath + "/app"
+          }
+        ]
+      };
+    </script>
+    <script src="https://jsdev.arcgis.com/4.9"></script>
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+    <div id="panel" class="esri-widget">
+      <div style="padding: 10px">
+        <h3>Predominance Explorer</h3>
+        <div style="padding-bottom: 10px">
+          This map colors features by the predominant value, or the
+          most common value of the fields selection. <strong>Select two or more fields</strong>.
+          <strong>Use
+            Ctrl or Cmd to select and deselect values.</strong> Paste the portal item ID here:
+            <input type="text" id="portal-item-id" value="e1f194d5f3184402a8a39b60b44693f4">
+        </div>
+        <select id="fieldList" multiple="multiple" size=10 class="esri-widget"></select>
+        <div id="checkboxDiv">
+          <input type="checkbox" class="esri-widget" id="includeSize" checked> Show total<br>
+          <input type="checkbox" class="esri-widget" id="includeOpacity"> Show % winner
+        </div>
+      </div>
+    </div>
+    <script>require(["app/main"]);</script>
+  </body>
+</html>
