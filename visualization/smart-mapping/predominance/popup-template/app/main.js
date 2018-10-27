@@ -43,7 +43,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 portalItem: {
                     id: portalItemInput.value
                 },
-                // outFields: ["*"],
+                outFields: ["*"],
                 opacity: 0.9
             });
         }
@@ -77,30 +77,43 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
          * or a continuous size renderer if 1 field is selected
          */
         function createPredominanceRenderer() {
-            var selectedOptions = [].slice.call(fieldList.selectedOptions);
-            if (selectedOptions.length === 1) {
-                return createSizeRenderer(selectedOptions[0]);
-            }
-            var fields = selectedOptions.map(function (option) {
-                return {
-                    name: option.value,
-                    label: option.text
-                };
+            return __awaiter(this, void 0, void 0, function () {
+                var selectedOptions, fields, params, rendererResponse, popupTemplateResponse;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            selectedOptions = [].slice.call(fieldList.selectedOptions);
+                            if (selectedOptions.length === 1) {
+                                return [2 /*return*/, createSizeRenderer(selectedOptions[0])];
+                            }
+                            fields = selectedOptions.map(function (option) {
+                                return {
+                                    name: option.value,
+                                    label: option.text
+                                };
+                            });
+                            params = {
+                                view: view,
+                                layer: layer,
+                                fields: fields,
+                                predominanceScheme: schemes.secondarySchemes[6],
+                                sortBy: "value",
+                                basemap: view.map.basemap,
+                                includeSizeVariable: includeSizeCheckbox.checked,
+                                includeOpacityVariable: includeOpacityCheckbox.checked,
+                                legendOptions: {
+                                    title: "Most common decade in which homes were built"
+                                }
+                            };
+                            return [4 /*yield*/, predominanceRendererCreator.createRenderer(params)];
+                        case 1:
+                            rendererResponse = _a.sent();
+                            popupTemplateResponse = ArcadeExpressions_1.generatePopupTemplate(params);
+                            rendererResponse.popupTemplate = popupTemplateResponse;
+                            return [2 /*return*/, rendererResponse];
+                    }
+                });
             });
-            var params = {
-                view: view,
-                layer: layer,
-                fields: fields,
-                predominanceScheme: schemes.secondarySchemes[6],
-                sortBy: "value",
-                basemap: view.map.basemap,
-                includeSizeVariable: includeSizeCheckbox.checked,
-                includeOpacityVariable: includeOpacityCheckbox.checked,
-                legendOptions: {
-                    title: "Most common decade in which homes were built"
-                }
-            };
-            return predominanceRendererCreator.createRenderer(params);
         }
         function createSizeRenderer(option) {
             return __awaiter(this, void 0, void 0, function () {
@@ -165,6 +178,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 case 3:
                                     predominanceResponse = _a.sent();
                                     layer.renderer = predominanceResponse.renderer;
+                                    layer.popupTemplate = predominanceResponse.popupTemplate;
                                     return [2 /*return*/];
                             }
                         });
@@ -181,6 +195,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                     case 1:
                                         predominanceResponse = _a.sent();
                                         layer.renderer = predominanceResponse.renderer;
+                                        layer.popupTemplate = predominanceResponse.popupTemplate;
                                         return [2 /*return*/];
                                 }
                             });
@@ -200,21 +215,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 case 3:
                     predominanceResponse = _a.sent();
                     layer.renderer = predominanceResponse.renderer;
-                    // Add popup template listing the values of each field in order
-                    // of highest to lowest
-                    layer.popupTemplate = {
-                        title: "{expression/total-arcade} total homes built",
-                        content: "{expression/ordered-list-arcade}",
-                        expressionInfos: [{
-                                name: "ordered-list-arcade",
-                                title: "Top 10",
-                                expression: ArcadeExpressions_1.top10Arcade
-                            }, {
-                                name: "total-arcade",
-                                title: "Total homes",
-                                expression: ArcadeExpressions_1.totalArcade
-                            }]
-                    };
+                    layer.popupTemplate = predominanceResponse.popupTemplate;
+                    console.log(layer.popupTemplate);
                     return [2 /*return*/];
             }
         });

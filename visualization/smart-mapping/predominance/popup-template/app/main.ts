@@ -9,7 +9,7 @@ import predominanceRendererCreator = require("esri/renderers/smartMapping/creato
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size");
 
-import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
+import { generatePopupTemplate } from "app/ArcadeExpressions";
 
 ( async () => {
 
@@ -56,6 +56,7 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
 
     const predominanceResponse = await createPredominanceRenderer();
     layer.renderer = predominanceResponse.renderer;
+    layer.popupTemplate = predominanceResponse.popupTemplate;
   });
 
   function createFeatureLayer (portalItemId: string): FeatureLayer {
@@ -63,7 +64,7 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
       portalItem: {
         id: portalItemInput.value
       },
-      // outFields: ["*"],
+      outFields: ["*"],
       opacity: 0.9
     });
   }
@@ -92,6 +93,7 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
     element.addEventListener("change", async () => {
       const predominanceResponse = await createPredominanceRenderer();
       layer.renderer = predominanceResponse.renderer;
+      layer.popupTemplate = predominanceResponse.popupTemplate;
     });
   });
 
@@ -108,12 +110,13 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
 
   const predominanceResponse = await createPredominanceRenderer();
   layer.renderer = predominanceResponse.renderer;
-
+  layer.popupTemplate = predominanceResponse.popupTemplate;
+  console.log(layer.popupTemplate);
   /**
    * Creates a predominance renderer if 2 or more fields are selected,
    * or a continuous size renderer if 1 field is selected
    */
-  function createPredominanceRenderer() {
+  async function createPredominanceRenderer() {
 
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
 
@@ -142,7 +145,10 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
       }
     };
 
-    return predominanceRendererCreator.createRenderer(params);
+    const rendererResponse = await predominanceRendererCreator.createRenderer(params) as any;
+    const popupTemplateResponse = generatePopupTemplate(params);
+    rendererResponse.popupTemplate = popupTemplateResponse;
+    return rendererResponse;
   }
 
   async function createSizeRenderer(option: HTMLOptionElement): Promise <esri.sizeContinuousRendererResult> {
@@ -159,18 +165,18 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
   // Add popup template listing the values of each field in order
   // of highest to lowest
   
-  layer.popupTemplate = {
-    title: `{expression/total-arcade} total homes built`,
-    content: `{expression/ordered-list-arcade}`,
-    expressionInfos: [{
-      name: "ordered-list-arcade",
-      title: "Top 10",
-      expression: top10Arcade
-    }, {
-      name: "total-arcade",
-      title: "Total homes",
-      expression: totalArcade
-    }]
-  } as esri.PopupTemplate;
+  // layer.popupTemplate = {
+  //   title: `{expression/total-arcade} total homes built`,
+  //   content: `{expression/ordered-list-arcade}`,
+  //   expressionInfos: [{
+  //     name: "ordered-list-arcade",
+  //     title: "Top 10",
+  //     expression: top10Arcade
+  //   }, {
+  //     name: "total-arcade",
+  //     title: "Total homes",
+  //     expression: totalArcade
+  //   }]
+  // } as esri.PopupTemplate;
 
 })();
