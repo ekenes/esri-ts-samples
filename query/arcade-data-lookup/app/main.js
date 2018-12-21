@@ -33,23 +33,85 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView"], function (require, exports, EsriMap, MapView) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/PopupTemplate", "esri/widgets/Legend", "./arcadeUtils", "esri/renderers", "esri/symbols"], function (require, exports, EsriMap, MapView, FeatureLayer, PopupTemplate, Legend, arcadeUtils_1, renderers_1, symbols_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        var map, view;
+        var map, view, arcadeExpression, layer;
         return __generator(this, function (_a) {
-            map = new EsriMap({
-                basemap: "streets"
-            });
-            view = new MapView({
-                map: map,
-                container: "viewDiv",
-                center: [-118.244, 34.052],
-                zoom: 12
-            });
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0:
+                    map = new EsriMap({
+                        basemap: "streets"
+                    });
+                    view = new MapView({
+                        map: map,
+                        container: "viewDiv",
+                        extent: {
+                            spatialReference: {
+                                wkid: 3857
+                            },
+                            xmin: -13869322,
+                            ymin: 5504139,
+                            xmax: -12982652,
+                            ymax: 6541237
+                        }
+                    });
+                    view.ui.add(new Legend({ view: view }), "top-right");
+                    return [4 /*yield*/, view.when()];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, arcadeUtils_1.getArcade()];
+                case 2:
+                    arcadeExpression = _a.sent();
+                    layer = new FeatureLayer({
+                        //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0
+                        //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/Washington_block_groups/FeatureServer/1
+                        url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0",
+                        outFields: ["OBJECTID_1", "Shape__Area"],
+                        popupTemplate: new PopupTemplate({
+                            title: "{OBJECTID_1}",
+                            content: "{expression/per-water-area}",
+                            expressionInfos: [{
+                                    expression: arcadeExpression,
+                                    name: "per-water-area",
+                                    title: "% corn harvested"
+                                }]
+                        }),
+                        renderer: new renderers_1.SimpleRenderer({
+                            symbol: new symbols_1.SimpleFillSymbol({
+                                color: "red",
+                                outline: new symbols_1.SimpleLineSymbol({
+                                    color: [128, 128, 128, 0.2],
+                                    width: 0
+                                })
+                            }),
+                            visualVariables: [{
+                                    type: "color",
+                                    valueExpression: arcadeExpression,
+                                    valueExpressionTitle: "% Corn harvested",
+                                    stops: [
+                                        { value: 1, color: "#ffed85" },
+                                        { value: 70, color: "#910000" }
+                                    ]
+                                }, {
+                                    type: "opacity",
+                                    valueExpression: arcadeExpression,
+                                    valueExpressionTitle: "% Corn harvested",
+                                    legendOptions: {
+                                        showLegend: false
+                                    },
+                                    stops: [
+                                        { value: 1, opacity: 0.05 },
+                                        { value: 30, opacity: 0.95 }
+                                    ]
+                                }]
+                        })
+                    });
+                    map.add(layer);
+                    return [2 /*return*/];
+            }
         });
     }); })();
 });
