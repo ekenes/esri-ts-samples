@@ -2,25 +2,22 @@ import esri = __esri;
 import esriRequest = require("esri/request");
 
 async function fetchData(){
-  // https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0
-  // https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Washington_block_groups/FeatureServer/0/query
-  const url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0/query";
+  const url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_county_crops_2007_clean/FeatureServer/0/query";
   return esriRequest(url, {
     query: {
       f: "json",
       where: "1=1",
-      outFields: [ "OBJECTID_1", "CORN_PER_ACRES_2012" ], 
-      // outFields: [ "ALAND", "OBJECTID", "GEOID" ],
+      outFields: [ "FIPS", "M163_07" ],
       returnGeometry: false,
-      maxRecordCountFactor: 3
+      maxRecordCountFactor: 2
     }
   })
     .then( response => {
       const data = response.data;
       const jsonForArcade = {};
 
-      data.features.forEach( (feature:any) => {
-        jsonForArcade[feature.attributes.OBJECTID_1.toString()] = feature.attributes.CORN_PER_ACRES_2012;
+      data.features.forEach( ( feature: esri.Graphic ) => {
+        jsonForArcade[feature.attributes.FIPS] = feature.attributes.M163_07;
       });
 
       return jsonForArcade;
@@ -35,16 +32,9 @@ export async function getArcade(): Promise<string> {
   const data = await fetchData();
   const arcade = `
     var data = ${JSON.stringify(data)};
-    var cornAcres = data[Text($feature.OBJECTID_1)];
-    var totalArea = $feature.Shape__Area;
-    Round( cornAcres );
+    var cornAcres = data[$feature.FIPS];
+    var totalArea = DefaultValue($feature.TOT_CROP_ACRES, 1);
+    Round( (cornAcres / totalArea) * 100 );
   `;
   return arcade;
 }
-
-// var data = ${JSON.stringify(data)};
-// var landArea = data[$feature.GEOID];
-// var waterArea = $feature.AWATER;
-// //var waterArea = $feature.AWATER;
-// var totalArea = waterArea + landArea;
-// Round( ( waterArea / totalArea ) * 100 );

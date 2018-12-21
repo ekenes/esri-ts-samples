@@ -10,21 +10,18 @@ import { SimpleFillSymbol, SimpleLineSymbol } from "esri/symbols";
 ( async () => {
 
   const map = new EsriMap({
-    basemap: "streets"
+    basemap: {
+      portalItem: {
+        id: "3582b744bba84668b52a16b0b6942544"
+      }
+    }
   });
   
   const view = new MapView({
     map: map,
     container: "viewDiv",
-    extent: {
-      spatialReference: {
-        wkid: 3857
-      },
-      xmin: -13869322,
-      ymin: 5504139,
-      xmax: -12982652,
-      ymax: 6541237
-    }
+    center: [ -95, 39.5 ],
+    zoom: 4
   });
   view.ui.add(new Legend({ view }), "top-right");
 
@@ -33,28 +30,27 @@ import { SimpleFillSymbol, SimpleLineSymbol } from "esri/symbols";
   const arcadeExpression = await getArcade();
 
   const layer = new FeatureLayer({
-    
-    //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0
-    //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/Washington_block_groups/FeatureServer/1
-    url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0",
-    outFields: [ "OBJECTID_1", "Shape__Area" ], 
+    title: "U.S. Corn harvest (2007)",
+    url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_county_crops_2007_clean/FeatureServer/0",
+    outFields: [ "COUNTY", "STATE", "FIPS" ], 
     popupTemplate: new PopupTemplate({
-      title: "{OBJECTID_1}",
-      content: "{expression/per-water-area}",
+      title: "{COUNTY}, {STATE}",
+      content: "{expression/per-corn-area}% of harvested acres is corn.",
       expressionInfos: [{
         expression: arcadeExpression,
-        name: "per-water-area",
+        name: "per-corn-area",
         title: "% corn harvested"
       }]
     }),
     renderer: new SimpleRenderer({
       symbol: new SimpleFillSymbol({
-        color: "red",
+        color: "gray",
         outline: new SimpleLineSymbol({
           color: [128,128,128,0.2],
           width: 0
         })
       }),
+      label: "County",
       visualVariables: [{
         type: "color",
         valueExpression: arcadeExpression,

@@ -40,22 +40,21 @@ define(["require", "exports", "esri/request"], function (require, exports, esriR
         return __awaiter(this, void 0, void 0, function () {
             var url;
             return __generator(this, function (_a) {
-                url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0/query";
+                url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_county_crops_2007_clean/FeatureServer/0/query";
                 return [2 /*return*/, esriRequest(url, {
                         query: {
                             f: "json",
                             where: "1=1",
-                            outFields: ["OBJECTID_1", "CORN_PER_ACRES_2012"],
-                            // outFields: [ "ALAND", "OBJECTID", "GEOID" ],
+                            outFields: ["FIPS", "M163_07"],
                             returnGeometry: false,
-                            maxRecordCountFactor: 3
+                            maxRecordCountFactor: 2
                         }
                     })
                         .then(function (response) {
                         var data = response.data;
                         var jsonForArcade = {};
                         data.features.forEach(function (feature) {
-                            jsonForArcade[feature.attributes.OBJECTID_1.toString()] = feature.attributes.CORN_PER_ACRES_2012;
+                            jsonForArcade[feature.attributes.FIPS] = feature.attributes.M163_07;
                         });
                         return jsonForArcade;
                     })
@@ -73,7 +72,7 @@ define(["require", "exports", "esri/request"], function (require, exports, esriR
                     case 0: return [4 /*yield*/, fetchData()];
                     case 1:
                         data = _a.sent();
-                        arcade = "\n    var data = " + JSON.stringify(data) + ";\n    var cornAcres = data[Text($feature.OBJECTID_1)];\n    var totalArea = $feature.Shape__Area;\n    Round( cornAcres );\n  ";
+                        arcade = "\n    var data = " + JSON.stringify(data) + ";\n    var cornAcres = data[$feature.FIPS];\n    var totalArea = DefaultValue($feature.TOT_CROP_ACRES, 1);\n    Round( (cornAcres / totalArea) * 100 );\n  ";
                         return [2 /*return*/, arcade];
                 }
             });
@@ -81,10 +80,4 @@ define(["require", "exports", "esri/request"], function (require, exports, esriR
     }
     exports.getArcade = getArcade;
 });
-// var data = ${JSON.stringify(data)};
-// var landArea = data[$feature.GEOID];
-// var waterArea = $feature.AWATER;
-// //var waterArea = $feature.AWATER;
-// var totalArea = waterArea + landArea;
-// Round( ( waterArea / totalArea ) * 100 );
 //# sourceMappingURL=arcadeUtils.js.map

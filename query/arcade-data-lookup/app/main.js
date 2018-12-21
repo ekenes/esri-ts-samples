@@ -43,20 +43,17 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
             switch (_a.label) {
                 case 0:
                     map = new EsriMap({
-                        basemap: "streets"
+                        basemap: {
+                            portalItem: {
+                                id: "3582b744bba84668b52a16b0b6942544"
+                            }
+                        }
                     });
                     view = new MapView({
                         map: map,
                         container: "viewDiv",
-                        extent: {
-                            spatialReference: {
-                                wkid: 3857
-                            },
-                            xmin: -13869322,
-                            ymin: 5504139,
-                            xmax: -12982652,
-                            ymax: 6541237
-                        }
+                        center: [-95, 39.5],
+                        zoom: 4
                     });
                     view.ui.add(new Legend({ view: view }), "top-right");
                     return [4 /*yield*/, view.when()];
@@ -66,27 +63,27 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 case 2:
                     arcadeExpression = _a.sent();
                     layer = new FeatureLayer({
-                        //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0
-                        //https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/Washington_block_groups/FeatureServer/1
-                        url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/us_counties_crops_256_colors/FeatureServer/0",
-                        outFields: ["OBJECTID_1", "Shape__Area"],
+                        title: "U.S. Corn harvest (2007)",
+                        url: "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/US_county_crops_2007_clean/FeatureServer/0",
+                        outFields: ["COUNTY", "STATE", "FIPS"],
                         popupTemplate: new PopupTemplate({
-                            title: "{OBJECTID_1}",
-                            content: "{expression/per-water-area}",
+                            title: "{COUNTY}, {STATE}",
+                            content: "{expression/per-corn-area}% of harvested acres is corn.",
                             expressionInfos: [{
                                     expression: arcadeExpression,
-                                    name: "per-water-area",
+                                    name: "per-corn-area",
                                     title: "% corn harvested"
                                 }]
                         }),
                         renderer: new renderers_1.SimpleRenderer({
                             symbol: new symbols_1.SimpleFillSymbol({
-                                color: "red",
+                                color: "gray",
                                 outline: new symbols_1.SimpleLineSymbol({
                                     color: [128, 128, 128, 0.2],
                                     width: 0
                                 })
                             }),
+                            label: "County",
                             visualVariables: [{
                                     type: "color",
                                     valueExpression: arcadeExpression,
