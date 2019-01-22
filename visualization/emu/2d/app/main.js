@@ -38,30 +38,66 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        var url, layer, map, view;
+        var url, layer, map, view, depthSlider, sliderValueText, query, uniqueDepthValues, layerView;
         return __generator(this, function (_a) {
-            url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
-            layer = new FeatureLayer({
-                url: url
-            });
-            map = new EsriMap({
-                basemap: "dark-gray-vector",
-                layers: [layer]
-            });
-            view = new MapView({
-                map: map,
-                container: "viewDiv",
-                extent: {
-                    "spatialReference": {
-                        "wkid": 3857
-                    },
-                    "xmin": -32607543,
-                    "ymin": -148400,
-                    "xmax": -31196210,
-                    "ymax": 952292
-                }
-            });
-            return [2 /*return*/];
+            switch (_a.label) {
+                case 0:
+                    url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
+                    layer = new FeatureLayer({
+                        url: url
+                    });
+                    map = new EsriMap({
+                        basemap: "dark-gray-vector",
+                        layers: [layer]
+                    });
+                    view = new MapView({
+                        map: map,
+                        container: "viewDiv",
+                        extent: {
+                            "spatialReference": {
+                                "wkid": 3857
+                            },
+                            "xmin": -32607543,
+                            "ymin": -148400,
+                            "xmax": -31196210,
+                            "ymax": 952292
+                        }
+                    });
+                    return [4 /*yield*/, view.when()];
+                case 1:
+                    _a.sent();
+                    depthSlider = document.getElementById("depth-slider");
+                    view.ui.add("slider-div", "top-right");
+                    sliderValueText = document.getElementById("slider-value-text");
+                    query = layer.createQuery();
+                    query.outFields = ["UnitTop"];
+                    query.returnDistinctValues = true;
+                    query.returnGeometry = false;
+                    console.log(query);
+                    return [4 /*yield*/, layer.queryFeatures(query).then(function (response) {
+                            return response.features.map(function (feature) { return feature.attributes.UnitTop; });
+                        })];
+                case 2:
+                    uniqueDepthValues = _a.sent();
+                    console.log("unique values: ", uniqueDepthValues);
+                    return [4 /*yield*/, view.whenLayerView(layer)];
+                case 3:
+                    layerView = _a.sent();
+                    layerView.filter = {
+                        where: "UnitTop = -10"
+                    };
+                    depthSlider.addEventListener("input", function (event) {
+                        var sliderValue = parseInt(depthSlider.value);
+                        sliderValueText.innerHTML = depthSlider.value;
+                        var filterIndex = uniqueDepthValues.indexOf(sliderValue);
+                        if (filterIndex > -1) {
+                            layerView.filter = {
+                                where: "UnitTop = " + uniqueDepthValues[filterIndex]
+                            };
+                        }
+                    });
+                    return [2 /*return*/];
+            }
         });
     }); })();
 });

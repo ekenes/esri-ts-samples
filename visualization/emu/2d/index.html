@@ -20,6 +20,14 @@
   </head>
   <body>
     <div id="viewDiv"></div>
+    <div id="slider-div" class="esri-widget">
+      <div>
+        <span id="slider-value-text">0</span> meters below
+      </div>
+      <div class="esri-widget slider-wrapper">
+        <input type="range" class="esri-widget" id="depth-slider" min="-5000" max="0" step="5", value="0">
+      </div>
+    </div>
     <script>require(["app/main"]);</script>
   </body>
 </html>

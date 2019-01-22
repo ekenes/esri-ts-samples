@@ -29,4 +29,45 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
     }
   });
 
+  await view.when();
+
+  const depthSlider = document.getElementById("depth-slider") as HTMLInputElement;
+  view.ui.add("slider-div", "top-right");
+
+  const sliderValueText = document.getElementById("slider-value-text");
+
+ 
+
+  const query = layer.createQuery();
+  query.outFields = [ "UnitTop" ];
+  query.returnDistinctValues = true;
+  query.returnGeometry = false;
+  console.log(query);
+
+  const uniqueDepthValues = await layer.queryFeatures(query).then( response => {
+    return response.features.map( feature => feature.attributes.UnitTop );
+  });
+
+  console.log("unique values: ", uniqueDepthValues);
+
+  const layerView = await view.whenLayerView(layer);
+  layerView.filter = {
+    where: `UnitTop = -10`
+  };
+
+  depthSlider.addEventListener("input", event => {
+    const sliderValue = parseInt(depthSlider.value);
+    sliderValueText.innerHTML = depthSlider.value;
+
+    const filterIndex = uniqueDepthValues.indexOf(sliderValue);
+
+    if(filterIndex > -1){
+      layerView.filter = {
+        where: `UnitTop = ${uniqueDepthValues[filterIndex]}`
+      };
+    }
+  });
+ 
+
+  
 })();
