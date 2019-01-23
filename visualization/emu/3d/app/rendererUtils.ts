@@ -1,11 +1,14 @@
 import esri = __esri;
-import { Renderer, SimpleRenderer } from "esri/renderers";
+import { Renderer, SimpleRenderer, UniqueValueRenderer, ClassBreaksRenderer } from "esri/renderers";
 import { ObjectSymbol3DLayer, IconSymbol3DLayer, PointSymbol3D, SimpleMarkerSymbol } from "esri/symbols";
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import SceneView = require("esri/views/SceneView");
 
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
+import relationshipRendererCreator = require("esri/renderers/smartMapping/creators/relationship");
 import { updateColorSlider } from "./colorSliderUtils";
+
+import SizeVisualVariable = require("esri/renderers/visualVariables/SizeVariable");
 
 interface ContinuousVisParams {
   layer: FeatureLayer,
@@ -32,19 +35,8 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
     symbol: createSymbol("white", symbolType)
   });
 
-  const hasIconSymbol = containsIconSymbol(renderer);
-
-  if(!hasIconSymbol){
-    renderer.visualVariables = [{
-      type: "size",
-      valueExpression: `$feature.ThicknessPos * ${params.exaggeration}`,
-      valueUnit: "meters",
-      axis: "height"
-    }, {
-      type: "size",
-      useSymbolValue: true,
-      axis: "width-and-depth"
-    }];
+  if(symbolType === "object"){
+    renderer.visualVariables = getRealWorldSizeVariables(params.exaggeration);
   }
 
   const colorResponse = await colorRendererCreator.createVisualVariable(options);
@@ -90,7 +82,7 @@ function getSymbolType (renderer: Renderer): "object" | "icon" {
   return symbolType;
 }
 
-function createSymbol(color: esri.Color | string, type: "object" | "icon"): PointSymbol3D {
+function createSymbol(color: esri.Color | string | number[], type: "object" | "icon"): PointSymbol3D {
   const symbolLayerOptions = {
     resource: {
       primitive: type === "object" ? "cylinder" : "circle"
@@ -139,3 +131,146 @@ function getSymbolFromRenderer (renderer: Renderer): PointSymbol {
   return symbol;
 }
 
+export function setEMUClusterVisualization(layer: FeatureLayer, exaggeration: number){
+  const originalRenderer = layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer;
+  const symbolType = getSymbolType(originalRenderer);
+
+  const renderer = new UniqueValueRenderer({
+    field: "Cluster37",
+    defaultSymbol: createSymbol("darkgray", symbolType),
+    defaultLabel: "no classification",
+    uniqueValueInfos: [{
+      value: 10,
+      label: "EMU 10",
+      symbol: createSymbol([117,112,230], symbolType)
+    }, {
+      value: 13,
+      label: "EMU 13",
+      symbol: createSymbol([54,71,153], symbolType)
+    }, {
+      value: 33,
+      label: "EMU 33",
+      symbol: createSymbol([117,145,255], symbolType)
+    }, {
+      value: 24,
+      label: "EMU 24",
+      symbol: createSymbol([235,169,212], symbolType)
+    }, {
+      value: 26,
+      label: "EMU 26",
+      symbol: createSymbol([147,101,230], symbolType)
+    }, {
+      value: 18,
+      label: "EMU 18",
+      symbol: createSymbol([188,90,152], symbolType)
+    }, {
+      value: 36,
+      label: "EMU 36",
+      symbol: createSymbol([26,82,170], symbolType)
+    }, {
+      value: 14,
+      label: "EMU 14",
+      symbol: createSymbol([70,82,144], symbolType)
+    }]
+  });
+
+  if(symbolType === "object"){
+    renderer.visualVariables = getRealWorldSizeVariables(exaggeration);
+  }
+
+  layer.renderer = renderer;
+}
+
+interface RelationshipVisParams {
+  layer: FeatureLayer,
+  view: SceneView,
+  field1: {
+    fieldName: string,
+    label: string
+  },
+  field2: {
+    fieldName: string,
+    label: string
+  },
+  exaggeration: number
+}
+
+export async function generateRelationshipVisualization(params: RelationshipVisParams){
+  const options = {
+    // relationshipScheme: schemes.secondarySchemes[8],
+    layer: params.layer,
+    view: params.view,
+    basemap: params.view.map.basemap,
+    field1: {
+      field: params.field1.fieldName
+    },
+    field2: {
+      field: params.field2.fieldName
+    },
+    classificationMethod: "quantile",
+    focus: "HH"
+  };
+
+  const relationshipRendererResponse = await relationshipRendererCreator.createRenderer(options);
+  const oldRenderer = options.layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer;
+  const symbolType = getSymbolType(oldRenderer);
+  
+  const renderer = relationshipRendererResponse.renderer;
+  let uniqueValueInfos;
+
+  if (symbolType === "object"){
+    uniqueValueInfos = renderer.uniqueValueInfos.map(function(info){
+      info.symbol = createSymbol(info.symbol.color.clone(), symbolType);
+      switch (info.value) {
+        case "HH":
+          info.label = `High ${params.field1.label}, High ${params.field2.label}`;
+          break;
+        case "HL":
+          info.label = `High ${params.field1.label}, Low ${params.field2.label}`;
+          break;
+        case "LH":
+          info.label = `Low ${params.field1.label}, High ${params.field2.label}`;
+          break;
+        case "LL":
+          info.label = `Low ${params.field1.label}, Low ${params.field2.label}`;
+          break;
+      }
+      return info;
+    });
+
+    renderer.defaultSymbol = createSymbol([128,128,128], symbolType);
+    renderer.visualVariables = getRealWorldSizeVariables(params.exaggeration);
+  } else {
+    uniqueValueInfos = renderer.uniqueValueInfos.map(function(info){
+      switch (info.value) {
+        case "HH":
+          info.label = `High ${params.field1.label}, High ${params.field2.label}`;
+          break;
+        case "HL":
+          info.label = `High ${params.field1.label}, Low ${params.field2.label}`;
+          break;
+        case "LH":
+          info.label = `Low ${params.field1.label}, High ${params.field2.label}`;
+          break;
+        case "LL":
+          info.label = `Low ${params.field1.label}, Low ${params.field2.label}`;
+          break;
+      }
+      return info;
+    });
+  }
+
+  renderer.uniqueValueInfos = uniqueValueInfos;
+  params.layer.renderer = renderer;
+}
+
+function getRealWorldSizeVariables(exaggeration: number): SizeVisualVariable[] {
+  return [ new SizeVisualVariable({
+    valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
+    valueUnit: "meters",
+    axis: "height"
+  }), new SizeVisualVariable({
+    useSymbolValue: true,
+    axis: "width-and-depth"
+  }) ];
+}

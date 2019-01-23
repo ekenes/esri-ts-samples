@@ -7,7 +7,7 @@ import { Extent } from "esri/geometry";
 
 import { createBathymetryLayer } from "../app/ExaggeratedBathymetryLayer";
 import { createDepthRulerLayer } from "./depthUtils";
-import { generateContinuousVisualization } from "./rendererUtils";
+import { generateContinuousVisualization, setEMUClusterVisualization, generateRelationshipVisualization } from "./rendererUtils";
 
 import Home = require("esri/widgets/Home");
 import BasemapToggle = require("esri/widgets/BasemapToggle");
@@ -15,25 +15,16 @@ import Legend = require("esri/widgets/Legend");
 import LayerList = require("esri/widgets/LayerList");
 import Expand = require("esri/widgets/Expand");
 import Slice = require("esri/widgets/Slice");
+import { destroyColorSlider } from "./colorSliderUtils";
 
 ( async () => {
 
-  const colorField1Select = document.getElementById("color-field1-select");
-  const colorField2Select = document.getElementById("color-field2-select");
-  const depthFilter = document.getElementById("depth-filter");
-  const dataFilter = document.getElementById("data-filter");
-  const emuFilter = document.getElementById("emu-filter");
-  const dataFilterValue = document.getElementById("data-value");
+  const colorField1Select = document.getElementById("color-field1-select") as HTMLSelectElement;
+  const colorField2Select = document.getElementById("color-field2-select") as HTMLSelectElement;
+  const emuFilter = document.getElementById("emu-filter") as HTMLInputElement;
   const displayMean = document.getElementById("display-mean");
   const displayVariable = document.getElementById("display-variable");
   const displayUnit = document.getElementById("display-unit");
-  let colorSlider = null;
-  const cylinderSymbolsUsed = false;
-  const dataMinElem = document.getElementById("data-min");
-  const dataMaxElem = document.getElementById("data-max");
-  const filterCheckbox = document.getElementById("filter-data-check");
-  const dataFilterContainer = document.getElementById("data-filter-container");
-  let colorSlideEvent;
   const exaggeration = 100;
 
   const studyArea = new Extent({
@@ -182,16 +173,11 @@ import Slice = require("esri/widgets/Slice");
 
   emuFilter.addEventListener("change", filterChange);
 
-  symbolCheck.addEventListener("click", function(){
-    generateContinuousVisualization();
-  })
-
   function filterChange (){
-    var depthExpression = depthFilter.value;
-    var emuExpression = emuFilter.value;
-    var dataExpression = filterCheckbox.checked ? colorField1Select.value + " <= " + dataFilter.value : "1=1";
+    const emuExpression = emuFilter.value;
+    
 
-    var expression = "(" + depthExpression + ") AND (" + dataExpression + ") AND (" + emuExpression + ")";
+    const expression = `${emuExpression}`;
     layer.definitionExpression = expression;
   }
 
@@ -295,15 +281,18 @@ import Slice = require("esri/widgets/Slice");
   });
   view.ui.add(sliceExpand, "top-left");
 
+  colorField1Select.addEventListener("change", changeEventListener);
+  colorField2Select.addEventListener("change", changeEventListener);
+
   function changeEventListener(){
     if(colorField1Select.value === "Cluster37"){
       colorField2Select.disabled = true;
       destroyColorSlider();
-      getEMUClusterVisualization();
+      setEMUClusterVisualization(layer, exaggeration);
     } else {
       if(colorField2Select.value === ""){
         colorField2Select.disabled = false;
-        displayMean.style.visibility = /*themeOptions.value === "centered-on" ? "visible" : */"hidden";
+        displayMean.style.visibility = "hidden";
         displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
 
         if(colorField1Select.value === "salinity"){
@@ -311,107 +300,31 @@ import Slice = require("esri/widgets/Slice");
         } else {
           displayUnit.innerHTML = colorField1Select.value === "temp" ? " °C" : " µmol/l";
         }
-        generateContinuousVisualization();
+        
+        generateContinuousVisualization({
+          view,
+          layer,
+          exaggeration,
+          field: colorField1Select.value
+        });
       } else {
         destroyColorSlider();
-        generateRelationshipVisualization();
+        generateRelationshipVisualization({
+          layer,
+          view,
+          field1: {
+            fieldName: colorField1Select.value,
+            label: colorField1Select.selectedOptions[0].text
+          }, 
+          field2: {
+            fieldName: colorField2Select.value,
+            label: colorField2Select.selectedOptions[0].text
+          },
+          exaggeration
+        });
+        
       }
-    }
-  }
 
-  colorField1Select.addEventListener("change", changeEventListener);
-  colorField2Select.addEventListener("change", changeEventListener);
-
-  function getUniqueValueVisualization(){
-    var symbolType = cylinderSymbolsUsed ? "object" : "icon";
-    var renderer = layer.renderer.clone();
-    renderer.uniqueValueInfos.forEach(function(info){
-      var color = info.symbol.color ? info.symbol.color.clone() : info.symbol.symbolLayers.getItemAt(0).material.color.clone();
-      info.symbol = createSymbol(color, symbolType);
-    });
-
-    if(symbolType === "object"){
-      renderer.visualVariables = [{
-        type: "size",
-        valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
-        valueUnit: "meters",
-        axis: "height"
-      }, {
-        type: "size",
-        useSymbolValue: true,
-        axis: "width-and-depth"
-      }];
-    }
-
-    layer.renderer = renderer;
-  }
-
-  function getEMUClusterVisualization(){
-
-    var symbolType = cylinderSymbolsUsed ? "object" : "icon";
-
-    var renderer = {
-      type: "unique-value",
-      field: "Cluster37",
-      defaultSymbol: createSymbol("darkgray", symbolType),
-      defaultLabel: "no classification",
-      uniqueValueInfos: [{
-        value: 10,
-        label: "EMU 10",
-        symbol: createSymbol([117,112,230], symbolType)
-      }, {
-        value: 13,
-        label: "EMU 13",
-        symbol: createSymbol([54,71,153], symbolType)
-      }, {
-        value: 33,
-        label: "EMU 33",
-        symbol: createSymbol([117,145,255], symbolType)
-      }, {
-        value: 24,
-        label: "EMU 24",
-        symbol: createSymbol([235,169,212], symbolType)
-      }, {
-        value: 26,
-        label: "EMU 26",
-        symbol: createSymbol([147,101,230], symbolType)
-      }, {
-        value: 18,
-        label: "EMU 18",
-        symbol: createSymbol([188,90,152], symbolType)
-      }, {
-        value: 36,
-        label: "EMU 36",
-        symbol: createSymbol([26,82,170], symbolType)
-      }, {
-        value: 14,
-        label: "EMU 14",
-        symbol: createSymbol([70,82,144], symbolType)
-      }]
-    };
-
-    if(symbolType === "object"){
-      renderer.visualVariables = [{
-        type: "size",
-        valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
-        valueUnit: "meters",
-        axis: "height"
-      }, {
-        type: "size",
-        useSymbolValue: true,
-        axis: "width-and-depth"
-      }];
-    }
-
-    layer.renderer = renderer;
-  }
-
-  function destroyColorSlider(){
-    if(colorSlider){
-      colorSlider.destroy();
-      colorSlideChangeEvent.remove();
-      colorSlideSlideEvent.remove();
-      colorSlider = null;
     }
   }
 
@@ -419,83 +332,7 @@ import Slice = require("esri/widgets/Slice");
 
   
 
-  function generateRelationshipVisualization(){
-    const params = {
-      // relationshipScheme: schemes.secondarySchemes[8],
-      layer: layer,
-      view: view,
-      basemap: map.basemap,
-      field1: {
-        field: colorField1Select.value
-      },
-      field2: {
-        field: colorField2Select.value
-      },
-      classificationMethod: "quantile",
-      focus: "HH"
-    };
+  
 
-    return relationshipRendererCreator.createRenderer(params)
-      .then(function(response){
-        var symbolType = cylinderSymbolsUsed ? "object" : "icon";
-        var renderer = response.renderer;
-        var uniqueValueInfos;
-
-        if (cylinderSymbolsUsed){
-          uniqueValueInfos = renderer.uniqueValueInfos.map(function(info){
-            info.symbol = createSymbol(info.symbol.color.clone(), symbolType);
-            switch (info.value) {
-              case "HH":
-                info.label = "High " + colorField1Select.selectedOptions[0].text + ", High " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "HL":
-                info.label = "High " + colorField1Select.selectedOptions[0].text + ", Low " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "LH":
-                info.label = "Low " + colorField1Select.selectedOptions[0].text + ", High " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "LL":
-                info.label = "Low " + colorField1Select.selectedOptions[0].text + ", Low " + colorField2Select.selectedOptions[0].text;
-                break;
-            }
-            return info;
-          });
-
-          renderer.defaultSymbol = createSymbol([128,128,128], symbolType);
-          renderer.visualVariables = [{
-            type: "size",
-            valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
-            valueUnit: "meters",
-            axis: "height"
-          }, {
-            type: "size",
-            useSymbolValue: true,
-            axis: "width-and-depth"
-          }];
-        } else {
-          uniqueValueInfos = renderer.uniqueValueInfos.map(function(info){
-            switch (info.value) {
-              case "HH":
-                info.label = "High " + colorField1Select.selectedOptions[0].text + ", High " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "HL":
-                info.label = "High " + colorField1Select.selectedOptions[0].text + ", Low " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "LH":
-                info.label = "Low " + colorField1Select.selectedOptions[0].text + ", High " + colorField2Select.selectedOptions[0].text;
-                break;
-              case "LL":
-                info.label = "Low " + colorField1Select.selectedOptions[0].text + ", Low " + colorField2Select.selectedOptions[0].text;
-                break;
-            }
-            return info;
-          });
-        }
-
-        renderer.uniqueValueInfos = uniqueValueInfos;
-        layer.renderer = renderer;
-
-      });
-  }
   
 })();

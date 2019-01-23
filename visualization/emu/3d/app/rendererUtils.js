@@ -33,12 +33,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/smartMapping/creators/color", "./colorSliderUtils"], function (require, exports, renderers_1, symbols_1, colorRendererCreator, colorSliderUtils_1) {
+define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/creators/relationship", "./colorSliderUtils", "esri/renderers/visualVariables/SizeVariable"], function (require, exports, renderers_1, symbols_1, colorRendererCreator, relationshipRendererCreator, colorSliderUtils_1, SizeVisualVariable) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function generateContinuousVisualization(params) {
         return __awaiter(this, void 0, void 0, function () {
-            var symbolType, options, renderer, hasIconSymbol, colorResponse, colorVV, min, max, stddev, fieldNameValue;
+            var symbolType, options, renderer, colorResponse, colorVV, min, max, stddev, fieldNameValue;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -54,18 +54,8 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                         renderer = new renderers_1.SimpleRenderer({
                             symbol: createSymbol("white", symbolType)
                         });
-                        hasIconSymbol = containsIconSymbol(renderer);
-                        if (!hasIconSymbol) {
-                            renderer.visualVariables = [{
-                                    type: "size",
-                                    valueExpression: "$feature.ThicknessPos * " + params.exaggeration,
-                                    valueUnit: "meters",
-                                    axis: "height"
-                                }, {
-                                    type: "size",
-                                    useSymbolValue: true,
-                                    axis: "width-and-depth"
-                                }];
+                        if (symbolType === "object") {
+                            renderer.visualVariables = getRealWorldSizeVariables(params.exaggeration);
                         }
                         return [4 /*yield*/, colorRendererCreator.createVisualVariable(options)];
                     case 1:
@@ -150,6 +140,138 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
             console.error("getSymbolFromRenderer() could not return a symbol from input renderer.");
         }
         return symbol;
+    }
+    function setEMUClusterVisualization(layer, exaggeration) {
+        var originalRenderer = layer.renderer;
+        var symbolType = getSymbolType(originalRenderer);
+        var renderer = new renderers_1.UniqueValueRenderer({
+            field: "Cluster37",
+            defaultSymbol: createSymbol("darkgray", symbolType),
+            defaultLabel: "no classification",
+            uniqueValueInfos: [{
+                    value: 10,
+                    label: "EMU 10",
+                    symbol: createSymbol([117, 112, 230], symbolType)
+                }, {
+                    value: 13,
+                    label: "EMU 13",
+                    symbol: createSymbol([54, 71, 153], symbolType)
+                }, {
+                    value: 33,
+                    label: "EMU 33",
+                    symbol: createSymbol([117, 145, 255], symbolType)
+                }, {
+                    value: 24,
+                    label: "EMU 24",
+                    symbol: createSymbol([235, 169, 212], symbolType)
+                }, {
+                    value: 26,
+                    label: "EMU 26",
+                    symbol: createSymbol([147, 101, 230], symbolType)
+                }, {
+                    value: 18,
+                    label: "EMU 18",
+                    symbol: createSymbol([188, 90, 152], symbolType)
+                }, {
+                    value: 36,
+                    label: "EMU 36",
+                    symbol: createSymbol([26, 82, 170], symbolType)
+                }, {
+                    value: 14,
+                    label: "EMU 14",
+                    symbol: createSymbol([70, 82, 144], symbolType)
+                }]
+        });
+        if (symbolType === "object") {
+            renderer.visualVariables = getRealWorldSizeVariables(exaggeration);
+        }
+        layer.renderer = renderer;
+    }
+    exports.setEMUClusterVisualization = setEMUClusterVisualization;
+    function generateRelationshipVisualization(params) {
+        return __awaiter(this, void 0, void 0, function () {
+            var options, relationshipRendererResponse, oldRenderer, symbolType, renderer, uniqueValueInfos;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        options = {
+                            // relationshipScheme: schemes.secondarySchemes[8],
+                            layer: params.layer,
+                            view: params.view,
+                            basemap: params.view.map.basemap,
+                            field1: {
+                                field: params.field1.fieldName
+                            },
+                            field2: {
+                                field: params.field2.fieldName
+                            },
+                            classificationMethod: "quantile",
+                            focus: "HH"
+                        };
+                        return [4 /*yield*/, relationshipRendererCreator.createRenderer(options)];
+                    case 1:
+                        relationshipRendererResponse = _a.sent();
+                        oldRenderer = options.layer.renderer;
+                        symbolType = getSymbolType(oldRenderer);
+                        renderer = relationshipRendererResponse.renderer;
+                        if (symbolType === "object") {
+                            uniqueValueInfos = renderer.uniqueValueInfos.map(function (info) {
+                                info.symbol = createSymbol(info.symbol.color.clone(), symbolType);
+                                switch (info.value) {
+                                    case "HH":
+                                        info.label = "High " + params.field1.label + ", High " + params.field2.label;
+                                        break;
+                                    case "HL":
+                                        info.label = "High " + params.field1.label + ", Low " + params.field2.label;
+                                        break;
+                                    case "LH":
+                                        info.label = "Low " + params.field1.label + ", High " + params.field2.label;
+                                        break;
+                                    case "LL":
+                                        info.label = "Low " + params.field1.label + ", Low " + params.field2.label;
+                                        break;
+                                }
+                                return info;
+                            });
+                            renderer.defaultSymbol = createSymbol([128, 128, 128], symbolType);
+                            renderer.visualVariables = getRealWorldSizeVariables(params.exaggeration);
+                        }
+                        else {
+                            uniqueValueInfos = renderer.uniqueValueInfos.map(function (info) {
+                                switch (info.value) {
+                                    case "HH":
+                                        info.label = "High " + params.field1.label + ", High " + params.field2.label;
+                                        break;
+                                    case "HL":
+                                        info.label = "High " + params.field1.label + ", Low " + params.field2.label;
+                                        break;
+                                    case "LH":
+                                        info.label = "Low " + params.field1.label + ", High " + params.field2.label;
+                                        break;
+                                    case "LL":
+                                        info.label = "Low " + params.field1.label + ", Low " + params.field2.label;
+                                        break;
+                                }
+                                return info;
+                            });
+                        }
+                        renderer.uniqueValueInfos = uniqueValueInfos;
+                        params.layer.renderer = renderer;
+                        return [2 /*return*/];
+                }
+            });
+        });
+    }
+    exports.generateRelationshipVisualization = generateRelationshipVisualization;
+    function getRealWorldSizeVariables(exaggeration) {
+        return [new SizeVisualVariable({
+                valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
+                valueUnit: "meters",
+                axis: "height"
+            }), new SizeVisualVariable({
+                useSymbolValue: true,
+                axis: "width-and-depth"
+            })];
     }
 });
 //# sourceMappingURL=rendererUtils.js.map

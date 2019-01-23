@@ -1,4 +1,4 @@
-define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/layers/GroupLayer", "esri/geometry", "esri/symbols", "esri/renderers"], function (require, exports, FeatureLayer, GraphicsLayer, GroupLayer, geometry_1, symbols_1, renderers_1) {
+define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsLayer", "esri/Graphic", "esri/layers/GroupLayer", "esri/geometry", "esri/symbols", "esri/renderers"], function (require, exports, FeatureLayer, GraphicsLayer, Graphic, GroupLayer, geometry_1, symbols_1, renderers_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createDepthRulerLayer(view, extent, depth, exaggeration) {
@@ -33,7 +33,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                     type: "double"
                 }],
             geometryType: "point",
-            source: createGraphics(200, depth, exaggeration),
+            source: createGraphics(view, extent, 200, depth, exaggeration),
             screenSizePerspectiveEnabled: false,
             featureReduction: null,
             labelsVisible: true,
@@ -78,7 +78,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
         return depthRuler;
     }
     exports.createDepthRulerLayer = createDepthRulerLayer;
-    function createGraphics(interval, depth, exaggeration) {
+    function createGraphics(view, extent, interval, depth, exaggeration) {
         var features = [];
         var trueDepth = Math.round(Math.abs(depth / exaggeration));
         for (var i = 0; i <= trueDepth; i += interval) {
@@ -88,13 +88,12 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                     ObjectID: i,
                     label: "  " + Math.round(depthValue) + " m"
                 },
-                geometry: {
-                    type: "point",
+                geometry: new geometry_1.Point({
                     spatialReference: view.spatialReference,
                     x: extent.xmin,
                     y: extent.ymax,
                     z: depthValue * exaggeration
-                }
+                })
             }));
         }
         return features;

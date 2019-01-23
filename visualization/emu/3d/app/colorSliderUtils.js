@@ -37,6 +37,7 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var colorSlider;
+    var colorSlideChangeEvent, colorSlideSlideEvent;
     function updateColorSlider(params) {
         return __awaiter(this, void 0, void 0, function () {
             var layer, colorSliderContainer, colorHistogram, colorSliderParams, colorSliderParent;
@@ -69,7 +70,7 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
                             colorSlider = new ColorSlider(colorSliderParams);
                             // when the user slides the handle(s), update the renderer
                             // with the updated color visual variable object
-                            colorSlider.on("handle-value-change", function () {
+                            colorSlideChangeEvent = colorSlider.on("handle-value-change", function () {
                                 var oldRenderer = layer.renderer;
                                 var newRenderer = oldRenderer.clone();
                                 if (newRenderer.visualVariables.length <= 1) {
@@ -89,7 +90,7 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
                                 updateMeanValue();
                                 layer.renderer = newRenderer;
                             });
-                            colorSlider.on("data-change", function () {
+                            colorSlideSlideEvent = colorSlider.on("data-change", function () {
                                 var oldRenderer = layer.renderer;
                                 var newRenderer = oldRenderer.clone();
                                 if (newRenderer.visualVariables.length > 1) {
@@ -116,5 +117,14 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
         var displayMeanValue = document.getElementById("display-mean-value");
         displayMeanValue.innerHTML = (Math.round(colorSlider.visualVariable.stops[2].value * 100) / 100).toString();
     }
+    function destroyColorSlider() {
+        if (colorSlider) {
+            colorSlider.destroy();
+            colorSlideChangeEvent.remove();
+            colorSlideSlideEvent.remove();
+            colorSlider = null;
+        }
+    }
+    exports.destroyColorSlider = destroyColorSlider;
 });
 //# sourceMappingURL=colorSliderUtils.js.map

@@ -1,10 +1,11 @@
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import GraphicsLayer = require("esri/layers/GraphicsLayer");
+import Graphic = require("esri/Graphic");
 import GroupLayer = require("esri/layers/GroupLayer");
 
 import SceneView = require("esri/views/SceneView");
 
-import { Extent, Polyline } from "esri/geometry";
+import { Extent, Polyline, Point } from "esri/geometry";
 import { SimpleLineSymbol, LabelSymbol3D, TextSymbol3DLayer, PointSymbol3D, IconSymbol3DLayer } from "esri/symbols";
 import { SimpleRenderer } from "esri/renderers";
 
@@ -41,7 +42,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
       type: "double"
     }],
     geometryType: "point",
-    source: createGraphics(200, depth, exaggeration),
+    source: createGraphics(view, extent, 200, depth, exaggeration),
     screenSizePerspectiveEnabled: false,
     featureReduction: null,
     labelsVisible: true,
@@ -88,7 +89,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
   return depthRuler;
 }
 
-function createGraphics(interval: number, depth: number, exaggeration: number){
+function createGraphics(view: SceneView, extent: Extent, interval: number, depth: number, exaggeration: number){
   const features = [];
   const trueDepth = Math.round(Math.abs(depth/exaggeration));
   for(var i = 0; i <= trueDepth; i+=interval){
@@ -98,13 +99,12 @@ function createGraphics(interval: number, depth: number, exaggeration: number){
         ObjectID: i,
         label: "  " + Math.round(depthValue) + " m"
       },
-      geometry: {
-        type: "point",
+      geometry: new Point({
         spatialReference: view.spatialReference,
         x: extent.xmin,
         y: extent.ymax,
         z: depthValue * exaggeration
-      }
+      })
     }));
   }
   return features;

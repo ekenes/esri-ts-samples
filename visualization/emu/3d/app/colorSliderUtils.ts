@@ -5,6 +5,7 @@ import { SimpleRenderer } from "esri/renderers";
 import lang = require("esri/core/lang");
 
 let colorSlider: ColorSlider;
+let colorSlideChangeEvent: any, colorSlideSlideEvent: any;
 
 interface ColorSliderParams {
   colorResponse: esri.VisualVariableResult,
@@ -45,7 +46,7 @@ export async function updateColorSlider(params: ColorSliderParams){
     // when the user slides the handle(s), update the renderer
     // with the updated color visual variable object
 
-    colorSlider.on("handle-value-change", () => {
+    colorSlideChangeEvent = colorSlider.on("handle-value-change", () => {
       const oldRenderer = layer.renderer as SimpleRenderer;
       const newRenderer = oldRenderer.clone();
 
@@ -70,7 +71,7 @@ export async function updateColorSlider(params: ColorSliderParams){
       layer.renderer = newRenderer;
     });
 
-    colorSlider.on("data-change", function() {
+    colorSlideSlideEvent = colorSlider.on("data-change", function() {
       const oldRenderer = layer.renderer as SimpleRenderer;
       const newRenderer = oldRenderer.clone();
       if(newRenderer.visualVariables.length > 1){
@@ -94,4 +95,13 @@ function getNumHandles(theme: string): number {
 function updateMeanValue(){
   const displayMeanValue = document.getElementById("display-mean-value");
   displayMeanValue.innerHTML = (Math.round(colorSlider.visualVariable.stops[2].value*100)/100).toString();
+}
+
+export function destroyColorSlider(){
+  if(colorSlider){
+    colorSlider.destroy();
+    colorSlideChangeEvent.remove();
+    colorSlideSlideEvent.remove();
+    colorSlider = null;
+  }
 }
