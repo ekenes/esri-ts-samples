@@ -1,0 +1,27 @@
+html,
+body,
+#viewDiv {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#slider-div {
+  padding: 10px;
+}
+
+.slider-wrapper {
+  display: inline-block;
+  width: 20px;
+  height: 600px;
+  padding: 0
+}
+
+.slider-wrapper input {
+  width: 600px;
+  height: 20px;
+  margin: 0;
+  transform-origin: 300px 300px;
+  transform: rotate(-90deg);
+}
