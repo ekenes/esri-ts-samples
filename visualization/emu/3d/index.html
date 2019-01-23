@@ -18,15 +18,71 @@
     </script>
     <script src="https://jsdev.arcgis.com/4.11"></script>
   </head>
-  <body>
-    <div id="viewDiv"></div>
-    <div id="slider-div" class="esri-widget">
-      <div>
-        <span id="slider-value-text">0</span> meters below
+  <body class="claro">
+    <div id="viewDiv">
+      <div id="titleDiv" class="esri-widget">
+        Ecological Marine Units - Maldives
       </div>
-      <div class="esri-widget slider-wrapper">
-        <input type="range" class="esri-widget" id="depth-slider" min="-5000" max="0" step="5", value="0">
+    </div>
+    <div id="color-container" class="widget-background">
+      Field1: &nbsp;&nbsp;&nbsp;<select id="color-field1-select" class="esri-widget">
+        <option value="Cluster37">EMU Cluster</option>
+        <option value="temp">Temperature</option>
+        <option value="salinity" selected>Salinity</option>
+        <option value="appO2ut">Apparent O2</option>
+        <option value="dissO2">Dissolved O2</option>
+        <option value="nitrate">Nitrate</option>
+        <option value="percO2sat">% O2 Saturation</option>
+        <option value="phosphate">Phosphate</option>
+        <option value="silicate">Silicate</option>
+        <option value="ChlorA_12yrAvg">ChlorA (12 yr avg)</option>
+      </select><br>
+      Field2: &nbsp;&nbsp;&nbsp;<select id="color-field2-select" class="esri-widget">
+        <option value="" selected></option>
+        <option value="temp">Temperature</option>
+        <option value="salinity">Salinity</option>
+        <option value="appO2ut">Apparent O2</option>
+        <option value="dissO2">Dissolved O2</option>
+        <option value="nitrate">Nitrate</option>
+        <option value="percO2sat">% O2 Saturation</option>
+        <option value="phosphate">Phosphate</option>
+        <option value="silicate">Silicate</option>
+        <option value="ChlorA_12yrAvg">ChlorA (12 yr avg)</option>
+      </select>
+    </div>
+    <div id="filter-container" class="esri-widget">
+    <div class="esri-widget">
+        EMU Cluster: <select id="emu-filter" class="esri-widget">
+          <option value="1=1" selected>all</option>
+          <option value="Cluster37 = 10">EMU 10</option>
+          <option value="Cluster37 = 13">EMU 13</option>
+          <option value="Cluster37 = 14">EMU 14</option>
+          <option value="Cluster37 = 18">EMU 18</option>
+          <option value="Cluster37 = 24">EMU 24</option>
+          <option value="Cluster37 = 26">EMU 26</option>
+          <option value="Cluster37 = 33">EMU 33</option>
+          <option value="Cluster37 = 36">EMU 36</option>
+        </select>
       </div>
+      <div class="esri-widget">
+        Depth: <select id="depth-filter" class="esri-widget">
+          <option value="1=1" selected>none</option>
+          <option value="UnitTop > -200">0 - 200m +</option>
+          <option value="UnitTop >= -1000 AND UnitTop <= -200">200m - 1000m</option>
+          <option value="UnitTop >= -2000 AND UnitTop <= -1000">1000m - 2000m</option>
+          <option value="UnitTop >= -3000 AND UnitTop <= -2000">2000m - 3000m</option>
+          <option value="UnitTop <= -3000">> 3000m</option>
+        </select>
+      </div>
+      <div id="data-filter-container" class="esri-widget" style="padding-top: 10px; color: gray;">
+        <input type="checkbox" id="filter-data-check"> filter by data values?<br>
+        <span id="field-name"></span> values less than <span id="data-value"></span><br>
+        <span id="data-min">0</span><input type="range" id="data-filter" min="0" max="38" step="1" class="esri-widget" disabled><span id="data-max">38</span>
+      </div>
+    </div>
+    <div id="display-mean" class="esri-widget">
+      <span id="display-variable"></span><br>
+      <span id="display-mean-value"></span><span id="display-unit"></span>
     </div>
     <script>require(["app/main"]);</script>
   </body>
