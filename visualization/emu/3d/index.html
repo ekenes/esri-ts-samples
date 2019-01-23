@@ -3,7 +3,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
     <title>EMU explorer (3d)</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+    <link rel="stylesheet" href="https://jsdev.arcgis.com/4.11/esri/themes/dark-blue/main.css">
     <link rel="stylesheet" href="app/main.css">
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
@@ -21,7 +21,7 @@
   <body class="claro">
     <div id="viewDiv">
       <div id="titleDiv" class="esri-widget">
-        Ecological Marine Units - Maldives
+        Ecological Marine Units
       </div>
     </div>
     <div id="color-container" class="widget-background">
@@ -63,21 +63,6 @@
           <option value="Cluster37 = 33">EMU 33</option>
           <option value="Cluster37 = 36">EMU 36</option>
         </select>
-      </div>
-      <div class="esri-widget">
-        Depth: <select id="depth-filter" class="esri-widget">
-          <option value="1=1" selected>none</option>
-          <option value="UnitTop > -200">0 - 200m +</option>
-          <option value="UnitTop >= -1000 AND UnitTop <= -200">200m - 1000m</option>
-          <option value="UnitTop >= -2000 AND UnitTop <= -1000">1000m - 2000m</option>
-          <option value="UnitTop >= -3000 AND UnitTop <= -2000">2000m - 3000m</option>
-          <option value="UnitTop <= -3000">> 3000m</option>
-        </select>
-      </div>
-      <div id="data-filter-container" class="esri-widget" style="padding-top: 10px; color: gray;">
-        <input type="checkbox" id="filter-data-check"> filter by data values?<br>
-        <span id="field-name"></span> values less than <span id="data-value"></span><br>
-        <span id="data-min">0</span><input type="range" id="data-filter" min="0" max="38" step="1" class="esri-widget" disabled><span id="data-max">38</span>
       </div>
     </div>
     <div id="display-mean" class="esri-widget">

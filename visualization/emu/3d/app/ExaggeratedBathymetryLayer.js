@@ -2,10 +2,10 @@ define(["require", "exports", "esri/layers/BaseElevationLayer", "esri/layers/Ele
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createBathymetryLayer(exaggeration) {
-        return new ExaggeratedBathymetryLayer(exaggeration);
+        return new ExaggeratedBathymetryLayer({ exaggeration: exaggeration });
     }
     exports.createBathymetryLayer = createBathymetryLayer;
-    var ExaggeratedBathymetryLayer = BaseElevationLayer.createSublcass({
+    var ExaggeratedBathymetryLayer = BaseElevationLayer.createSubclass({
         properties: {
             exaggeration: 1
         },

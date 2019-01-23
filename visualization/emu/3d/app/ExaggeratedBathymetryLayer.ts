@@ -2,10 +2,10 @@ import BaseElevationLayer = require("esri/layers/BaseElevationLayer");
 import ElevationLayer = require("esri/layers/ElevationLayer");
 
 export function createBathymetryLayer(exaggeration?: number){
-  return new ExaggeratedBathymetryLayer(exaggeration);
+  return new ExaggeratedBathymetryLayer({exaggeration});
 }
 
-const ExaggeratedBathymetryLayer = BaseElevationLayer.createSublcass({
+const ExaggeratedBathymetryLayer = (BaseElevationLayer as any).createSubclass({
 
   properties: {
     exaggeration: 1

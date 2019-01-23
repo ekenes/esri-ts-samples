@@ -38,7 +38,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
     Object.defineProperty(exports, "__esModule", { value: true });
     function generateContinuousVisualization(params) {
         return __awaiter(this, void 0, void 0, function () {
-            var symbolType, options, renderer, colorResponse, colorVV, min, max, stddev, fieldNameValue;
+            var symbolType, options, renderer, colorResponse, colorVV;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -69,11 +69,6 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                         }
                         // apply input renderer back on layer
                         params.layer.renderer = renderer;
-                        min = colorResponse.statistics.min;
-                        max = colorResponse.statistics.max;
-                        stddev = colorResponse.statistics.stddev * 0.33;
-                        fieldNameValue = document.getElementById("field-name");
-                        fieldNameValue.innerText = options.field;
                         colorSliderUtils_1.updateColorSlider({
                             colorResponse: colorResponse,
                             layer: options.layer,
@@ -130,14 +125,16 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
     }
     function getSymbolFromRenderer(renderer) {
         var symbol;
-        if (renderer.type === "simple") {
-            symbol = renderer.symbol;
-        }
-        else if (renderer.type === "class-breaks" || renderer.type === "unique-value") {
-            symbol = renderer.defaultSymbol;
-        }
-        else {
-            console.error("getSymbolFromRenderer() could not return a symbol from input renderer.");
+        switch (renderer.type) {
+            case "simple":
+                symbol = renderer.symbol;
+                break;
+            case "class-breaks":
+                symbol = renderer.classBreakInfos[0].symbol;
+                break;
+            case "unique-value":
+                symbol = renderer.uniqueValueInfos[0].symbol;
+                break;
         }
         return symbol;
     }

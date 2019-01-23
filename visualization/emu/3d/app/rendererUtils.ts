@@ -51,13 +51,6 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
   // apply input renderer back on layer
   params.layer.renderer = renderer;
 
-  const min = colorResponse.statistics.min;
-  const max = colorResponse.statistics.max;
-  const stddev = colorResponse.statistics.stddev * 0.33;
-
-  const fieldNameValue = document.getElementById("field-name");
-  fieldNameValue.innerText = options.field;
-
   updateColorSlider({
     colorResponse,
     layer: options.layer,
@@ -119,13 +112,17 @@ type PointSymbol = PointSymbol3D | SimpleMarkerSymbol;
 
 function getSymbolFromRenderer (renderer: Renderer): PointSymbol {
   let symbol: PointSymbol;
-  if (renderer.type === "simple") {
-    symbol = renderer.symbol as PointSymbol;
-  }
-  else if (renderer.type === "class-breaks" || renderer.type === "unique-value") {
-    symbol = renderer.defaultSymbol as PointSymbol;
-  } else {
-    console.error("getSymbolFromRenderer() could not return a symbol from input renderer.");
+
+  switch (renderer.type) {
+    case "simple":
+      symbol = renderer.symbol as PointSymbol;
+      break;
+    case "class-breaks":
+      symbol = renderer.classBreakInfos[0].symbol as PointSymbol;
+      break;
+    case "unique-value":
+      symbol = renderer.uniqueValueInfos[0].symbol as PointSymbol;
+      break;
   }
 
   return symbol;
