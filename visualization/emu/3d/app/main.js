@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/geometry", "../app/ExaggeratedBathymetryLayer", "./depthUtils"], function (require, exports, EsriMap, SceneView, FeatureLayer, geometry_1, ExaggeratedBathymetryLayer_1, depthUtils_1) {
+define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/geometry", "../app/ExaggeratedBathymetryLayer", "./depthUtils", "./rendererUtils", "esri/widgets/Home", "esri/widgets/BasemapToggle", "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Slice"], function (require, exports, EsriMap, SceneView, FeatureLayer, geometry_1, ExaggeratedBathymetryLayer_1, depthUtils_1, rendererUtils_1, Home, BasemapToggle, Legend, LayerList, Expand, Slice) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -44,9 +44,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             var dataExpression = filterCheckbox.checked ? colorField1Select.value + " <= " + dataFilter.value : "1=1";
             var expression = "(" + depthExpression + ") AND (" + dataExpression + ") AND (" + emuExpression + ")";
             layer.definitionExpression = expression;
-        }
-        function definitionExpressionHasValue(expression, value) {
-            return expression.indexOf(value) > -1;
         }
         function changeEventListener() {
             if (colorField1Select.value === "Cluster37") {
@@ -65,7 +62,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     else {
                         displayUnit.innerHTML = colorField1Select.value === "temp" ? " °C" : " µmol/l";
                     }
-                    generateContinuousVisualization();
+                    rendererUtils_1.generateContinuousVisualization();
                 }
                 else {
                     destroyColorSlider();
@@ -383,25 +380,15 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                 case 3:
                     layerView = _a.sent();
                     layerView.maximumNumberOfFeatures = 100000;
-                    generateContinuousVisualization();
-                    filterCheckbox.addEventListener("click", function () {
-                        dataFilter.disabled = !filterCheckbox.checked;
-                        if (dataFilter.disabled) {
-                            dataFilterContainer.style.color = "gray";
-                        }
-                        else {
-                            dataFilterContainer.style.color = null;
-                        }
-                        filterChange();
+                    rendererUtils_1.generateContinuousVisualization({
+                        view: view,
+                        layer: layer,
+                        exaggeration: exaggeration,
+                        field: colorField1Select.value
                     });
-                    depthFilter.addEventListener("change", filterChange);
-                    dataFilter.addEventListener("change", filterChange);
                     emuFilter.addEventListener("change", filterChange);
-                    dataFilter.addEventListener("input", function (event) {
-                        dataFilterValue.innerText = Math.round(event.target.value * 100) / 100;
-                    });
                     symbolCheck.addEventListener("click", function () {
-                        generateContinuousVisualization();
+                        rendererUtils_1.generateContinuousVisualization();
                     });
                     ///////////////////////////////////////
                     //
@@ -435,7 +422,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     });
                     layerList.on("trigger-action", function (event) {
                         if (event.action.id === "toggle-3d-cylinders") {
-                            cylinderSymbolsUsed = !cylinderSymbolsUsed;
                             changeEventListener();
                         }
                     });
@@ -449,9 +435,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     legend = new Legend({
                         view: view,
                         container: document.createElement("div"),
-                        layerInfos: [{
-                                layer: layer
-                            }]
+                        layerInfos: [{ layer: layer }]
                     });
                     legendExpand = new Expand({
                         view: view,
@@ -476,50 +460,11 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     view.ui.add(filtersExpand, "top-left");
                     sliceExpand = new Expand({
                         view: view,
-                        content: new Slice({
-                            view: view
-                        }),
+                        content: new Slice({ view: view }),
                         expandIconClass: "esri-icon-search",
                         group: "top-left"
                     });
                     view.ui.add(sliceExpand, "top-left");
-                    // Expands
-                    layerListExpand.watch("expanded", function (expanded) {
-                        var otherWidgetsExpanded = colorSliderExpand.expanded ||
-                            legendExpand.expanded || filtersExpand.expanded;
-                        if (expanded && otherWidgetsExpanded) {
-                            colorSliderExpand.collapse();
-                            legendExpand.collapse();
-                            filtersExpand.collapse();
-                        }
-                    });
-                    colorSliderExpand.watch("expanded", function (expanded) {
-                        var otherWidgetsExpanded = layerListExpand.expanded ||
-                            legendExpand.expanded || filtersExpand.expanded;
-                        if (expanded && otherWidgetsExpanded) {
-                            layerListExpand.collapse();
-                            legendExpand.collapse();
-                            filtersExpand.collapse();
-                        }
-                    });
-                    legendExpand.watch("expanded", function (expanded) {
-                        var otherWidgetsExpanded = colorSliderExpand.expanded ||
-                            layerListExpand.expanded || filtersExpand.expanded;
-                        if (expanded && otherWidgetsExpanded) {
-                            colorSliderExpand.collapse();
-                            layerListExpand.collapse();
-                            filtersExpand.collapse();
-                        }
-                    });
-                    filtersExpand.watch("expanded", function (expanded) {
-                        var otherWidgetsExpanded = colorSliderExpand.expanded ||
-                            legendExpand.expanded || layerListExpand.expanded;
-                        if (expanded && otherWidgetsExpanded) {
-                            colorSliderExpand.collapse();
-                            legendExpand.collapse();
-                            layerListExpand.collapse();
-                        }
-                    });
                     colorField1Select.addEventListener("change", changeEventListener);
                     colorField2Select.addEventListener("change", changeEventListener);
                     return [2 /*return*/];

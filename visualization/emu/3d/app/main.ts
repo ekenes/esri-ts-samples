@@ -7,6 +7,14 @@ import { Extent } from "esri/geometry";
 
 import { createBathymetryLayer } from "../app/ExaggeratedBathymetryLayer";
 import { createDepthRulerLayer } from "./depthUtils";
+import { generateContinuousVisualization } from "./rendererUtils";
+
+import Home = require("esri/widgets/Home");
+import BasemapToggle = require("esri/widgets/BasemapToggle");
+import Legend = require("esri/widgets/Legend");
+import LayerList = require("esri/widgets/LayerList");
+import Expand = require("esri/widgets/Expand");
+import Slice = require("esri/widgets/Slice");
 
 ( async () => {
 
@@ -165,25 +173,15 @@ import { createDepthRulerLayer } from "./depthUtils";
   const layerView = await view.whenLayerView(layer) as esri.FeatureLayerView;
   layerView.maximumNumberOfFeatures = 100000;
 
-  generateContinuousVisualization();
-
-  filterCheckbox.addEventListener("click", function(){
-    dataFilter.disabled = !filterCheckbox.checked;
-
-    if (dataFilter.disabled){
-      dataFilterContainer.style.color = "gray";
-    } else {
-      dataFilterContainer.style.color = null;
-    }
-
-    filterChange();
+  generateContinuousVisualization({
+    view,
+    layer,
+    exaggeration,
+    field: colorField1Select.value
   });
-  depthFilter.addEventListener("change", filterChange);
-  dataFilter.addEventListener("change", filterChange);
+
   emuFilter.addEventListener("change", filterChange);
-  dataFilter.addEventListener("input", function(event){
-    dataFilterValue.innerText = Math.round(event.target.value*100) / 100;
-  });
+
   symbolCheck.addEventListener("click", function(){
     generateContinuousVisualization();
   })
@@ -196,13 +194,6 @@ import { createDepthRulerLayer } from "./depthUtils";
     var expression = "(" + depthExpression + ") AND (" + dataExpression + ") AND (" + emuExpression + ")";
     layer.definitionExpression = expression;
   }
-
-  function definitionExpressionHasValue(expression, value){
-    return expression.indexOf(value) > -1;
-  }
-
-   
-
 
   ///////////////////////////////////////
   //
@@ -217,23 +208,23 @@ import { createDepthRulerLayer } from "./depthUtils";
   // Home
 
   view.ui.add(new Home({
-    view: view
+    view
   }), "top-left");
 
   // BasemapToggle
 
   view.ui.add(new BasemapToggle({
-    view: view,
+    view,
     nextBasemap: "oceans"
   }), "bottom-right");
 
   // LayerList
 
-  var layerList = new LayerList({
-    view: view,
+  const layerList = new LayerList({
+    view,
     container: document.createElement("div"),
-    listItemCreatedFunction: function(event){
-      var item = event.item;
+    listItemCreatedFunction: event => {
+      const item = event.item;
       if(item.title === layer.title){
         item.actionsSections = [[{
           title: "Toggle 3D cylinders",
@@ -244,15 +235,14 @@ import { createDepthRulerLayer } from "./depthUtils";
 
     }
   });
-  layerList.on("trigger-action", function(event){
+  layerList.on("trigger-action", event => {
     if(event.action.id === "toggle-3d-cylinders"){
-      cylinderSymbolsUsed = !cylinderSymbolsUsed;
       changeEventListener();
     }
   });
 
-  var layerListExpand = new Expand({
-    view: view,
+  const layerListExpand = new Expand({
+    view,
     content: layerList.container,
     expandIconClass: "esri-icon-layer-list",
     group: "top-left"
@@ -261,16 +251,14 @@ import { createDepthRulerLayer } from "./depthUtils";
 
   // Legend
 
-  var legend = new Legend({
-    view: view,
+  const legend = new Legend({
+    view,
     container: document.createElement("div"),
-    layerInfos: [{
-      layer: layer
-    }]
+    layerInfos: [{ layer }]
   });
 
-  var legendExpand = new Expand({
-    view: view,
+  const legendExpand = new Expand({
+    view,
     content: legend.container,
     expandIconClass: "esri-icon-key",
     group: "top-left"
@@ -279,8 +267,8 @@ import { createDepthRulerLayer } from "./depthUtils";
 
   // Color Slider
 
-  var colorSliderExpand = new Expand({
-    view: view,
+  const colorSliderExpand = new Expand({
+    view,
     content: document.getElementById("color-container"),
     expandIconClass: "esri-icon-chart",
     group: "top-left"
@@ -289,8 +277,8 @@ import { createDepthRulerLayer } from "./depthUtils";
 
   // Filters
 
-  var filtersExpand = new Expand({
-    view: view,
+  const filtersExpand = new Expand({
+    view,
     content: document.getElementById("filter-container"),
     expandIconClass: "esri-icon-filter",
     group: "top-left"
@@ -299,61 +287,13 @@ import { createDepthRulerLayer } from "./depthUtils";
 
   // Slice
 
-  var sliceExpand = new Expand({
-    view: view,
-    content: new Slice({
-      view: view
-    }),
+  const sliceExpand = new Expand({
+    view,
+    content: new Slice({ view }),
     expandIconClass: "esri-icon-search",
     group: "top-left"
   });
   view.ui.add(sliceExpand, "top-left");
-
-  // Expands
-
-  layerListExpand.watch("expanded", function(expanded){
-    var otherWidgetsExpanded = colorSliderExpand.expanded ||
-      legendExpand.expanded || filtersExpand.expanded;
-
-    if(expanded && otherWidgetsExpanded){
-      colorSliderExpand.collapse();
-      legendExpand.collapse();
-      filtersExpand.collapse();
-    }
-  });
-
-  colorSliderExpand.watch("expanded", function(expanded){
-    var otherWidgetsExpanded = layerListExpand.expanded ||
-      legendExpand.expanded || filtersExpand.expanded;
-
-    if(expanded && otherWidgetsExpanded){
-      layerListExpand.collapse();
-      legendExpand.collapse();
-      filtersExpand.collapse();
-    }
-  });
-
-  legendExpand.watch("expanded", function(expanded){
-    var otherWidgetsExpanded = colorSliderExpand.expanded ||
-      layerListExpand.expanded || filtersExpand.expanded;
-
-    if(expanded && otherWidgetsExpanded){
-      colorSliderExpand.collapse();
-      layerListExpand.collapse();
-      filtersExpand.collapse();
-    }
-  });
-
-  filtersExpand.watch("expanded", function(expanded){
-    var otherWidgetsExpanded = colorSliderExpand.expanded ||
-      legendExpand.expanded || layerListExpand.expanded;
-
-    if(expanded && otherWidgetsExpanded){
-      colorSliderExpand.collapse();
-      legendExpand.collapse();
-      layerListExpand.collapse();
-    }
-  });
 
   function changeEventListener(){
     if(colorField1Select.value === "Cluster37"){
