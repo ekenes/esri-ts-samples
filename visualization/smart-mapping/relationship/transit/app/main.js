@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/widgets/Legend", "esri/renderers/smartMapping/symbology/relationship", "esri/renderers/smartMapping/creators/relationship", "esri/renderers/smartMapping/creators/size"], function (require, exports, EsriMap, SceneView, FeatureLayer, Legend, relationshipSchemes, relationshipRendererCreator, sizeRendererCreator) {
+define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/widgets/Legend", "esri/widgets/Expand", "esri/renderers/smartMapping/symbology/relationship", "esri/renderers/smartMapping/creators/relationship", "esri/renderers/smartMapping/creators/size"], function (require, exports, EsriMap, SceneView, FeatureLayer, Legend, Expand, relationshipSchemes, relationshipRendererCreator, sizeRendererCreator) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -164,9 +164,12 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                             }
                         }
                     });
-                    legend = new Legend({
-                        view: view
+                    legend = new Expand({
+                        view: view,
+                        content: new Legend({ view: view }),
+                        expandIconClass: "esri-icon-key"
                     });
+                    legend.expand();
                     view.ui.add(legend, "bottom-left");
                     return [4 /*yield*/, view.when()];
                 case 1:

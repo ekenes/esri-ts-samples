@@ -4,6 +4,7 @@ import EsriMap = require("esri/Map");
 import SceneView = require("esri/views/SceneView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import Legend = require("esri/widgets/Legend");
+import Expand = require("esri/widgets/Expand");
 
 import relationshipSchemes = require("esri/renderers/smartMapping/symbology/relationship");
 import relationshipRendererCreator = require("esri/renderers/smartMapping/creators/relationship");
@@ -52,9 +53,12 @@ import { UniqueValueRenderer } from "esri/renderers";
     }
   });
 
-  const legend = new Legend({
-    view: view
+  const legend = new Expand({
+    view,
+    content: new Legend({ view }),
+    expandIconClass: "esri-icon-key"
   });
+  legend.expand();
   view.ui.add(legend, "bottom-left");
 
   await view.when();
