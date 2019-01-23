@@ -265,7 +265,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
     exports.generateRelationshipVisualization = generateRelationshipVisualization;
     function getRealWorldSizeVariables(exaggeration) {
         return [new SizeVisualVariable({
-                valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
+                valueExpression: "$feature.ThicknessPos * " + exaggeration,
                 valueUnit: "meters",
                 axis: "height"
             }), new SizeVisualVariable({

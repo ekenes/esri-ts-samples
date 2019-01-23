@@ -92,8 +92,8 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
 function createGraphics(view: SceneView, extent: Extent, interval: number, depth: number, exaggeration: number){
   const features = [];
   const trueDepth = Math.round(Math.abs(depth/exaggeration));
-  for(var i = 0; i <= trueDepth; i+=interval){
-    var depthValue = i === 0 ? i : -i;
+  for(let i = 0; i <= trueDepth; i+=interval){
+    const depthValue = i === 0 ? i : -i;
     features.push(new Graphic({
       attributes: {
         ObjectID: i,

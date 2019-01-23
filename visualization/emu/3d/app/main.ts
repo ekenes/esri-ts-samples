@@ -2,7 +2,6 @@ import esri = __esri;
 import EsriMap = require("esri/Map");
 import SceneView = require("esri/views/SceneView");
 import FeatureLayer = require("esri/layers/FeatureLayer");
-import FeatureFilter = require("esri/views/layers/support/FeatureFilter");
 import { Extent } from "esri/geometry";
 
 import { createBathymetryLayer } from "../app/ExaggeratedBathymetryLayer";
@@ -41,7 +40,7 @@ import { destroyColorSlider } from "./colorSliderUtils";
 
   const bathymetryLayer = createBathymetryLayer(exaggeration);
 
-  var map = new EsriMap({
+  const map = new EsriMap({
     basemap: "satellite",
     ground: {
       layers: [
@@ -328,11 +327,4 @@ import { destroyColorSlider } from "./colorSliderUtils";
     }
   }
 
-  
-
-  
-
-  
-
-  
 })();

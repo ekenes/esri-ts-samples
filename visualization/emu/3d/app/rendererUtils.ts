@@ -266,7 +266,7 @@ export async function generateRelationshipVisualization(params: RelationshipVisP
 
 function getRealWorldSizeVariables(exaggeration: number): SizeVisualVariable[] {
   return [ new SizeVisualVariable({
-    valueExpression: "$feature.ThicknessPos" + " * " + exaggeration,
+    valueExpression:`$feature.ThicknessPos * ${exaggeration}`,
     valueUnit: "meters",
     axis: "height"
   }), new SizeVisualVariable({
