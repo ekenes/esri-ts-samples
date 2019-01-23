@@ -38,6 +38,21 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
+        function filterByDepth() {
+            var sliderValue = parseInt(depthSlider.value);
+            sliderValueText.innerHTML = depthSlider.value;
+            var sortedValuesByDifference = uniqueDepthValues.map(function (value) {
+                return {
+                    difference: Math.abs(value - sliderValue),
+                    value: value
+                };
+            }).sort(function (a, b) {
+                return a.difference - b.difference;
+            });
+            layerView.filter = {
+                where: "UnitTop = " + sortedValuesByDifference[0].value
+            };
+        }
         var url, layer, map, view, depthSlider, sliderValueText, query, uniqueDepthValues, layerView;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -83,19 +98,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     return [4 /*yield*/, view.whenLayerView(layer)];
                 case 3:
                     layerView = _a.sent();
-                    layerView.filter = {
-                        where: "UnitTop = -10"
-                    };
-                    depthSlider.addEventListener("input", function (event) {
-                        var sliderValue = parseInt(depthSlider.value);
-                        sliderValueText.innerHTML = depthSlider.value;
-                        var filterIndex = uniqueDepthValues.indexOf(sliderValue);
-                        if (filterIndex > -1) {
-                            layerView.filter = {
-                                where: "UnitTop = " + uniqueDepthValues[filterIndex]
-                            };
-                        }
-                    });
+                    filterByDepth();
+                    depthSlider.addEventListener("input", filterByDepth);
                     return [2 /*return*/];
             }
         });

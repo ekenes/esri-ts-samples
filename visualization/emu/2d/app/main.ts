@@ -51,23 +51,27 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
   console.log("unique values: ", uniqueDepthValues);
 
   const layerView = await view.whenLayerView(layer);
-  layerView.filter = {
-    where: `UnitTop = -10`
-  };
+  filterByDepth();
 
-  depthSlider.addEventListener("input", event => {
+  depthSlider.addEventListener("input", filterByDepth);
+
+  function filterByDepth(){
     const sliderValue = parseInt(depthSlider.value);
     sliderValueText.innerHTML = depthSlider.value;
 
-    const filterIndex = uniqueDepthValues.indexOf(sliderValue);
+    const sortedValuesByDifference = uniqueDepthValues.map( value => {
+      return {
+        difference: Math.abs(value - sliderValue),
+        value
+      }
+    }).sort( (a, b) => {
+      return a.difference - b.difference; 
+    });
 
-    if(filterIndex > -1){
-      layerView.filter = {
-        where: `UnitTop = ${uniqueDepthValues[filterIndex]}`
-      };
-    }
-  });
- 
+    layerView.filter = {
+      where: `UnitTop = ${sortedValuesByDifference[0].value}`
+    };
+  }
 
   
 })();

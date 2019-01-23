@@ -14,14 +14,14 @@ body,
 .slider-wrapper {
   display: inline-block;
   width: 20px;
-  height: 150px;
+  height: 600px;
   padding: 0
 }
 
 .slider-wrapper input {
-  width: 150px;
+  width: 600px;
   height: 20px;
   margin: 0;
-  transform-origin: 75px 75px;
+  transform-origin: 300px 300px;
   transform: rotate(-90deg);
 }
