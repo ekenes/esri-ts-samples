@@ -275,7 +275,7 @@ import { destroyColorSlider } from "./colorSliderUtils";
   const sliceExpand = new Expand({
     view,
     content: new Slice({ view }),
-    expandIconClass: "esri-icon-search",
+    expandIconClass: "esri-icon-filter",
     group: "top-left"
   });
   view.ui.add(sliceExpand, "top-left");

@@ -6,10 +6,10 @@ import GroupLayer = require("esri/layers/GroupLayer");
 import SceneView = require("esri/views/SceneView");
 
 import { Extent, Polyline, Point } from "esri/geometry";
-import { SimpleLineSymbol, LabelSymbol3D, TextSymbol3DLayer, PointSymbol3D, IconSymbol3DLayer } from "esri/symbols";
+import { SimpleLineSymbol, LabelSymbol3D, TextSymbol3DLayer, PointSymbol3D, IconSymbol3DLayer, SimpleMarkerSymbol } from "esri/symbols";
 import { SimpleRenderer } from "esri/renderers";
 
-export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: number, exaggeration: number){
+export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: number, exaggeration: number): GroupLayer {
   const ruler = new GraphicsLayer({
     graphics: [{
       geometry: new Polyline({
@@ -17,8 +17,8 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
         hasZ: true,
         paths: [
           [
-            [extent.xmin, extent.ymax, 0],
-            [extent.xmin, extent.ymax, depth]
+            [ extent.xmin, extent.ymax, 0 ],
+            [ extent.xmin, extent.ymax, depth ]
           ]
         ]
       }),
@@ -42,7 +42,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
       type: "double"
     }],
     geometryType: "point",
-    source: createGraphics(view, extent, 200, depth, exaggeration),
+    source: createGraphics(extent, 200, depth, exaggeration),
     screenSizePerspectiveEnabled: false,
     featureReduction: null,
     labelsVisible: true,
@@ -89,7 +89,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
   return depthRuler;
 }
 
-function createGraphics(view: SceneView, extent: Extent, interval: number, depth: number, exaggeration: number){
+function createGraphics(extent: Extent, interval: number, depth: number, exaggeration: number): Graphic[]{
   const features = [];
   const trueDepth = Math.round(Math.abs(depth/exaggeration));
   for(let i = 0; i <= trueDepth; i+=interval){
@@ -97,10 +97,10 @@ function createGraphics(view: SceneView, extent: Extent, interval: number, depth
     features.push(new Graphic({
       attributes: {
         ObjectID: i,
-        label: "  " + Math.round(depthValue) + " m"
+        label: `  ${Math.round(depthValue)} m`
       },
       geometry: new Point({
-        spatialReference: view.spatialReference,
+        spatialReference: extent.spatialReference,
         x: extent.xmin,
         y: extent.ymax,
         z: depthValue * exaggeration

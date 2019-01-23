@@ -33,7 +33,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                     type: "double"
                 }],
             geometryType: "point",
-            source: createGraphics(view, extent, 200, depth, exaggeration),
+            source: createGraphics(extent, 200, depth, exaggeration),
             screenSizePerspectiveEnabled: false,
             featureReduction: null,
             labelsVisible: true,
@@ -78,7 +78,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
         return depthRuler;
     }
     exports.createDepthRulerLayer = createDepthRulerLayer;
-    function createGraphics(view, extent, interval, depth, exaggeration) {
+    function createGraphics(extent, interval, depth, exaggeration) {
         var features = [];
         var trueDepth = Math.round(Math.abs(depth / exaggeration));
         for (var i = 0; i <= trueDepth; i += interval) {
@@ -89,7 +89,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                     label: "  " + Math.round(depthValue) + " m"
                 },
                 geometry: new geometry_1.Point({
-                    spatialReference: view.spatialReference,
+                    spatialReference: extent.spatialReference,
                     x: extent.xmin,
                     y: extent.ymax,
                     z: depthValue * exaggeration

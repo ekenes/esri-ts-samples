@@ -306,7 +306,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     sliceExpand = new Expand({
                         view: view,
                         content: new Slice({ view: view }),
-                        expandIconClass: "esri-icon-search",
+                        expandIconClass: "esri-icon-filter",
                         group: "top-left"
                     });
                     view.ui.add(sliceExpand, "top-left");
