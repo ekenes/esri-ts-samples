@@ -47,7 +47,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             if (colorField1Select.value === "Cluster37") {
                 colorField2Select.disabled = true;
                 colorSliderUtils_1.destroyColorSlider();
-                rendererUtils_1.setEMUClusterVisualization(layer, exaggeration);
+                rendererUtils_1.setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
             }
             else {
                 if (colorField2Select.value === "") {
@@ -64,7 +64,8 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         view: view,
                         layer: layer,
                         exaggeration: exaggeration,
-                        field: colorField1Select.value
+                        field: colorField1Select.value,
+                        symbolType: changeSymbolType
                     });
                 }
                 else {
@@ -80,12 +81,14 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                             fieldName: colorField2Select.value,
                             label: colorField2Select.selectedOptions[0].text
                         },
-                        exaggeration: exaggeration
+                        exaggeration: exaggeration,
+                        symbolType: changeSymbolType
                     });
                 }
             }
+            changeSymbolType = null;
         }
-        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand;
+        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -205,12 +208,12 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                                     expression: "Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'"
                                 }]
                         },
-                        outFields: ["*"],
+                        // outFields: ["*"],
                         screenSizePerspectiveEnabled: false,
                         elevationInfo: {
                             mode: "absolute-height",
                             featureExpressionInfo: {
-                                expression: "$feature.UnitTop" + "*" + exaggeration
+                                expression: "$feature.UnitTop * " + exaggeration
                             },
                             unit: "meters"
                         }
@@ -267,6 +270,8 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     });
                     layerList.on("trigger-action", function (event) {
                         if (event.action.id === "toggle-3d-cylinders") {
+                            var symbolType = rendererUtils_1.getSymbolType(layer.renderer);
+                            changeSymbolType = symbolType === "object" ? "icon" : "object";
                             changeEventListener();
                         }
                     });

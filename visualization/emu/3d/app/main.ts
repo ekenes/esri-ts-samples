@@ -6,7 +6,7 @@ import { Extent } from "esri/geometry";
 
 import { createBathymetryLayer } from "../app/ExaggeratedBathymetryLayer";
 import { createDepthRulerLayer } from "./depthUtils";
-import { generateContinuousVisualization, setEMUClusterVisualization, generateRelationshipVisualization } from "./rendererUtils";
+import { generateContinuousVisualization, setEMUClusterVisualization, generateRelationshipVisualization, getSymbolType } from "./rendererUtils";
 
 import Home = require("esri/widgets/Home");
 import BasemapToggle = require("esri/widgets/BasemapToggle");
@@ -15,6 +15,7 @@ import LayerList = require("esri/widgets/LayerList");
 import Expand = require("esri/widgets/Expand");
 import Slice = require("esri/widgets/Slice");
 import { destroyColorSlider } from "./colorSliderUtils";
+import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/renderers";
 
 ( async () => {
 
@@ -25,6 +26,7 @@ import { destroyColorSlider } from "./colorSliderUtils";
   const displayVariable = document.getElementById("display-variable");
   const displayUnit = document.getElementById("display-unit");
   const exaggeration = 100;
+  let changeSymbolType: "object" | "icon";
 
   const studyArea = new Extent({
     spatialReference: {
@@ -138,15 +140,15 @@ import { destroyColorSlider } from "./colorSliderUtils";
       expressionInfos: [{
         name: "depth",
         title: "Depth",
-        expression: "Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'"
+        expression: `Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'`
       }]
     },
-    outFields: ["*"],
+    // outFields: ["*"],
     screenSizePerspectiveEnabled: false,
     elevationInfo: {
       mode: "absolute-height",
       featureExpressionInfo: {
-        expression: "$feature.UnitTop" + "*" + exaggeration
+        expression: `$feature.UnitTop * ${exaggeration}`
       },
       unit: "meters"
     }
@@ -222,6 +224,8 @@ import { destroyColorSlider } from "./colorSliderUtils";
   });
   layerList.on("trigger-action", event => {
     if(event.action.id === "toggle-3d-cylinders"){
+      const symbolType = getSymbolType(layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer);
+      changeSymbolType = symbolType === "object" ? "icon" : "object"
       changeEventListener();
     }
   });
@@ -287,7 +291,7 @@ import { destroyColorSlider } from "./colorSliderUtils";
     if(colorField1Select.value === "Cluster37"){
       colorField2Select.disabled = true;
       destroyColorSlider();
-      setEMUClusterVisualization(layer, exaggeration);
+      setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
     } else {
       if(colorField2Select.value === ""){
         colorField2Select.disabled = false;
@@ -304,7 +308,8 @@ import { destroyColorSlider } from "./colorSliderUtils";
           view,
           layer,
           exaggeration,
-          field: colorField1Select.value
+          field: colorField1Select.value,
+          symbolType: changeSymbolType
         });
       } else {
         destroyColorSlider();
@@ -319,12 +324,14 @@ import { destroyColorSlider } from "./colorSliderUtils";
             fieldName: colorField2Select.value,
             label: colorField2Select.selectedOptions[0].text
           },
-          exaggeration
+          exaggeration,
+          symbolType: changeSymbolType
         });
         
       }
 
     }
+    changeSymbolType = null;
   }
 
 })();

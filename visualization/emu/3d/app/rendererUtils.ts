@@ -16,11 +16,12 @@ interface ContinuousVisParams {
   field: string,
   view: SceneView,
   theme?: string,
-  exaggeration: number
+  exaggeration: number,
+  symbolType?: "object" | "icon"
 }
 
 export async function generateContinuousVisualization (params: ContinuousVisParams){
-  const symbolType = getSymbolType(params.layer.renderer as Renderer);
+  const symbolType = params.symbolType ? params.symbolType : getSymbolType(params.layer.renderer as Renderer);
 
   const options = {
     layer: params.layer,
@@ -43,7 +44,7 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
   const colorVV = colorResponse.visualVariable;
 
   if(renderer.visualVariables && renderer.visualVariables.length > 1){
-    renderer.visualVariables.push(colorVV);
+    renderer.visualVariables = renderer.visualVariables.concat([ colorVV ]);
   } else {
     renderer.visualVariables = [ colorVV ];
   }
@@ -60,7 +61,7 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
 
 }
 
-function getSymbolType (renderer: Renderer): "object" | "icon" {
+export function getSymbolType (renderer: Renderer): "object" | "icon" {
   
   let symbolType: "object" | "icon";
   const symbol = getSymbolFromRenderer(renderer);
@@ -99,11 +100,9 @@ function createSymbol(color: esri.Color | string | number[], type: "object" | "i
 
 function containsIconSymbol (renderer: Renderer): boolean {
   const symbol = getSymbolFromRenderer(renderer);
-  let hasIconSymbol: boolean;
+  let hasIconSymbol: boolean = false;
   if (symbol.type === "point-3d") {
-    hasIconSymbol = symbol.symbolLayers.some(sl => { sl.type === "icon" });
-  } else {
-    hasIconSymbol = false;
+    hasIconSymbol = !symbol.symbolLayers.some(sl => { sl.type === "object" });
   }
   return hasIconSymbol;
 }
@@ -128,9 +127,9 @@ function getSymbolFromRenderer (renderer: Renderer): PointSymbol {
   return symbol;
 }
 
-export function setEMUClusterVisualization(layer: FeatureLayer, exaggeration: number){
+export function setEMUClusterVisualization(layer: FeatureLayer, exaggeration: number, symType?: "object" | "icon"){
   const originalRenderer = layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer;
-  const symbolType = getSymbolType(originalRenderer);
+  const symbolType = symType ? symType : getSymbolType(originalRenderer);
 
   const renderer = new UniqueValueRenderer({
     field: "Cluster37",
@@ -189,7 +188,8 @@ interface RelationshipVisParams {
     fieldName: string,
     label: string
   },
-  exaggeration: number
+  exaggeration: number,
+  symbolType?: "object" | "icon"
 }
 
 export async function generateRelationshipVisualization(params: RelationshipVisParams){
@@ -210,7 +210,7 @@ export async function generateRelationshipVisualization(params: RelationshipVisP
 
   const relationshipRendererResponse = await relationshipRendererCreator.createRenderer(options);
   const oldRenderer = options.layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer;
-  const symbolType = getSymbolType(oldRenderer);
+  const symbolType = params.symbolType ? params.symbolType : getSymbolType(oldRenderer);
   
   const renderer = relationshipRendererResponse.renderer;
   let uniqueValueInfos;

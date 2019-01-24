@@ -42,7 +42,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        symbolType = getSymbolType(params.layer.renderer);
+                        symbolType = params.symbolType ? params.symbolType : getSymbolType(params.layer.renderer);
                         options = {
                             layer: params.layer,
                             basemap: params.basemap ? params.basemap : "dark-gray",
@@ -62,7 +62,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                         colorResponse = _a.sent();
                         colorVV = colorResponse.visualVariable;
                         if (renderer.visualVariables && renderer.visualVariables.length > 1) {
-                            renderer.visualVariables.push(colorVV);
+                            renderer.visualVariables = renderer.visualVariables.concat([colorVV]);
                         }
                         else {
                             renderer.visualVariables = [colorVV];
@@ -93,6 +93,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
         }
         return symbolType;
     }
+    exports.getSymbolType = getSymbolType;
     function createSymbol(color, type) {
         var symbolLayerOptions = {
             resource: {
@@ -114,12 +115,9 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
     }
     function containsIconSymbol(renderer) {
         var symbol = getSymbolFromRenderer(renderer);
-        var hasIconSymbol;
+        var hasIconSymbol = false;
         if (symbol.type === "point-3d") {
-            hasIconSymbol = symbol.symbolLayers.some(function (sl) { sl.type === "icon"; });
-        }
-        else {
-            hasIconSymbol = false;
+            hasIconSymbol = !symbol.symbolLayers.some(function (sl) { sl.type === "object"; });
         }
         return hasIconSymbol;
     }
@@ -138,9 +136,9 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
         }
         return symbol;
     }
-    function setEMUClusterVisualization(layer, exaggeration) {
+    function setEMUClusterVisualization(layer, exaggeration, symType) {
         var originalRenderer = layer.renderer;
-        var symbolType = getSymbolType(originalRenderer);
+        var symbolType = symType ? symType : getSymbolType(originalRenderer);
         var renderer = new renderers_1.UniqueValueRenderer({
             field: "Cluster37",
             defaultSymbol: createSymbol("darkgray", symbolType),
@@ -209,7 +207,7 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                     case 1:
                         relationshipRendererResponse = _a.sent();
                         oldRenderer = options.layer.renderer;
-                        symbolType = getSymbolType(oldRenderer);
+                        symbolType = params.symbolType ? params.symbolType : getSymbolType(oldRenderer);
                         renderer = relationshipRendererResponse.renderer;
                         if (symbolType === "object") {
                             uniqueValueInfos = renderer.uniqueValueInfos.map(function (info) {
