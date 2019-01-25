@@ -33,6 +33,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                     type: "double"
                 }],
             geometryType: "point",
+            returnZ: true,
             source: createGraphics(extent, 200, depth, exaggeration),
             screenSizePerspectiveEnabled: false,
             featureReduction: null,
@@ -60,7 +61,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                             resource: {
                                 primitive: "cross"
                             },
-                            size: 10,
+                            size: 50,
                             outline: {
                                 color: "#69dcff",
                                 size: 2

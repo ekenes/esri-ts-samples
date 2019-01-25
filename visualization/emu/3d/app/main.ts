@@ -278,7 +278,7 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
 
   const sliceExpand = new Expand({
     view,
-    expandIconClass: "esri-icon-filter",
+    expandIconClass: "esri-icon-drag-vertical",
     group: "top-left"
   });
   view.ui.add(sliceExpand, "top-left");

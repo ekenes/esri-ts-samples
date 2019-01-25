@@ -310,7 +310,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     view.ui.add(filtersExpand, "top-left");
                     sliceExpand = new Expand({
                         view: view,
-                        expandIconClass: "esri-icon-filter",
+                        expandIconClass: "esri-icon-drag-vertical",
                         group: "top-left"
                     });
                     view.ui.add(sliceExpand, "top-left");

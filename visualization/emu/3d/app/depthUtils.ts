@@ -42,6 +42,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
       type: "double"
     }],
     geometryType: "point",
+    returnZ: true,
     source: createGraphics(extent, 200, depth, exaggeration),
     screenSizePerspectiveEnabled: false,
     featureReduction: null,
@@ -69,7 +70,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
           resource: {
             primitive: "cross"
           },
-          size: 10,
+          size: 50,
           outline: {
             color: "#69dcff",
             size: 2
