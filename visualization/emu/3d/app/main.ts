@@ -278,11 +278,20 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
 
   const sliceExpand = new Expand({
     view,
-    content: new Slice({ view }),
     expandIconClass: "esri-icon-filter",
     group: "top-left"
   });
   view.ui.add(sliceExpand, "top-left");
+  let sliceWidget: Slice;
+
+  sliceExpand.watch("expanded", (expanded) => {
+    if(expanded){
+      sliceWidget = new Slice({ view });
+      sliceExpand.content = sliceWidget;
+    } else {
+      sliceWidget.destroy();
+    }
+  });
 
   colorField1Select.addEventListener("change", changeEventListener);
   colorField2Select.addEventListener("change", changeEventListener);

@@ -88,7 +88,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             }
             changeSymbolType = null;
         }
-        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand;
+        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand, sliceWidget;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -310,11 +310,19 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     view.ui.add(filtersExpand, "top-left");
                     sliceExpand = new Expand({
                         view: view,
-                        content: new Slice({ view: view }),
                         expandIconClass: "esri-icon-filter",
                         group: "top-left"
                     });
                     view.ui.add(sliceExpand, "top-left");
+                    sliceExpand.watch("expanded", function (expanded) {
+                        if (expanded) {
+                            sliceWidget = new Slice({ view: view });
+                            sliceExpand.content = sliceWidget;
+                        }
+                        else {
+                            sliceWidget.destroy();
+                        }
+                    });
                     colorField1Select.addEventListener("change", changeEventListener);
                     colorField2Select.addEventListener("change", changeEventListener);
                     return [2 /*return*/];
