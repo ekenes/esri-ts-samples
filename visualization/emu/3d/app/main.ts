@@ -14,6 +14,7 @@ import Legend = require("esri/widgets/Legend");
 import LayerList = require("esri/widgets/LayerList");
 import Expand = require("esri/widgets/Expand");
 import Slice = require("esri/widgets/Slice");
+
 import { destroyColorSlider } from "./colorSliderUtils";
 import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/renderers";
 
@@ -176,8 +177,6 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
 
   function filterChange (){
     const emuExpression = emuFilter.value;
-    
-
     const expression = `${emuExpression}`;
     layer.definitionExpression = expression;
   }
