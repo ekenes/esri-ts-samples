@@ -39,7 +39,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
     }, {
       name: "label",
       alias: "label",
-      type: "double"
+      type: "string"
     }],
     geometryType: "point",
     returnZ: true,
@@ -70,7 +70,7 @@ export function createDepthRulerLayer (view: SceneView, extent: Extent, depth: n
           resource: {
             primitive: "cross"
           },
-          size: 50,
+          size: 10,
           outline: {
             color: "#69dcff",
             size: 2

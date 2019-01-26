@@ -30,7 +30,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                 }, {
                     name: "label",
                     alias: "label",
-                    type: "double"
+                    type: "string"
                 }],
             geometryType: "point",
             returnZ: true,
@@ -61,7 +61,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/layers/GraphicsL
                             resource: {
                                 primitive: "cross"
                             },
-                            size: 50,
+                            size: 10,
                             outline: {
                                 color: "#69dcff",
                                 size: 2
