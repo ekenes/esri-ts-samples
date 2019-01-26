@@ -7,6 +7,63 @@ body,
   width: 100%;
 }
 
+#titleDiv {
+  padding: 5px;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  font-size: 20pt;
+  font-weight: bolder;
+  width: 100%;
+  height: 40px;
+  text-align: center;
+}
+
+#filter-container {
+  padding: 5px;
+  width: 220px;
+}
+
+#title {
+  font-size: 14pt;
+  font-weight: 500;
+}
+
+#data-value {
+  font-weight: bolder;
+}
+
+.widget-background{
+  background-color: #242424;
+  font-size: 12pt;
+  padding: 8px;
+}
+
+#display-mean{
+  color: #f4f4f4;
+  /* font-weight: 600; */
+  font-size: 36px;
+  text-align: right;
+  visibility: hidden;
+  background-color: rgba(36,36,36,0.2);
+}
+
+#esri_widgets_RendererSlider_0{
+  background-color: #242424;
+  color: white;
+}
+
+.esri-handle-label-span{
+  color: white;
+}
+.esri-renderer-slider{
+  background-color: #242424;
+}
+.esri-renderer-slider .esri-top-label-node, .esri-renderer-slider .esri-bottom-label-node, .esri-renderer-slider .esri-handle-label{
+  color: white;
+}
+
 #slider-div {
   padding: 10px;
 }

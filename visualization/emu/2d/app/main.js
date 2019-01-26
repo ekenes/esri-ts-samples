@@ -33,33 +33,122 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer"], function (require, exports, EsriMap, MapView, FeatureLayer) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/geometry", "./depthUtils", "esri/widgets/Home", "esri/widgets/BasemapToggle", "esri/widgets/Legend", "esri/widgets/Expand", "./rendererUtils", "./colorSliderUtils"], function (require, exports, EsriMap, MapView, FeatureLayer, geometry_1, depthUtils_1, Home, BasemapToggle, Legend, Expand, rendererUtils_1, colorSliderUtils_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        function filterByDepth() {
-            var sliderValue = parseInt(depthSlider.value);
-            sliderValueText.innerHTML = depthSlider.value;
-            var sortedValuesByDifference = uniqueDepthValues.map(function (value) {
-                return {
-                    difference: Math.abs(value - sliderValue),
-                    value: value
-                };
-            }).sort(function (a, b) {
-                return a.difference - b.difference;
-            });
-            layerView.filter = {
-                where: "UnitTop = " + sortedValuesByDifference[0].value
-            };
+        function filterChange() {
+            var emuExpression = emuFilter.value;
+            var expression = "" + emuExpression;
+            layer.definitionExpression = expression;
         }
-        var url, layer, map, view, depthSlider, sliderValueText, query, uniqueDepthValues, layerView;
+        function changeEventListener() {
+            if (colorField1Select.value === "Cluster37") {
+                colorField2Select.disabled = true;
+                colorSliderUtils_1.destroyColorSlider();
+                rendererUtils_1.setEMUClusterVisualization(layer);
+            }
+            else {
+                if (colorField2Select.value === "") {
+                    colorField2Select.disabled = false;
+                    displayMean.style.visibility = "hidden";
+                    displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
+                    if (colorField1Select.value === "salinity") {
+                        displayUnit.innerHTML = "";
+                    }
+                    else {
+                        displayUnit.innerHTML = colorField1Select.value === "temp" ? " °C" : " µmol/l";
+                    }
+                    rendererUtils_1.generateContinuousVisualization({
+                        view: view,
+                        layer: layer,
+                        field: colorField1Select.value
+                    });
+                }
+                else {
+                    colorSliderUtils_1.destroyColorSlider();
+                    rendererUtils_1.generateRelationshipVisualization({
+                        layer: layer,
+                        view: view,
+                        field1: {
+                            fieldName: colorField1Select.value,
+                            label: colorField1Select.selectedOptions[0].text
+                        },
+                        field2: {
+                            fieldName: colorField2Select.value,
+                            label: colorField2Select.selectedOptions[0].text
+                        }
+                    });
+                }
+            }
+        }
+        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, studyArea, url, layer, map, view, legend, legendExpand, colorSliderExpand, filtersExpand;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    colorField1Select = document.getElementById("color-field1-select");
+                    colorField2Select = document.getElementById("color-field2-select");
+                    emuFilter = document.getElementById("emu-filter");
+                    displayMean = document.getElementById("display-mean");
+                    displayVariable = document.getElementById("display-variable");
+                    displayUnit = document.getElementById("display-unit");
+                    studyArea = new geometry_1.Extent({
+                        spatialReference: { wkid: 3857 },
+                        xmin: -32607543,
+                        ymin: -148400,
+                        xmax: -31196210,
+                        ymax: 952292
+                    });
                     url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
                     layer = new FeatureLayer({
-                        url: url
+                        title: "EMU data points",
+                        url: url,
+                        popupTemplate: {
+                            title: "{NameEMU}",
+                            content: [{
+                                    type: "fields",
+                                    fieldInfos: [{
+                                            fieldName: "temp",
+                                            label: "Temperature (F)"
+                                        }, {
+                                            fieldName: "salinity",
+                                            label: "Salinity"
+                                        }, {
+                                            fieldName: "appO2ut",
+                                            label: "Apparent Oxygen"
+                                        }, {
+                                            fieldName: "dissO2",
+                                            label: "Dissolved Oxygen"
+                                        }, {
+                                            fieldName: "nitrate",
+                                            label: "Nitrate"
+                                        }, {
+                                            fieldName: "percO2sat",
+                                            label: "% Saturated Oxygen"
+                                        }, {
+                                            fieldName: "phosphate",
+                                            label: "Phosphate"
+                                        }, {
+                                            fieldName: "silicate",
+                                            label: "Silicate"
+                                        }, {
+                                            fieldName: "Cluster37",
+                                            label: "EMU Cluster"
+                                        }, {
+                                            fieldName: "ChlorA_12yrAvg",
+                                            label: "Chlor A (12 yr avg)"
+                                        }, {
+                                            fieldName: "expression/depth",
+                                            label: "Depth profile"
+                                        }]
+                                }],
+                            expressionInfos: [{
+                                    name: "depth",
+                                    title: "Depth",
+                                    expression: "Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'"
+                                }]
+                        }
                     });
                     map = new EsriMap({
                         basemap: "dark-gray-vector",
@@ -68,38 +157,68 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     view = new MapView({
                         map: map,
                         container: "viewDiv",
-                        extent: {
-                            "spatialReference": {
-                                "wkid": 3857
-                            },
-                            "xmin": -32607543,
-                            "ymin": -148400,
-                            "xmax": -31196210,
-                            "ymax": 952292
+                        extent: studyArea,
+                        padding: {
+                            top: 40
                         }
                     });
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
-                    depthSlider = document.getElementById("depth-slider");
+                    depthUtils_1.createDepthSlider({
+                        layer: layer,
+                        view: view,
+                        depthFieldName: "UnitTop"
+                    });
                     view.ui.add("slider-div", "top-right");
-                    sliderValueText = document.getElementById("slider-value-text");
-                    query = layer.createQuery();
-                    query.outFields = ["UnitTop"];
-                    query.returnDistinctValues = true;
-                    query.returnGeometry = false;
-                    console.log(query);
-                    return [4 /*yield*/, layer.queryFeatures(query).then(function (response) {
-                            return response.features.map(function (feature) { return feature.attributes.UnitTop; });
-                        })];
-                case 2:
-                    uniqueDepthValues = _a.sent();
-                    console.log("unique values: ", uniqueDepthValues);
-                    return [4 /*yield*/, view.whenLayerView(layer)];
-                case 3:
-                    layerView = _a.sent();
-                    filterByDepth();
-                    depthSlider.addEventListener("input", filterByDepth);
+                    rendererUtils_1.generateContinuousVisualization({
+                        view: view,
+                        layer: layer,
+                        field: colorField1Select.value
+                    });
+                    emuFilter.addEventListener("change", filterChange);
+                    ///////////////////////////////////////
+                    //
+                    // Widgets
+                    //
+                    //////////////////////////////////////
+                    // Display mean
+                    view.ui.add(displayMean, "top-right");
+                    // Home
+                    view.ui.add(new Home({ view: view }), "top-left");
+                    // BasemapToggle
+                    view.ui.add(new BasemapToggle({
+                        view: view,
+                        nextBasemap: "oceans"
+                    }), "bottom-right");
+                    legend = new Legend({
+                        view: view,
+                        container: document.createElement("div"),
+                        layerInfos: [{ layer: layer }]
+                    });
+                    legendExpand = new Expand({
+                        view: view,
+                        content: legend.container,
+                        expandIconClass: "esri-icon-key",
+                        group: "top-left"
+                    });
+                    view.ui.add(legendExpand, "top-left");
+                    colorSliderExpand = new Expand({
+                        view: view,
+                        content: document.getElementById("color-container"),
+                        expandIconClass: "esri-icon-chart",
+                        group: "top-left"
+                    });
+                    view.ui.add(colorSliderExpand, "top-left");
+                    filtersExpand = new Expand({
+                        view: view,
+                        content: document.getElementById("filter-container"),
+                        expandIconClass: "esri-icon-filter",
+                        group: "top-left"
+                    });
+                    view.ui.add(filtersExpand, "top-left");
+                    colorField1Select.addEventListener("change", changeEventListener);
+                    colorField2Select.addEventListener("change", changeEventListener);
                     return [2 /*return*/];
             }
         });
