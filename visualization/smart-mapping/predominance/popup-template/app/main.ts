@@ -9,9 +9,11 @@ import predominanceRendererCreator = require("esri/renderers/smartMapping/creato
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size");
 
-import { generatePopupTemplate } from "app/ArcadeExpressions";
+import { generatePopupTemplates } from "app/ArcadeExpressions";
 
 ( async () => {
+
+  const popupTemplateIndex = 4; // 0 - 4
 
   const portalItemInput = document.getElementById("portal-item-id") as HTMLInputElement;
 
@@ -56,7 +58,7 @@ import { generatePopupTemplate } from "app/ArcadeExpressions";
 
     const predominanceResponse = await createPredominanceRenderer();
     layer.renderer = predominanceResponse.renderer;
-    layer.popupTemplate = predominanceResponse.popupTemplate;
+    layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
   });
 
   function createFeatureLayer (portalItemId: string): FeatureLayer {
@@ -93,7 +95,7 @@ import { generatePopupTemplate } from "app/ArcadeExpressions";
     element.addEventListener("change", async () => {
       const predominanceResponse = await createPredominanceRenderer();
       layer.renderer = predominanceResponse.renderer;
-      layer.popupTemplate = predominanceResponse.popupTemplate;
+      layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
     });
   });
 
@@ -110,7 +112,7 @@ import { generatePopupTemplate } from "app/ArcadeExpressions";
 
   const predominanceResponse = await createPredominanceRenderer();
   layer.renderer = predominanceResponse.renderer;
-  layer.popupTemplate = predominanceResponse.popupTemplate;
+  layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
   console.log(layer.popupTemplate);
   /**
    * Creates a predominance renderer if 2 or more fields are selected,
@@ -146,8 +148,8 @@ import { generatePopupTemplate } from "app/ArcadeExpressions";
     };
 
     const rendererResponse = await predominanceRendererCreator.createRenderer(params) as any;
-    const popupTemplateResponse = generatePopupTemplate(params);
-    rendererResponse.popupTemplate = popupTemplateResponse;
+    const popupTemplateResponse = generatePopupTemplates(params);
+    rendererResponse.popupTemplates = popupTemplateResponse;
     return rendererResponse;
   }
 
