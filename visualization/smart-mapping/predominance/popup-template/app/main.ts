@@ -10,7 +10,7 @@ import predominanceRendererCreator = require("esri/renderers/smartMapping/creato
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size");
 
-import { generatePopupTemplates, getPopupTemplateTypes } from "app/ArcadeExpressions";
+import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateIndex } from "app/ArcadeExpressions";
 
 ( async () => {
 
@@ -115,11 +115,18 @@ import { generatePopupTemplates, getPopupTemplateTypes } from "app/ArcadeExpress
 
   elements.forEach(function(element){
     element.addEventListener("change", async () => {
+      setPopupTemplateIndex();
       const predominanceResponse = await createPredominanceRenderer();
       layer.renderer = predominanceResponse.renderer;
       layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
     });
   });
+
+  function setPopupTemplateIndex(){
+    const hasSize = includeSizeCheckbox.checked;
+    const hasOpacity = includeOpacityCheckbox.checked;
+    popupTemplateIndex = getSuggestedTemplateIndex(hasSize, hasOpacity);
+  }
 
   // Gets all the predominance schemes available in the JS API
 
@@ -167,7 +174,7 @@ import { generatePopupTemplates, getPopupTemplateTypes } from "app/ArcadeExpress
       includeSizeVariable: includeSizeCheckbox.checked,
       includeOpacityVariable: includeOpacityCheckbox.checked,
       legendOptions: {
-        title: "Most common decade in which homes were built"
+        title: "Decade in which homes were built"
       }
     };
 

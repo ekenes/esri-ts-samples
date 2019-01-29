@@ -89,6 +89,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 layer.popupTemplate = availablePopupTemplates[popupTemplateIndex];
             });
         }
+        function setPopupTemplateIndex() {
+            var hasSize = includeSizeCheckbox.checked;
+            var hasOpacity = includeOpacityCheckbox.checked;
+            popupTemplateIndex = ArcadeExpressions_1.getSuggestedTemplateIndex(hasSize, hasOpacity);
+        }
         /**
          * Creates a predominance renderer if 2 or more fields are selected,
          * or a continuous size renderer if 1 field is selected
@@ -119,7 +124,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 includeSizeVariable: includeSizeCheckbox.checked,
                                 includeOpacityVariable: includeOpacityCheckbox.checked,
                                 legendOptions: {
-                                    title: "Most common decade in which homes were built"
+                                    title: "Decade in which homes were built"
                                 }
                             };
                             return [4 /*yield*/, predominanceRendererCreator.createRenderer(params)];
@@ -210,7 +215,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             var predominanceResponse;
                             return __generator(this, function (_a) {
                                 switch (_a.label) {
-                                    case 0: return [4 /*yield*/, createPredominanceRenderer()];
+                                    case 0:
+                                        setPopupTemplateIndex();
+                                        return [4 /*yield*/, createPredominanceRenderer()];
                                     case 1:
                                         predominanceResponse = _a.sent();
                                         layer.renderer = predominanceResponse.renderer;

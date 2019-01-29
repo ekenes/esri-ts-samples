@@ -1,6 +1,48 @@
 import esri = __esri;
 import PopupTemplate = require("esri/PopupTemplate");
 
+export function getSuggestedTemplateIndex(hasSize: boolean, hasOpacity: boolean): number {
+  let index = 0;
+
+  if (hasSize && hasOpacity){
+    index = 7;
+  }
+  if (hasSize && !hasOpacity){
+    index = 6;
+  }
+  if (!hasSize && hasOpacity){
+    index = 3;
+  }
+
+  return index;
+}
+
+export function getPopupTemplateTypes(): Array<string> {
+  return [
+    "Predominant category",
+    "Predominant value",
+    "Margin of victory",
+    "Strength of predominance",
+    "Ordered list of values",
+    "Basic summary",
+    "Predominant category with total",
+    "Predominant category with total and strength"
+  ];
+}
+
+export function generatePopupTemplates(params: esri.predominanceCreateRendererParams): PopupTemplate[] {
+  return [
+    generateCategoryPopupTemplate(params),
+    generateValuePopupTemplate(params),
+    generateGapPopupTemplate(params),
+    generateStrengthPopupTemplate(params),
+    generateTopListPopupTemplate(params),
+    generateBasicSummaryPopupTemplate(params),
+    generateSizeSummaryPopupTemplate(params),
+    generateSizeStrengthSummaryPopupTemplate(params)
+  ]
+}
+
 interface predominanceFields {
   name: string,
   label?: string
@@ -214,74 +256,20 @@ function generateOrderedFieldList(fieldInfos: predominanceFields[]): string {
   `;
 }
 
-export function getPopupTemplateTypes(): Array<string> {
-  return [
-    "Winning category",
-    "Winning value",
-    "Margin of victory",
-    "Strength of predominance",
-    "Ordered list of values"
-  ];
-}
-
-export function generatePopupTemplates(params: esri.predominanceCreateRendererParams): PopupTemplate[] {
-  return [
-    generateCategoryPopupTemplate(params),
-    generateValuePopupTemplate(params),
-    generateGapPopupTemplate(params),
-    generateStrengthPopupTemplate(params),
-    generateTopListPopupTemplate(params)
-  ]
-}
-
 export function generateCategoryPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
   const fieldInfos = params.fields;
   const predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : `competing fields`;
 
   return new PopupTemplate({
     expressionInfos: [{
-      name: `predominant-value`,
-      title: `Predominant Value`,
-      expression: generatePredominantValueArcade(fieldInfos)
-    }, {
       name: `predominant-category`,
       title: `Predominant Category`,
       expression: generatePredominantAliasArcade(fieldInfos)
-    }, {
-      name: `total`,
-      title: `Sum all categories`,
-      expression: generatePredominantTotalArcade(fieldInfos)
-    }, {
-      name: `predominant-strength`,
-      title: `Strength of Predominance`,
-      expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
-      name: `ordered-values`,
-      title: `List of values`,
-      expression: generateOrderedFieldList(fieldInfos)
     }],
-    fieldInfos: [{
-      fieldName: `expression/predominant-value`,
-      format: {
-        digitSeparator: true,
-        places: 1
-      }
-    }, {
-      fieldName: `expression/predominant-category`
-    }, {
-      fieldName: `expression/total`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }, {
-      fieldName: `expression/predominant-strength`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }],
-    content: `The predominant value of <b>${predominanceTitle}</b> in this feature is <b>{expression/predominant-category}</b>.`
+    content: `
+      The most common category in this area is 
+      <b>{expression/predominant-category}</b>.
+    `
   });
 }
 
@@ -299,17 +287,9 @@ export function generateStrengthPopupTemplate(params: esri.predominanceCreateRen
       title: `Predominant Category`,
       expression: generatePredominantAliasArcade(fieldInfos)
     }, {
-      name: `total`,
-      title: `Sum all categories`,
-      expression: generatePredominantTotalArcade(fieldInfos)
-    }, {
       name: `predominant-strength`,
       title: `Strength of Predominance`,
       expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
-      name: `ordered-values`,
-      title: `List of values`,
-      expression: generateOrderedFieldList(fieldInfos)
     }],
     fieldInfos: [{
       fieldName: `expression/predominant-value`,
@@ -320,21 +300,17 @@ export function generateStrengthPopupTemplate(params: esri.predominanceCreateRen
     }, {
       fieldName: `expression/predominant-category`
     }, {
-      fieldName: `expression/total`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }, {
       fieldName: `expression/predominant-strength`,
       format: {
         digitSeparator: true,
         places: 0
       }
     }],
-    title: `{expression/predominant-category}`,
-    content: `<b>{expression/predominant-category}</b> is the most common <b>${predominanceTitle}</b> in this feature, 
-     which is <b>{expression/predominant-strength}%</b> of the sum of the competing categories.`
+    content: `
+       With a value of {expression/predominant-value}, <b>{expression/predominant-category}</b> 
+       is the most common category of ${predominanceTitle} in this area, 
+       which is <b>{expression/predominant-strength}%</b> of all categories combined.
+     `
   });
 }
 
@@ -351,18 +327,6 @@ export function generateValuePopupTemplate(params: esri.predominanceCreateRender
       name: `predominant-category`,
       title: `Predominant Category`,
       expression: generatePredominantAliasArcade(fieldInfos)
-    }, {
-      name: `total`,
-      title: `Sum all categories`,
-      expression: generatePredominantTotalArcade(fieldInfos)
-    }, {
-      name: `predominant-strength`,
-      title: `Strength of Predominance`,
-      expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
-      name: `ordered-values`,
-      title: `List of values`,
-      expression: generateOrderedFieldList(fieldInfos)
     }],
     fieldInfos: [{
       fieldName: `expression/predominant-value`,
@@ -372,23 +336,9 @@ export function generateValuePopupTemplate(params: esri.predominanceCreateRender
       }
     }, {
       fieldName: `expression/predominant-category`
-    }, {
-      fieldName: `expression/total`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }, {
-      fieldName: `expression/predominant-strength`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
     }],
-    title: `{expression/predominant-category}`,
-    content: `The predominant category in this feature is <b>{expression/predominant-category}</b>, 
-      which has a value of <b>{expression/predominant-value}</b>. This accounts for <b>{expression/predominant-strength}%</b>
-      of the sum of all categories comprising ${predominanceTitle} ({expression/total}).`
+    content: `The most common category in this area is <b>{expression/predominant-category}</b>, 
+      which has a value of <b>{expression/predominant-value}</b>.`
   });
 }
 
@@ -398,48 +348,11 @@ export function generateTopListPopupTemplate(params: esri.predominanceCreateRend
 
   return new PopupTemplate({
     expressionInfos: [{
-      name: `predominant-value`,
-      title: `Predominant Value`,
-      expression: generatePredominantValueArcade(fieldInfos)
-    }, {
-      name: `predominant-category`,
-      title: `Predominant Category`,
-      expression: generatePredominantAliasArcade(fieldInfos)
-    }, {
-      name: `total`,
-      title: `Sum all categories`,
-      expression: generatePredominantTotalArcade(fieldInfos)
-    }, {
-      name: `predominant-strength`,
-      title: `Strength of Predominance`,
-      expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
       name: `ordered-values`,
       title: `List of values`,
       expression: generateOrderedFieldList(fieldInfos)
     }],
-    fieldInfos: [{
-      fieldName: `expression/predominant-value`,
-      format: {
-        digitSeparator: true,
-        places: 1
-      }
-    }, {
-      fieldName: `expression/predominant-category`
-    }, {
-      fieldName: `expression/total`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }, {
-      fieldName: `expression/predominant-strength`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }],
-    title: `{expression/predominant-category}`,
+    title: predominanceTitle,
     content: `{expression/ordered-values}`
   });
 }
@@ -458,6 +371,110 @@ export function generateGapPopupTemplate(params: esri.predominanceCreateRenderer
       title: `Predominant Category`,
       expression: generatePredominantAliasArcade(fieldInfos)
     }, {
+      name: `predominant-gap`,
+      title: `Margin of Victory`,
+      expression: generatePredominantGapArcade(fieldInfos)
+    }],
+    fieldInfos: [{
+      fieldName: `expression/predominant-value`,
+      format: {
+        digitSeparator: true,
+        places: 1
+      }
+    }, {
+      fieldName: `expression/predominant-category`
+    }, {
+      fieldName: `expression/predominant-gap`,
+      format: {
+        digitSeparator: true,
+        places: 0
+      }
+    }],
+    title: `Most common {expression/predominant-category}`,
+    content: `
+      <b>{expression/predominant-category}</b> has a value of <b>{expression/predominant-value}</b>, 
+      which beats all other <b>categories</b> by a margin of <b>{expression/predominant-gap}</b> percentage points.
+    `
+  });
+}
+
+export function generateBasicSummaryPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
+  const fieldInfos = params.fields;
+
+  return new PopupTemplate({
+    expressionInfos: [{
+      name: `predominant-category`,
+      title: `Predominant Category`,
+      expression: generatePredominantAliasArcade(fieldInfos)
+    }, {
+      name: `ordered-values`,
+      title: `List of values`,
+      expression: generateOrderedFieldList(fieldInfos)
+    }],
+    content: `
+      <div style="text-align: center;">
+        <b><font size="5">{expression/predominant-category}</font></b>
+        <br><br>
+      </div>
+      {expression/ordered-values}
+    `
+  });
+}
+
+export function generateSizeSummaryPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
+  const fieldInfos = params.fields;
+  const predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : `competing fields`;
+
+  return new PopupTemplate({
+    expressionInfos: [{
+      name: `predominant-value`,
+      title: `Predominant Value`,
+      expression: generatePredominantValueArcade(fieldInfos)
+    }, {
+      name: `predominant-category`,
+      title: `Predominant Category`,
+      expression: generatePredominantAliasArcade(fieldInfos)
+    }, {
+      name: `total`,
+      title: `Sum all categories`,
+      expression: generatePredominantTotalArcade(fieldInfos)
+    }],
+    fieldInfos: [{
+      fieldName: `expression/predominant-value`,
+      format: {
+        digitSeparator: true,
+        places: 1
+      }
+    }, {
+      fieldName: `expression/predominant-category`
+    }, {
+      fieldName: `expression/total`,
+      format: {
+        digitSeparator: true,
+        places: 0
+      }
+    }],
+    content: `
+      With a value of {expression/predominant-value}, <b>{expression/predominant-category}</b> is the most 
+      common category of all {expression/total} ${predominanceTitle} in this area.
+    `
+  });
+}
+
+export function generateSizeStrengthSummaryPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
+  const fieldInfos = params.fields;
+  const predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : `competing fields`;
+
+  return new PopupTemplate({
+    expressionInfos: [{
+      name: `predominant-value`,
+      title: `Predominant Value`,
+      expression: generatePredominantValueArcade(fieldInfos)
+    }, {
+      name: `predominant-category`,
+      title: `Predominant Category`,
+      expression: generatePredominantAliasArcade(fieldInfos)
+    }, {
       name: `total`,
       title: `Sum all categories`,
       expression: generatePredominantTotalArcade(fieldInfos)
@@ -465,14 +482,6 @@ export function generateGapPopupTemplate(params: esri.predominanceCreateRenderer
       name: `predominant-strength`,
       title: `Strength of Predominance`,
       expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
-      name: `predominant-gap`,
-      title: `Margin of Victory`,
-      expression: generatePredominantGapArcade(fieldInfos)
-    }, {
-      name: `ordered-values`,
-      title: `List of values`,
-      expression: generateOrderedFieldList(fieldInfos)
     }],
     fieldInfos: [{
       fieldName: `expression/predominant-value`,
@@ -494,15 +503,12 @@ export function generateGapPopupTemplate(params: esri.predominanceCreateRenderer
         digitSeparator: true,
         places: 0
       }
-    }, {
-      fieldName: `expression/predominant-gap`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
     }],
-    title: `{expression/predominant-category}`,
-    content: `{expression/predominant-category} has a value of {expression/predominant-value}, 
-      and beats all other categories by a margin of {expression/predominant-gap} percentage points.`
+    content: `
+      With a value of {expression/predominant-value}, <b>{expression/predominant-category}</b> is the most 
+      common category in this area, which makes up <b>{expression/predominant-strength}%</b> 
+      of all {expression/total} ${predominanceTitle}.
+    `
   });
 }
+
