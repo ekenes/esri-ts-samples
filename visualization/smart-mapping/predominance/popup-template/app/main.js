@@ -75,6 +75,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
         function createPopupTemplateOptions() {
             var popupTemplateOptionTypes = ArcadeExpressions_1.getPopupTemplateTypes();
             var selectElement = document.createElement("select");
+            selectElement.classList.add("esri-widget", "popup-template-select");
             popupTemplateOptionTypes.forEach(function (text, index) {
                 var option = document.createElement("option");
                 option.selected = index === popupTemplateIndex;

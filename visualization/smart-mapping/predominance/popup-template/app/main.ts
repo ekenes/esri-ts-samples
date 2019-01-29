@@ -93,6 +93,7 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
   function createPopupTemplateOptions () {
     const popupTemplateOptionTypes = getPopupTemplateTypes();
     const selectElement = document.createElement("select");
+    selectElement.classList.add("esri-widget", "popup-template-select");
     popupTemplateOptionTypes.forEach( (text, index) => {
       const option = document.createElement("option");
       option.selected = index === popupTemplateIndex;
