@@ -89,6 +89,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 popupTemplateIndex = parseInt(event.target.value);
                 layer.popupTemplate = availablePopupTemplates[popupTemplateIndex];
             });
+            return selectElement;
         }
         function setPopupTemplateIndex() {
             var hasSize = includeSizeCheckbox.checked;
@@ -107,7 +108,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         case 0:
                             selectedOptions = [].slice.call(fieldList.selectedOptions);
                             if (selectedOptions.length === 1) {
+                                popupTemplateIndex = 0;
+                                disablePredominanceElements();
                                 return [2 /*return*/, createSizeRenderer(selectedOptions[0])];
+                            }
+                            else {
+                                enablePredominanceElements();
                             }
                             fields = selectedOptions.map(function (option) {
                                 return {
@@ -139,21 +145,48 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
+        function disablePredominanceElements() {
+            if (includeOpacityCheckbox)
+                includeOpacityCheckbox.disabled = true;
+            if (includeSizeCheckbox)
+                includeSizeCheckbox.disabled = true;
+            if (popupTemplateSelect)
+                popupTemplateSelect.disabled = true;
+        }
+        function enablePredominanceElements() {
+            if (includeOpacityCheckbox)
+                includeOpacityCheckbox.disabled = false;
+            if (includeSizeCheckbox)
+                includeSizeCheckbox.disabled = false;
+            if (popupTemplateSelect)
+                popupTemplateSelect.disabled = false;
+        }
         function createSizeRenderer(option) {
             return __awaiter(this, void 0, void 0, function () {
+                var params, rendererResponse, popupTemplateResponse;
                 return __generator(this, function (_a) {
-                    return [2 /*return*/, sizeRendererCreator.createContinuousRenderer({
-                            layer: layer,
-                            basemap: map.basemap,
-                            field: option.value,
-                            legendOptions: {
-                                title: "Number of homes built (" + option.text + ")"
-                            }
-                        })];
+                    switch (_a.label) {
+                        case 0:
+                            params = {
+                                layer: layer,
+                                basemap: map.basemap,
+                                field: option.value,
+                                legendOptions: {
+                                    title: "Homes built (" + option.text + ")"
+                                }
+                            };
+                            return [4 /*yield*/, sizeRendererCreator.createContinuousRenderer(params)];
+                        case 1:
+                            rendererResponse = _a.sent();
+                            popupTemplateResponse = ArcadeExpressions_1.generateSizePopupTemplate(params);
+                            availablePopupTemplates = [popupTemplateResponse];
+                            rendererResponse.popupTemplates = availablePopupTemplates;
+                            return [2 /*return*/, rendererResponse];
+                    }
                 });
             });
         }
-        var popupTemplateIndex, availablePopupTemplates, portalItemInput, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse;
+        var popupTemplateIndex, availablePopupTemplates, portalItemInput, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse, popupTemplateSelect;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
@@ -241,10 +274,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     return [4 /*yield*/, createPredominanceRenderer()];
                 case 3:
                     predominanceResponse = _a.sent();
-                    createPopupTemplateOptions();
+                    popupTemplateSelect = createPopupTemplateOptions();
                     layer.renderer = predominanceResponse.renderer;
                     layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
-                    console.log(layer.popupTemplate);
                     return [2 /*return*/];
             }
         });

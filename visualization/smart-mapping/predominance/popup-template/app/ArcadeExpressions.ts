@@ -512,3 +512,19 @@ export function generateSizeStrengthSummaryPopupTemplate(params: esri.predominan
   });
 }
 
+export function generateSizePopupTemplate(params: esri.sizeCreateContinuousRendererParams): PopupTemplate {
+  const fieldName = params.field;
+  const fieldDescription = params.legendOptions.title;
+  return new PopupTemplate({
+    fieldInfos: [{
+      fieldName,
+      format: {
+        digitSeparator: true,
+        places: 1
+      }
+    }],
+    content: `
+      <b>${fieldDescription}:</b> {${fieldName}}
+    `
+  });
+}

@@ -301,5 +301,20 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
         });
     }
     exports.generateSizeStrengthSummaryPopupTemplate = generateSizeStrengthSummaryPopupTemplate;
+    function generateSizePopupTemplate(params) {
+        var fieldName = params.field;
+        var fieldDescription = params.legendOptions.title;
+        return new PopupTemplate({
+            fieldInfos: [{
+                    fieldName: fieldName,
+                    format: {
+                        digitSeparator: true,
+                        places: 1
+                    }
+                }],
+            content: "\n      <b>" + fieldDescription + ":</b> {" + fieldName + "}\n    "
+        });
+    }
+    exports.generateSizePopupTemplate = generateSizePopupTemplate;
 });
 //# sourceMappingURL=ArcadeExpressions.js.map

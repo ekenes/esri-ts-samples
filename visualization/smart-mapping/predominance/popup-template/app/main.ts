@@ -10,7 +10,7 @@ import predominanceRendererCreator = require("esri/renderers/smartMapping/creato
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size");
 
-import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateIndex } from "app/ArcadeExpressions";
+import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateIndex, generateSizePopupTemplate } from "app/ArcadeExpressions";
 
 ( async () => {
 
@@ -90,7 +90,7 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
     });
   }
 
-  function createPopupTemplateOptions () {
+  function createPopupTemplateOptions (): HTMLSelectElement {
     const popupTemplateOptionTypes = getPopupTemplateTypes();
     const selectElement = document.createElement("select");
     selectElement.classList.add("esri-widget", "popup-template-select");
@@ -109,6 +109,7 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
       popupTemplateIndex = parseInt(event.target.value);
       layer.popupTemplate = availablePopupTemplates[popupTemplateIndex];
     });
+    return selectElement;
   }
 
   // Each time the user changes the value of one of the DOM elements
@@ -141,11 +142,11 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
   await createFieldOptions();
 
   const predominanceResponse = await createPredominanceRenderer();
-  createPopupTemplateOptions();
+  const popupTemplateSelect = createPopupTemplateOptions();
 
   layer.renderer = predominanceResponse.renderer;
   layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
-  console.log(layer.popupTemplate);
+
   /**
    * Creates a predominance renderer if 2 or more fields are selected,
    * or a continuous size renderer if 1 field is selected
@@ -155,7 +156,11 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
 
     if (selectedOptions.length === 1){
+      popupTemplateIndex = 0;
+      disablePredominanceElements();
       return createSizeRenderer(selectedOptions[0]);
+    } else {
+      enablePredominanceElements();
     }
 
     const fields = selectedOptions.map(function(option: HTMLOptionElement){
@@ -186,15 +191,39 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
     return rendererResponse;
   }
 
-  async function createSizeRenderer(option: HTMLOptionElement): Promise <esri.sizeContinuousRendererResult> {
-    return sizeRendererCreator.createContinuousRenderer({
+  function disablePredominanceElements(){
+    if (includeOpacityCheckbox)
+      includeOpacityCheckbox.disabled = true;
+    if (includeSizeCheckbox)
+      includeSizeCheckbox.disabled = true;
+    if (popupTemplateSelect)  
+      popupTemplateSelect.disabled = true;
+  }
+
+  function enablePredominanceElements(){
+    if (includeOpacityCheckbox)
+      includeOpacityCheckbox.disabled = false;
+    if (includeSizeCheckbox)
+      includeSizeCheckbox.disabled = false;
+    if (popupTemplateSelect) 
+      popupTemplateSelect.disabled = false;
+  }
+
+  async function createSizeRenderer(option: HTMLOptionElement) {
+    const params = {
       layer,
       basemap: map.basemap,
       field: option.value,
       legendOptions: {
-        title: `Number of homes built (${option.text})`
+        title: `Homes built (${option.text})`
       }
-    });
+    };
+
+    const rendererResponse = await sizeRendererCreator.createContinuousRenderer(params) as any;
+    const popupTemplateResponse = generateSizePopupTemplate(params);
+    availablePopupTemplates = [ popupTemplateResponse ];
+    rendererResponse.popupTemplates = availablePopupTemplates;
+    return rendererResponse;
   }
 
 })();
