@@ -41,7 +41,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
         function createFeatureLayer(portalItemId) {
             return new FeatureLayer({
                 portalItem: {
-                    id: portalItemInput.value
+                    id: portalItemId
                 },
                 outFields: ["*"],
                 opacity: 0.9
@@ -70,6 +70,23 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             return [2 /*return*/];
                     }
                 });
+            });
+        }
+        function createPopupTemplateOptions() {
+            var popupTemplateOptionTypes = ArcadeExpressions_1.getPopupTemplateTypes();
+            var selectElement = document.createElement("select");
+            popupTemplateOptionTypes.forEach(function (text, index) {
+                var option = document.createElement("option");
+                option.selected = index === popupTemplateIndex;
+                option.value = index.toString();
+                option.text = text;
+                selectElement.appendChild(option);
+            });
+            var popupTemplatesContainer = document.getElementById("popup-templates");
+            popupTemplatesContainer.appendChild(selectElement);
+            selectElement.addEventListener("change", function (event) {
+                popupTemplateIndex = parseInt(event.target.value);
+                layer.popupTemplate = availablePopupTemplates[popupTemplateIndex];
             });
         }
         /**
@@ -109,6 +126,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         case 1:
                             rendererResponse = _a.sent();
                             popupTemplateResponse = ArcadeExpressions_1.generatePopupTemplates(params);
+                            availablePopupTemplates = popupTemplateResponse;
                             rendererResponse.popupTemplates = popupTemplateResponse;
                             return [2 /*return*/, rendererResponse];
                     }
@@ -129,12 +147,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var popupTemplateIndex, portalItemInput, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse;
+        var popupTemplateIndex, availablePopupTemplates, portalItemInput, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse;
         var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    popupTemplateIndex = 4;
+                    popupTemplateIndex = 0;
                     portalItemInput = document.getElementById("portal-item-id");
                     layer = createFeatureLayer(portalItemInput.value);
                     map = new EsriMap({
@@ -215,6 +233,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     return [4 /*yield*/, createPredominanceRenderer()];
                 case 3:
                     predominanceResponse = _a.sent();
+                    createPopupTemplateOptions();
                     layer.renderer = predominanceResponse.renderer;
                     layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
                     console.log(layer.popupTemplate);

@@ -3,7 +3,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
     <title>Predominance popup template</title>
-    <link rel="stylesheet" href="https://js.arcgis.com/4.9/esri/css/main.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.10/esri/css/main.css">
     <link rel="stylesheet" href="app/main.css">
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
@@ -16,7 +16,7 @@
         ]
       };
     </script>
-    <script src="https://jsdev.arcgis.com/4.9"></script>
+    <script src="https://jsdev.arcgis.com/4.10"></script>
   </head>
   <body>
     <div id="viewDiv"></div>
@@ -35,6 +35,7 @@
           <input type="checkbox" class="esri-widget" id="includeSize" checked> Show total<br>
           <input type="checkbox" class="esri-widget" id="includeOpacity"> Show % winner
         </div>
+        <div id="popup-templates"></div>
       </div>
     </div>
     <script>require(["app/main"]);</script>

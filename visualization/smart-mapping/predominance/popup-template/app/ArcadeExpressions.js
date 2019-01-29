@@ -37,6 +37,16 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
         });
         return "\n    " + arcadeFields.join("\n") + ";\n    var groups = [ " + arcadeGroups + " ];\n    var numTopValues = Count(groups);\n\n    function getValuesArray(a){\n      var valuesArray = []\n      for(var i in a){\n        valuesArray[i] = a[i].value;\n      }\n      return valuesArray;\n    }\n\n    function findAliases(top5a,fulla){\n      var aliases = [];\n      var found = \"\";\n      for(var i in top5a){\n        for(var k in fulla){\n          if(top5a[i] == fulla[k].value && Find(fulla[k].alias, found) == -1){\n            found += fulla[k].alias;\n            aliases[Count(aliases)] = {\n              alias: fulla[k].alias,\n              value: top5a[i]\n            };\n          }\n        }\n      }\n      return aliases;\n    }\n    \n    function getTopGroups(groupsArray){\n        \n      var values = getValuesArray(groupsArray);\n      var top5Values = IIF(Max(values) > 0, Top(Reverse(Sort(values)),numTopValues), \"no data\");\n      var top5Aliases = findAliases(top5Values,groupsArray);\n        \n      if(TypeOf(top5Values) == \"String\"){\n        return top5Values;\n      } else {\n        var content = \"\";\n        for(var i in top5Aliases){\n          if(top5Aliases[i].value > 0){\n            content += (i+1) + \". \" + top5Aliases[i].alias + \" (\" + Text(top5Aliases[i].value, \"#,###\") + \")\";\n            content += IIF(i < numTopValues-1, TextFormatting.NewLine, \"\");\n          }\n        }\n      }\n        \n      return content;\n    }\n    \n    getTopGroups(groups);\n  ";
     }
+    function getPopupTemplateTypes() {
+        return [
+            "Winning category",
+            "Winning value",
+            "Margin of victory",
+            "Strength of predominance",
+            "Ordered list of values"
+        ];
+    }
+    exports.getPopupTemplateTypes = getPopupTemplateTypes;
     function generatePopupTemplates(params) {
         return [
             generateCategoryPopupTemplate(params),
@@ -47,56 +57,6 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
         ];
     }
     exports.generatePopupTemplates = generatePopupTemplates;
-    function generatePopupTemplate(params) {
-        var fieldInfos = params.fields;
-        return new PopupTemplate({
-            expressionInfos: [{
-                    name: "predominant-value",
-                    title: "Predominant Value",
-                    expression: generatePredominantValueArcade(fieldInfos)
-                }, {
-                    name: "predominant-category",
-                    title: "Predominant Category",
-                    expression: generatePredominantAliasArcade(fieldInfos)
-                }, {
-                    name: "total",
-                    title: "Sum all categories",
-                    expression: generatePredominantTotalArcade(fieldInfos)
-                }, {
-                    name: "predominant-strength",
-                    title: "Strength of Predominance",
-                    expression: generatePredominantStrengthArcade(fieldInfos)
-                }, {
-                    name: "ordered-values",
-                    title: "List of values",
-                    expression: generateOrderedFieldList(fieldInfos)
-                }],
-            fieldInfos: [{
-                    fieldName: "expression/predominant-value",
-                    format: {
-                        digitSeparator: true,
-                        places: 1
-                    }
-                }, {
-                    fieldName: "expression/predominant-category"
-                }, {
-                    fieldName: "expression/total",
-                    format: {
-                        digitSeparator: true,
-                        places: 0
-                    }
-                }, {
-                    fieldName: "expression/predominant-strength",
-                    format: {
-                        digitSeparator: true,
-                        places: 0
-                    }
-                }],
-            title: "{expression/predominant-category}",
-            content: "The predominant category in this feature is {expression/predominant-category}, \n      which has a value of {expression/predominant-value}.\n      Sum of all categories: {expression/total}\n      Strength of predominance: {expression/predominant-strength}%\n      Top values: {expression/ordered-values}\n      "
-        });
-    }
-    exports.generatePopupTemplate = generatePopupTemplate;
     function generateCategoryPopupTemplate(params) {
         var fieldInfos = params.fields;
         var predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : "competing fields";

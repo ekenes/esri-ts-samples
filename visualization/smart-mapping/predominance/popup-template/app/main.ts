@@ -4,16 +4,18 @@ import EsriMap = require("esri/Map");
 import MapView = require("esri/views/MapView");
 import Legend = require("esri/widgets/Legend");
 import FeatureLayer = require("esri/layers/FeatureLayer");
+import PopupTemplate = require("esri/PopupTemplate");
 
 import predominanceRendererCreator = require("esri/renderers/smartMapping/creators/predominance");
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import sizeRendererCreator = require("esri/renderers/smartMapping/creators/size");
 
-import { generatePopupTemplates } from "app/ArcadeExpressions";
+import { generatePopupTemplates, getPopupTemplateTypes } from "app/ArcadeExpressions";
 
 ( async () => {
 
-  const popupTemplateIndex = 4; // 0 - 4
+  let popupTemplateIndex = 0;
+  let availablePopupTemplates: PopupTemplate[];
 
   const portalItemInput = document.getElementById("portal-item-id") as HTMLInputElement;
 
@@ -64,7 +66,7 @@ import { generatePopupTemplates } from "app/ArcadeExpressions";
   function createFeatureLayer (portalItemId: string): FeatureLayer {
     return new FeatureLayer({
       portalItem: {
-        id: portalItemInput.value
+        id: portalItemId
       },
       outFields: ["*"],
       opacity: 0.9
@@ -85,6 +87,26 @@ import { generatePopupTemplates } from "app/ArcadeExpressions";
       option.text = field.alias;
       option.selected = i < 2;
       fieldList.appendChild(option);
+    });
+  }
+
+  function createPopupTemplateOptions () {
+    const popupTemplateOptionTypes = getPopupTemplateTypes();
+    const selectElement = document.createElement("select");
+    popupTemplateOptionTypes.forEach( (text, index) => {
+      const option = document.createElement("option");
+      option.selected = index === popupTemplateIndex;
+      option.value = index.toString();
+      option.text = text;
+      selectElement.appendChild(option);
+    });
+
+    const popupTemplatesContainer = document.getElementById("popup-templates");
+    popupTemplatesContainer.appendChild(selectElement);
+
+    selectElement.addEventListener("change", (event:any) => {
+      popupTemplateIndex = parseInt(event.target.value);
+      layer.popupTemplate = availablePopupTemplates[popupTemplateIndex];
     });
   }
 
@@ -111,6 +133,8 @@ import { generatePopupTemplates } from "app/ArcadeExpressions";
   await createFieldOptions();
 
   const predominanceResponse = await createPredominanceRenderer();
+  createPopupTemplateOptions();
+
   layer.renderer = predominanceResponse.renderer;
   layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
   console.log(layer.popupTemplate);
@@ -149,6 +173,7 @@ import { generatePopupTemplates } from "app/ArcadeExpressions";
 
     const rendererResponse = await predominanceRendererCreator.createRenderer(params) as any;
     const popupTemplateResponse = generatePopupTemplates(params);
+    availablePopupTemplates = popupTemplateResponse;
     rendererResponse.popupTemplates = popupTemplateResponse;
     return rendererResponse;
   }
@@ -163,22 +188,5 @@ import { generatePopupTemplates } from "app/ArcadeExpressions";
       }
     });
   }
-
-  // Add popup template listing the values of each field in order
-  // of highest to lowest
-  
-  // layer.popupTemplate = {
-  //   title: `{expression/total-arcade} total homes built`,
-  //   content: `{expression/ordered-list-arcade}`,
-  //   expressionInfos: [{
-  //     name: "ordered-list-arcade",
-  //     title: "Top 10",
-  //     expression: top10Arcade
-  //   }, {
-  //     name: "total-arcade",
-  //     title: "Total homes",
-  //     expression: totalArcade
-  //   }]
-  // } as esri.PopupTemplate;
 
 })();

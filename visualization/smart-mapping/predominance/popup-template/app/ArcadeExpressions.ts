@@ -214,6 +214,16 @@ function generateOrderedFieldList(fieldInfos: predominanceFields[]): string {
   `;
 }
 
+export function getPopupTemplateTypes(): Array<string> {
+  return [
+    "Winning category",
+    "Winning value",
+    "Margin of victory",
+    "Strength of predominance",
+    "Ordered list of values"
+  ];
+}
+
 export function generatePopupTemplates(params: esri.predominanceCreateRendererParams): PopupTemplate[] {
   return [
     generateCategoryPopupTemplate(params),
@@ -222,62 +232,6 @@ export function generatePopupTemplates(params: esri.predominanceCreateRendererPa
     generateStrengthPopupTemplate(params),
     generateTopListPopupTemplate(params)
   ]
-}
-
-export function generatePopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
-  const fieldInfos = params.fields;
-
-  return new PopupTemplate({
-    expressionInfos: [{
-      name: `predominant-value`,
-      title: `Predominant Value`,
-      expression: generatePredominantValueArcade(fieldInfos)
-    }, {
-      name: `predominant-category`,
-      title: `Predominant Category`,
-      expression: generatePredominantAliasArcade(fieldInfos)
-    }, {
-      name: `total`,
-      title: `Sum all categories`,
-      expression: generatePredominantTotalArcade(fieldInfos)
-    }, {
-      name: `predominant-strength`,
-      title: `Strength of Predominance`,
-      expression: generatePredominantStrengthArcade(fieldInfos)
-    }, {
-      name: `ordered-values`,
-      title: `List of values`,
-      expression: generateOrderedFieldList(fieldInfos)
-    }],
-    fieldInfos: [{
-      fieldName: `expression/predominant-value`,
-      format: {
-        digitSeparator: true,
-        places: 1
-      }
-    }, {
-      fieldName: `expression/predominant-category`
-    }, {
-      fieldName: `expression/total`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }, {
-      fieldName: `expression/predominant-strength`,
-      format: {
-        digitSeparator: true,
-        places: 0
-      }
-    }],
-    title: `{expression/predominant-category}`,
-    content: `The predominant category in this feature is {expression/predominant-category}, 
-      which has a value of {expression/predominant-value}.
-      Sum of all categories: {expression/total}
-      Strength of predominance: {expression/predominant-strength}%
-      Top values: {expression/ordered-values}
-      `
-  });
 }
 
 export function generateCategoryPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {

@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/arcgis-js-api": "^4.8.1"
+    "@types/arcgis-js-api": "4.10.0"
   }
 }
