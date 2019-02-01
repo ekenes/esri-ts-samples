@@ -26,7 +26,8 @@ export function getPopupTemplateTypes(): Array<string> {
     "Ordered list of values",
     "Basic summary",
     "Predominant category with total",
-    "Predominant category with total and strength"
+    "Predominant category with total and strength",
+    "Predominant category with chart"
   ];
 }
 
@@ -39,8 +40,9 @@ export function generatePopupTemplates(params: esri.predominanceCreateRendererPa
     generateTopListPopupTemplate(params),
     generateBasicSummaryPopupTemplate(params),
     generateSizeSummaryPopupTemplate(params),
-    generateSizeStrengthSummaryPopupTemplate(params)
-  ]
+    generateSizeStrengthSummaryPopupTemplate(params),
+    generateChartPopupTemplate(params)
+  ];
 }
 
 interface predominanceFields {
@@ -411,13 +413,17 @@ export function generateBasicSummaryPopupTemplate(params: esri.predominanceCreat
       title: `List of values`,
       expression: generateOrderedFieldList(fieldInfos)
     }],
-    content: `
-      <div style="text-align: center;">
-        <b><font size="5">{expression/predominant-category}</font></b>
-        <br><br>
-      </div>
-      {expression/ordered-values}
-    `
+    content: [{
+      type: "text",
+      text: `
+        <div style="text-align: center;">
+          <b><font size="5">{expression/predominant-category}</font></b>
+        </div>
+      `
+    }, {
+      type: "text",
+      text: "{expression/ordered-values}"
+    }]
   });
 }
 
@@ -526,5 +532,58 @@ export function generateSizePopupTemplate(params: esri.sizeCreateContinuousRende
     content: `
       <b>${fieldDescription}:</b> {${fieldName}}
     `
+  });
+}
+
+export function generateChartPopupTemplate(params: esri.predominanceCreateRendererParams): PopupTemplate {
+  const fieldInfos = params.fields;
+  const predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : `competing fields`;
+
+  return new PopupTemplate({
+    expressionInfos: [{
+      name: `predominant-value`,
+      title: `Predominant Value`,
+      expression: generatePredominantValueArcade(fieldInfos)
+    }, {
+      name: `predominant-category`,
+      title: `Predominant Category`,
+      expression: generatePredominantAliasArcade(fieldInfos)
+    }, {
+      name: `total`,
+      title: `Sum all categories`,
+      expression: generatePredominantTotalArcade(fieldInfos)
+    }],
+    fieldInfos: [{
+      fieldName: `expression/predominant-value`,
+      format: {
+        digitSeparator: true,
+        places: 1
+      }
+    }, {
+      fieldName: `expression/predominant-category`
+    }, {
+      fieldName: `expression/total`,
+      format: {
+        digitSeparator: true,
+        places: 0
+      }
+    }],
+    content: [{
+      type: "text",
+      text: `
+        <div style="text-align: center;">
+        <b><font size="3">{expression/predominant-category}</font></b>
+        </div>
+      `
+    }, {
+      type: "media",
+      mediaInfos: {
+        type: "pie-chart",
+        title: predominanceTitle,
+        value: {
+          fields: fieldInfos.map( info => info.name)
+        }
+      }
+    }]
   });
 }

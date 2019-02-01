@@ -24,7 +24,8 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
             "Ordered list of values",
             "Basic summary",
             "Predominant category with total",
-            "Predominant category with total and strength"
+            "Predominant category with total and strength",
+            "Predominant category with chart"
         ];
     }
     exports.getPopupTemplateTypes = getPopupTemplateTypes;
@@ -37,7 +38,8 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
             generateTopListPopupTemplate(params),
             generateBasicSummaryPopupTemplate(params),
             generateSizeSummaryPopupTemplate(params),
-            generateSizeStrengthSummaryPopupTemplate(params)
+            generateSizeStrengthSummaryPopupTemplate(params),
+            generateChartPopupTemplate(params)
         ];
     }
     exports.generatePopupTemplates = generatePopupTemplates;
@@ -215,7 +217,13 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
                     title: "List of values",
                     expression: generateOrderedFieldList(fieldInfos)
                 }],
-            content: "\n      <div style=\"text-align: center;\">\n        <b><font size=\"5\">{expression/predominant-category}</font></b>\n        <br><br>\n      </div>\n      {expression/ordered-values}\n    "
+            content: [{
+                    type: "text",
+                    text: "\n        <div style=\"text-align: center;\">\n          <b><font size=\"5\">{expression/predominant-category}</font></b>\n        </div>\n      "
+                }, {
+                    type: "text",
+                    text: "{expression/ordered-values}"
+                }]
         });
     }
     exports.generateBasicSummaryPopupTemplate = generateBasicSummaryPopupTemplate;
@@ -316,5 +324,53 @@ define(["require", "exports", "esri/PopupTemplate"], function (require, exports,
         });
     }
     exports.generateSizePopupTemplate = generateSizePopupTemplate;
+    function generateChartPopupTemplate(params) {
+        var fieldInfos = params.fields;
+        var predominanceTitle = params.legendOptions && params.legendOptions.title ? params.legendOptions.title : "competing fields";
+        return new PopupTemplate({
+            expressionInfos: [{
+                    name: "predominant-value",
+                    title: "Predominant Value",
+                    expression: generatePredominantValueArcade(fieldInfos)
+                }, {
+                    name: "predominant-category",
+                    title: "Predominant Category",
+                    expression: generatePredominantAliasArcade(fieldInfos)
+                }, {
+                    name: "total",
+                    title: "Sum all categories",
+                    expression: generatePredominantTotalArcade(fieldInfos)
+                }],
+            fieldInfos: [{
+                    fieldName: "expression/predominant-value",
+                    format: {
+                        digitSeparator: true,
+                        places: 1
+                    }
+                }, {
+                    fieldName: "expression/predominant-category"
+                }, {
+                    fieldName: "expression/total",
+                    format: {
+                        digitSeparator: true,
+                        places: 0
+                    }
+                }],
+            content: [{
+                    type: "text",
+                    text: "\n        <div style=\"text-align: center;\">\n        <b><font size=\"3\">{expression/predominant-category}</font></b>\n        </div>\n      "
+                }, {
+                    type: "media",
+                    mediaInfos: {
+                        type: "pie-chart",
+                        title: predominanceTitle,
+                        value: {
+                            fields: fieldInfos.map(function (info) { return info.name; })
+                        }
+                    }
+                }]
+        });
+    }
+    exports.generateChartPopupTemplate = generateChartPopupTemplate;
 });
 //# sourceMappingURL=ArcadeExpressions.js.map
