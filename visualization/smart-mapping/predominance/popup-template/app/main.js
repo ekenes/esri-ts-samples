@@ -38,14 +38,15 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
-        function createFeatureLayer(portalItemId) {
-            return new FeatureLayer({
-                portalItem: {
-                    id: portalItemId
-                },
-                outFields: ["*"],
-                opacity: 0.9
+        // function to retrieve query parameters (in this case only id)
+        function getIdParam() {
+            var queryParams = document.location.search.substr(1);
+            var result = {};
+            queryParams.split("&").forEach(function (part) {
+                var item = part.split("=");
+                result[item[0]] = decodeURIComponent(item[1]);
             });
+            return result.id;
         }
         function createFieldOptions() {
             return __awaiter(this, void 0, void 0, function () {
@@ -186,14 +187,17 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var popupTemplateIndex, availablePopupTemplates, portalItemInput, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse, popupTemplateSelect;
-        var _this = this;
+        var popupTemplateIndex, availablePopupTemplates, id, layer, map, view, fieldList, includeSizeCheckbox, includeOpacityCheckbox, elements, schemes, predominanceResponse, popupTemplateSelect;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     popupTemplateIndex = 0;
-                    portalItemInput = document.getElementById("portal-item-id");
-                    layer = createFeatureLayer(portalItemInput.value);
+                    id = getIdParam();
+                    layer = new FeatureLayer({
+                        portalItem: { id: id },
+                        outFields: ["*"],
+                        opacity: 0.9
+                    });
                     map = new EsriMap({
                         basemap: {
                             portalItem: {
@@ -216,31 +220,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     includeSizeCheckbox = document.getElementById("includeSize");
                     includeOpacityCheckbox = document.getElementById("includeOpacity");
                     elements = [fieldList, includeOpacityCheckbox, includeSizeCheckbox];
-                    portalItemInput.addEventListener("change", function () { return __awaiter(_this, void 0, void 0, function () {
-                        var extentResponse, predominanceResponse;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0:
-                                    map.removeAll();
-                                    layer = createFeatureLayer(portalItemInput.value);
-                                    map.add(layer);
-                                    fieldList.options.length = 0;
-                                    return [4 /*yield*/, createFieldOptions()];
-                                case 1:
-                                    _a.sent();
-                                    return [4 /*yield*/, layer.queryExtent()];
-                                case 2:
-                                    extentResponse = _a.sent();
-                                    view.goTo(extentResponse.extent);
-                                    return [4 /*yield*/, createPredominanceRenderer()];
-                                case 3:
-                                    predominanceResponse = _a.sent();
-                                    layer.renderer = predominanceResponse.renderer;
-                                    layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); });
                     // Each time the user changes the value of one of the DOM elements
                     // (list box and two checkboxes), then generate a new predominance visualization
                     elements.forEach(function (element) {

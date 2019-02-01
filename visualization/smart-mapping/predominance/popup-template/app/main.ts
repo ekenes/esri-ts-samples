@@ -17,9 +17,26 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
   let popupTemplateIndex = 0;
   let availablePopupTemplates: PopupTemplate[];
 
-  const portalItemInput = document.getElementById("portal-item-id") as HTMLInputElement;
+  // function to retrieve query parameters (in this case only id)
+  function getIdParam(): string {
+    const queryParams = document.location.search.substr(1);
+    let result: any = {};
 
-  let layer = createFeatureLayer(portalItemInput.value);
+    queryParams.split("&").forEach(function(part) {
+      var item = part.split("=");
+      result[item[0]] = decodeURIComponent(item[1]);
+    });
+
+    return result.id;
+  }
+
+  const id = getIdParam();
+
+  let layer = new FeatureLayer({
+    portalItem: { id },
+    outFields: ["*"],
+    opacity: 0.9
+  });
 
   const map = new EsriMap({
     basemap: {
@@ -45,33 +62,6 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
   const includeOpacityCheckbox = document.getElementById("includeOpacity") as HTMLInputElement;
 
   const elements = [ fieldList, includeOpacityCheckbox, includeSizeCheckbox ];
-
-  portalItemInput.addEventListener("change", async () => {
-    map.removeAll();
-    layer = createFeatureLayer(portalItemInput.value);
-    map.add(layer);
-
-    fieldList.options.length = 0;
-
-    await createFieldOptions();
-
-    const extentResponse = await layer.queryExtent();
-    view.goTo(extentResponse.extent);
-
-    const predominanceResponse = await createPredominanceRenderer();
-    layer.renderer = predominanceResponse.renderer;
-    layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
-  });
-
-  function createFeatureLayer (portalItemId: string): FeatureLayer {
-    return new FeatureLayer({
-      portalItem: {
-        id: portalItemId
-      },
-      outFields: ["*"],
-      opacity: 0.9
-    });
-  }
 
   async function createFieldOptions (): Promise<any> {
     await layer.load();
