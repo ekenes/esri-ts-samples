@@ -48,6 +48,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
             });
             return result.id;
         }
+        // function to set an id as a url param
+        function setId(id) {
+            window.history.pushState("", "", window.location.pathname + "?id=" + id);
+        }
         function createFieldOptions() {
             return __awaiter(this, void 0, void 0, function () {
                 var validFieldTypes, excludedFieldNames;
@@ -57,7 +61,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         case 1:
                             _a.sent();
                             validFieldTypes = ["small-integer", "integer", "single", "double", "long"];
-                            excludedFieldNames = ["HasData", "ENRICH_FID"];
+                            excludedFieldNames = ["HasData", "ENRICH_FID", "POPULATION", "SQMI"];
                             layer.fields.filter(function (field) {
                                 return (validFieldTypes.indexOf(field.type) > -1) &&
                                     (excludedFieldNames.indexOf(field.name) === -1);
@@ -132,7 +136,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 includeSizeVariable: includeSizeCheckbox.checked,
                                 includeOpacityVariable: includeOpacityCheckbox.checked,
                                 legendOptions: {
-                                    title: "Decade in which homes were built"
+                                    title: "Homes built by decade"
                                 }
                             };
                             return [4 /*yield*/, predominanceRendererCreator.createRenderer(params)];
@@ -193,6 +197,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 case 0:
                     popupTemplateIndex = 0;
                     id = getIdParam();
+                    if (!id) {
+                        id = "e1f194d5f3184402a8a39b60b44693f4";
+                        setId(id);
+                    }
                     layer = new FeatureLayer({
                         portalItem: { id: id },
                         outFields: ["*"],

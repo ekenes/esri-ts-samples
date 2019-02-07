@@ -30,7 +30,16 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
     return result.id;
   }
 
-  const id = getIdParam();
+  // function to set an id as a url param
+  function setId(id: string) {
+    window.history.pushState("", "", `${window.location.pathname}?id=${id}`);
+  }
+
+  let id = getIdParam();
+  if(!id){
+    id = "e1f194d5f3184402a8a39b60b44693f4";
+    setId(id);
+  }
 
   let layer = new FeatureLayer({
     portalItem: { id },
@@ -66,7 +75,7 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
   async function createFieldOptions (): Promise<any> {
     await layer.load();
     const validFieldTypes = [ "small-integer", "integer", "single", "double", "long" ];
-    const excludedFieldNames = [ "HasData", "ENRICH_FID" ];
+    const excludedFieldNames = [ "HasData", "ENRICH_FID", "POPULATION", "SQMI" ];
 
     layer.fields.filter( field => {
       return ( validFieldTypes.indexOf( field.type ) > -1 ) && 
@@ -170,7 +179,7 @@ import { generatePopupTemplates, getPopupTemplateTypes, getSuggestedTemplateInde
       includeSizeVariable: includeSizeCheckbox.checked,
       includeOpacityVariable: includeOpacityCheckbox.checked,
       legendOptions: {
-        title: "Decade in which homes were built"
+        title: "Homes built by decade"
       }
     };
 
