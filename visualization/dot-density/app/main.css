@@ -40,7 +40,7 @@ body {
 }
 
 #refresh-dot-placement{
-  font-size: 24pt;
+  font-size: 14pt;
   padding-top: 5px;
   cursor: pointer;
 }
@@ -55,4 +55,10 @@ body {
 
 #dot-value-input{
   width: 100%;
+}
+
+.center-text{
+  padding-left: 5px;
+  position: relative;
+  bottom: 3px;
 }
