@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance"], function (require, exports, EsriMap, MapView, Legend, FeatureLayer, predominanceSchemes) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers"], function (require, exports, EsriMap, MapView, Legend, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -77,8 +77,47 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var id, layer, map, view, fieldList, schemes, selectedOptions, fields, params;
-        var _this = this;
+        function updateRenderer() {
+            layer.renderer = createDotDensityRenderer();
+        }
+        /**
+         * Creates a predominance renderer if 2 or more fields are selected,
+         * or a continuous size renderer if 1 field is selected
+         */
+        function createDotDensityRenderer() {
+            var selectedOptions = [].slice.call(fieldList.selectedOptions);
+            var availablePredominanceSchemes = predominanceSchemes.getSchemes({
+                basemap: view.map.basemap,
+                geometryType: "polygon",
+                numColors: selectedOptions.length
+            });
+            var attributes = selectedOptions.map(function (option, i) {
+                return {
+                    field: option.value,
+                    label: option.text,
+                    color: availableTypeSchemes.primaryScheme.colors[i]
+                };
+            });
+            var unit = unitValueInput.value;
+            var outline = outlineInput.checked ? { width: "0.4px", color: [128, 128, 128, 0.8] } : null;
+            var blendDots = blendDotsInput.checked;
+            var dotSize = 1;
+            var referenceDotValue = parseInt(dotValueInput.value);
+            var referenceScale = dotValueScaleInput.checked ? view.scale : null;
+            var params = {
+                attributes: attributes,
+                blendDots: blendDots,
+                legendOptions: {
+                    unit: unit
+                },
+                outline: outline,
+                dotSize: dotSize,
+                referenceDotValue: referenceDotValue,
+                referenceScale: referenceScale,
+            };
+            return new renderers_1.DotDensityRenderer(params);
+        }
+        var id, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, seed, availableTypeSchemes, fieldList, schemes;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -110,22 +149,38 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
+                    dotValueInput = document.getElementById("dot-value-input");
+                    dotValueDisplay = document.getElementById("dot-value-display");
+                    dotValueScaleInput = document.getElementById("dot-value-scale-input");
+                    blendDotsInput = document.getElementById("blend-dots-input");
+                    outlineInput = document.getElementById("outline-input");
+                    unitValueInput = document.getElementById("unit-value-input");
+                    refreshDotPlacement = document.getElementById("refresh-dot-placement");
+                    seed = 1000;
+                    refreshDotPlacement.addEventListener("click", function () {
+                        seed = Math.round(Math.random() * 100000);
+                        var oldRenderer = layer.renderer;
+                        var newRenderer = oldRenderer.clone();
+                        newRenderer.seed = seed;
+                        layer.renderer = newRenderer;
+                        console.log(newRenderer.seed);
+                    });
+                    availableTypeSchemes = typeSchemes.getSchemes({
+                        basemap: view.map.basemap,
+                        geometryType: "polygon"
+                    });
                     fieldList = document.getElementById("fieldList");
                     // Each time the user changes the value of one of the DOM elements
                     // (list box and two checkboxes), then generate a new predominance visualization
-                    fieldList.addEventListener("change", function () { return __awaiter(_this, void 0, void 0, function () {
-                        var predominanceResponse;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
-                                case 0: return [4 /*yield*/, createPredominanceRenderer()];
-                                case 1:
-                                    predominanceResponse = _a.sent();
-                                    layer.renderer = predominanceResponse.renderer;
-                                    layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
-                                    return [2 /*return*/];
-                            }
-                        });
-                    }); });
+                    fieldList.addEventListener("change", updateRenderer);
+                    dotValueInput.addEventListener("input", function () {
+                        updateRenderer();
+                        dotValueDisplay.innerText = dotValueInput.value;
+                    });
+                    dotValueScaleInput.addEventListener("change", updateRenderer);
+                    blendDotsInput.addEventListener("change", updateRenderer);
+                    outlineInput.addEventListener("change", updateRenderer);
+                    unitValueInput.addEventListener("change", updateRenderer);
                     schemes = predominanceSchemes.getSchemes({
                         basemap: map.basemap,
                         geometryType: "polygon",
@@ -136,31 +191,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 case 2:
                     // create a predominance renderer once the app loads
                     _a.sent();
-                    layer.renderer = createDotDensityRenderer();
-                    selectedOptions = [].slice.call(fieldList.selectedOptions);
-                    fields = selectedOptions.map(function (option) {
-                        return {
-                            name: option.value,
-                            label: option.text
-                        };
-                    });
-                    params = {
-                        view: view,
-                        layer: layer,
-                        fields: fields,
-                        predominanceScheme: schemes.secondarySchemes[6],
-                        sortBy: "value",
-                        basemap: view.map.basemap,
-                        includeSizeVariable: includeSizeCheckbox.checked,
-                        includeOpacityVariable: includeOpacityCheckbox.checked,
-                        legendOptions: {
-                            title: "Homes built by decade"
-                        }
-                    };
-                    return [2 /*return*/, rendererResponse];
+                    updateRenderer();
+                    return [2 /*return*/];
             }
         });
-    }); });
-    ();
+    }); })();
 });
 //# sourceMappingURL=main.js.map

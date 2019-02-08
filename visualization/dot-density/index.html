@@ -28,7 +28,25 @@
           Use Ctrl or Cmd to select and deselect values. 
           Paste the feature layer portal item ID in the url.
         </div>
-        <select id="fieldList" multiple="multiple" size=10 class="esri-widget"></select>
+        <div class="div-padding">
+            <select id="fieldList" multiple="multiple" size=10 class="esri-widget"></select>
+        </div>
+        <div class="div-padding">
+          Dot Value: <span id="dot-value-display">10</span>
+          <input type="range" id="dot-value-input" min="1" max="500" step="1" value="10">
+        </div>
+        <div class="checkbox-div div-padding">
+          <input type="checkbox" id="dot-value-scale-input"> Vary dot value by scale<br>
+          <input type="checkbox" id="blend-dots-input"> Blend dots?<br>
+          <input type="checkbox" id="outline-input"> Show outline?
+        </div>
+        <div class="checkbox-div div-padding">
+          Units: <input id="unit-value-input" type="text" value="">
+        </div>
+        <div class="div-padding">
+          <span id="refresh-dot-placement" class="font-size-3 esri-icon-refresh"></span>
+        </div>
+        <div id="color-select"></div>
       </div>
     </div>
     <script>require(["app/main"]);</script>

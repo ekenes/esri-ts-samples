@@ -8,6 +8,7 @@ import PopupTemplate = require("esri/PopupTemplate");
 
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
+import { DotDensityRenderer } from "esri/renderers";
 
 ( async () => {
 
@@ -60,6 +61,30 @@ import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 
   await view.when();
 
+  const dotValueInput = document.getElementById("dot-value-input") as HTMLInputElement;
+  const dotValueDisplay = document.getElementById("dot-value-display") as HTMLSpanElement;
+  const dotValueScaleInput = document.getElementById("dot-value-scale-input") as HTMLInputElement;
+  const blendDotsInput = document.getElementById("blend-dots-input") as HTMLInputElement;
+  const outlineInput = document.getElementById("outline-input") as HTMLInputElement;
+  const unitValueInput = document.getElementById("unit-value-input") as HTMLInputElement;
+  const refreshDotPlacement = document.getElementById("refresh-dot-placement") as HTMLSpanElement;
+
+  let seed = 1000;
+
+  refreshDotPlacement.addEventListener("click", () => {
+    seed = Math.round(Math.random()*100000);
+    const oldRenderer = layer.renderer as DotDensityRenderer;
+    const newRenderer = oldRenderer.clone();
+    newRenderer.seed = seed;
+    layer.renderer = newRenderer;
+    console.log(newRenderer.seed);
+  });
+
+  const availableTypeSchemes = typeSchemes.getSchemes({
+    basemap: view.map.basemap,
+    geometryType: "polygon"
+  });
+
   const fieldList = document.getElementById("fieldList") as HTMLSelectElement;
 
   async function createFieldOptions (): Promise<any> {
@@ -81,11 +106,19 @@ import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 
   // Each time the user changes the value of one of the DOM elements
   // (list box and two checkboxes), then generate a new predominance visualization
-  fieldList.addEventListener("change", async () => {
-    const predominanceResponse = await createPredominanceRenderer();
-    layer.renderer = predominanceResponse.renderer;
-    layer.popupTemplate = predominanceResponse.popupTemplates[popupTemplateIndex];
+  fieldList.addEventListener("change", updateRenderer);
+  dotValueInput.addEventListener("input", () => {
+    updateRenderer();
+    dotValueDisplay.innerText = dotValueInput.value;
   });
+  dotValueScaleInput.addEventListener("change", updateRenderer);
+  blendDotsInput.addEventListener("change", updateRenderer);
+  outlineInput.addEventListener("change", updateRenderer);
+  unitValueInput.addEventListener("change", updateRenderer);
+
+  function updateRenderer(){
+    layer.renderer = createDotDensityRenderer();
+  }
 
   // Gets all the predominance schemes available in the JS API
 
@@ -97,40 +130,50 @@ import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 
   // create a predominance renderer once the app loads
   await createFieldOptions();
-
-
-  layer.renderer = createDotDensityRenderer();
+  updateRenderer();
 
   /**
    * Creates a predominance renderer if 2 or more fields are selected,
    * or a continuous size renderer if 1 field is selected
    */
-  async function createDotDensityRenderer(): {
+  function createDotDensityRenderer(): DotDensityRenderer {
 
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
+    const availablePredominanceSchemes = predominanceSchemes.getSchemes({
+      basemap: view.map.basemap,
+      geometryType: "polygon",
+      numColors: selectedOptions.length
+    });
 
-    const fields = selectedOptions.map(function(option: HTMLOptionElement){
+    let attributes = selectedOptions.map( (option: HTMLOptionElement, i:number) => {
       return {
-        name: option.value,
-        label: option.text
+        field: option.value,
+        label: option.text,
+        color: availableTypeSchemes.primaryScheme.colors[i]
       };
     });
 
+    const unit = unitValueInput.value;
+    const outline = outlineInput.checked ? { width: "0.4px", color: [ 128,128,128,0.8 ] } : null;
+    const blendDots = blendDotsInput.checked;
+    const dotSize = 1;
+    const referenceDotValue = parseInt(dotValueInput.value);
+    const referenceScale = dotValueScaleInput.checked ? view.scale : null;
+
     const params = {
-      view,
-      layer,
-      fields,
-      predominanceScheme: schemes.secondarySchemes[6],
-      sortBy: "value",
-      basemap: view.map.basemap,
-      includeSizeVariable: includeSizeCheckbox.checked,
-      includeOpacityVariable: includeOpacityCheckbox.checked,
+      attributes,
+      blendDots,
       legendOptions: {
-        title: "Homes built by decade"
-      }
+        unit
+      },
+      outline,
+      dotSize,
+      referenceDotValue,
+      referenceScale,
+      // seed
     };
 
-    return rendererResponse;
+    return new DotDensityRenderer(params);
   }
 
 })();

@@ -38,3 +38,21 @@ body {
 .popup-template-select{
   width: 90%;
 }
+
+#refresh-dot-placement{
+  font-size: 24pt;
+  padding-top: 5px;
+  cursor: pointer;
+}
+
+.checkbox-div{
+  text-align: left;
+}
+
+.div-padding{
+  padding: 0px 8px 8px 8px;
+}
+
+#dot-value-input{
+  width: 100%;
+}
