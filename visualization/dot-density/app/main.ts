@@ -88,6 +88,7 @@ import { DotDensityRenderer } from "esri/renderers";
   const outlineInput = document.getElementById("outline-input") as HTMLInputElement;
   const unitValueInput = document.getElementById("unit-value-input") as HTMLInputElement;
   const refreshDotPlacement = document.getElementById("refresh-dot-placement") as HTMLSpanElement;
+  const schemeList = document.getElementById("scheme-list") as HTMLSelectElement;
 
   let seed = 1000;
 
@@ -105,9 +106,17 @@ import { DotDensityRenderer } from "esri/renderers";
     geometryType: "polygon"
   });
 
+  // Gets all the predominance schemes available in the JS API
+
+  const availablePredominanceSchemes = predominanceSchemes.getSchemes({
+    basemap: map.basemap,
+    geometryType: "polygon",
+    numColors: 10
+  });
+
   const fieldList = document.getElementById("fieldList") as HTMLSelectElement;
 
-  async function createFieldOptions (): Promise<any> {
+  async function createFieldOptions () {
     await layer.load();
     const validFieldTypes = [ "small-integer", "integer", "single", "double", "long" ];
     const excludedFieldNames = [ "HasData", "ENRICH_FID" ];
@@ -125,6 +134,24 @@ import { DotDensityRenderer } from "esri/renderers";
     });
   }
 
+  let selectedSchemeIndex = 0;
+  let allSchemes: Array<any>;
+
+  function createSchemeOptions () {
+    const typeSchemes = [ availableTypeSchemes.primaryScheme ].concat(availableTypeSchemes.secondarySchemes);
+    const predominanceSchemes = [ availablePredominanceSchemes.primaryScheme ].concat(availablePredominanceSchemes.secondarySchemes);
+    allSchemes = typeSchemes.concat(predominanceSchemes);
+
+    allSchemes.forEach( (scheme, i) => {
+      const option = document.createElement("option");
+      option.value = i.toString();
+      option.text = `Color scheme No. ${i}`;
+      option.selected = selectedSchemeIndex === i;
+      schemeList.appendChild(option);
+    });
+
+  }
+
   // Each time the user changes the value of one of the DOM elements
   // (list box and two checkboxes), then generate a new predominance visualization
   fieldList.addEventListener("change", updateRenderer);
@@ -136,18 +163,14 @@ import { DotDensityRenderer } from "esri/renderers";
   blendDotsInput.addEventListener("change", updateRenderer);
   outlineInput.addEventListener("change", updateRenderer);
   unitValueInput.addEventListener("change", updateRenderer);
+  schemeList.addEventListener("change", (event: any) => {
+    selectedSchemeIndex = parseInt(event.target.value);
+    updateRenderer();
+  });
 
   function updateRenderer(){
     layer.renderer = createDotDensityRenderer();
   }
-
-  // Gets all the predominance schemes available in the JS API
-
-  const schemes = predominanceSchemes.getSchemes({
-    basemap: map.basemap,
-    geometryType: "polygon",
-    numColors: 10
-  });
 
   // create a predominance renderer once the app loads
   const supportedLayer = await supportsDotDensity(layer);
@@ -155,6 +178,7 @@ import { DotDensityRenderer } from "esri/renderers";
   if(!supportedLayer){
     alert(`Invalid layer. Please provide a valid polygon layer.`)
   } else {
+    createSchemeOptions();
     await createFieldOptions();
     zoomToLayer(layer);
     updateRenderer();
@@ -167,17 +191,11 @@ import { DotDensityRenderer } from "esri/renderers";
   function createDotDensityRenderer(): DotDensityRenderer {
 
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
-    const availablePredominanceSchemes = predominanceSchemes.getSchemes({
-      basemap: view.map.basemap,
-      geometryType: "polygon",
-      numColors: selectedOptions.length
-    });
-
     let attributes = selectedOptions.map( (option: HTMLOptionElement, i:number) => {
       return {
         field: option.value,
         label: option.text,
-        color: availableTypeSchemes.primaryScheme.colors[i]
+        color: allSchemes[selectedSchemeIndex].colors[i]
       };
     });
 
@@ -198,7 +216,7 @@ import { DotDensityRenderer } from "esri/renderers";
       dotSize,
       referenceDotValue,
       referenceScale,
-      // seed
+      seed
     };
 
     return new DotDensityRenderer(params);

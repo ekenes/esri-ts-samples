@@ -78,6 +78,18 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
+        function createSchemeOptions() {
+            var typeSchemes = [availableTypeSchemes.primaryScheme].concat(availableTypeSchemes.secondarySchemes);
+            var predominanceSchemes = [availablePredominanceSchemes.primaryScheme].concat(availablePredominanceSchemes.secondarySchemes);
+            allSchemes = typeSchemes.concat(predominanceSchemes);
+            allSchemes.forEach(function (scheme, i) {
+                var option = document.createElement("option");
+                option.value = i.toString();
+                option.text = "Color scheme No. " + i;
+                option.selected = selectedSchemeIndex === i;
+                schemeList.appendChild(option);
+            });
+        }
         function updateRenderer() {
             layer.renderer = createDotDensityRenderer();
         }
@@ -87,16 +99,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
          */
         function createDotDensityRenderer() {
             var selectedOptions = [].slice.call(fieldList.selectedOptions);
-            var availablePredominanceSchemes = predominanceSchemes.getSchemes({
-                basemap: view.map.basemap,
-                geometryType: "polygon",
-                numColors: selectedOptions.length
-            });
             var attributes = selectedOptions.map(function (option, i) {
                 return {
                     field: option.value,
                     label: option.text,
-                    color: availableTypeSchemes.primaryScheme.colors[i]
+                    color: allSchemes[selectedSchemeIndex].colors[i]
                 };
             });
             var unit = unitValueInput.value;
@@ -115,6 +122,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 dotSize: dotSize,
                 referenceDotValue: referenceDotValue,
                 referenceScale: referenceScale,
+                seed: seed
             };
             return new renderers_1.DotDensityRenderer(params);
         }
@@ -147,7 +155,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, seed, availableTypeSchemes, fieldList, schemes, supportedLayer;
+        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, supportedLayer;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -202,6 +210,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     outlineInput = document.getElementById("outline-input");
                     unitValueInput = document.getElementById("unit-value-input");
                     refreshDotPlacement = document.getElementById("refresh-dot-placement");
+                    schemeList = document.getElementById("scheme-list");
                     seed = 1000;
                     refreshDotPlacement.addEventListener("click", function () {
                         seed = Math.round(Math.random() * 100000);
@@ -215,7 +224,13 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         basemap: view.map.basemap,
                         geometryType: "polygon"
                     });
+                    availablePredominanceSchemes = predominanceSchemes.getSchemes({
+                        basemap: map.basemap,
+                        geometryType: "polygon",
+                        numColors: 10
+                    });
                     fieldList = document.getElementById("fieldList");
+                    selectedSchemeIndex = 0;
                     // Each time the user changes the value of one of the DOM elements
                     // (list box and two checkboxes), then generate a new predominance visualization
                     fieldList.addEventListener("change", updateRenderer);
@@ -227,10 +242,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     blendDotsInput.addEventListener("change", updateRenderer);
                     outlineInput.addEventListener("change", updateRenderer);
                     unitValueInput.addEventListener("change", updateRenderer);
-                    schemes = predominanceSchemes.getSchemes({
-                        basemap: map.basemap,
-                        geometryType: "polygon",
-                        numColors: 10
+                    schemeList.addEventListener("change", function (event) {
+                        selectedSchemeIndex = parseInt(event.target.value);
+                        updateRenderer();
                     });
                     return [4 /*yield*/, supportsDotDensity(layer)];
                 case 2:
@@ -238,7 +252,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     if (!!supportedLayer) return [3 /*break*/, 3];
                     alert("Invalid layer. Please provide a valid polygon layer.");
                     return [3 /*break*/, 5];
-                case 3: return [4 /*yield*/, createFieldOptions()];
+                case 3:
+                    createSchemeOptions();
+                    return [4 /*yield*/, createFieldOptions()];
                 case 4:
                     _a.sent();
                     zoomToLayer(layer);
