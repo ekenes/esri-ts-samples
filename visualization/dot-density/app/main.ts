@@ -3,6 +3,10 @@ import esri = __esri;
 import EsriMap = require("esri/Map");
 import MapView = require("esri/views/MapView");
 import Legend = require("esri/widgets/Legend");
+import BasemapToggle = require("esri/widgets/BasemapToggle");
+import Search = require("esri/widgets/Search");
+import Expand = require("esri/widgets/Expand");
+
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import PopupTemplate = require("esri/PopupTemplate");
 
@@ -13,7 +17,7 @@ import { DotDensityRenderer } from "esri/renderers";
 ( async () => {
 
   // function to retrieve query parameters (in this case only id)
-  function getIdParam(): string {
+  function getUrlParam(): string {
     const queryParams = document.location.search.substr(1);
     let result: any = {};
 
@@ -22,22 +26,22 @@ import { DotDensityRenderer } from "esri/renderers";
       result[item[0]] = decodeURIComponent(item[1]);
     });
 
-    return result.id;
+    return result.url;
   }
 
   // function to set an id as a url param
-  function setId(id: string) {
-    window.history.pushState("", "", `${window.location.pathname}?id=${id}`);
+  function setUrlParam(url: string) {
+    window.history.pushState("", "", `${window.location.pathname}?url=${url}`);
   }
 
-  let id = getIdParam();
-  if(!id){
-    id = "e1f194d5f3184402a8a39b60b44693f4";
-    setId(id);
+  let url = getUrlParam();
+  if(!url){
+    url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Boise_housing/FeatureServer/0";
+    setUrlParam(url);
   }
 
   let layer = new FeatureLayer({
-    portalItem: { id },
+    url,
     outFields: ["*"],
     opacity: 0.9
   });
@@ -57,7 +61,23 @@ import { DotDensityRenderer } from "esri/renderers";
     center: [ -116.3126, 43.60703 ],
     zoom: 11
   });
-  view.ui.add(new Legend({ view }), "bottom-left");
+  view.ui.add([ new Expand({
+    content: new Legend({ view }),
+    view,
+    group: "top-left"
+  }), new Expand({
+    content: new Search({ view }),
+    view,
+    group: "top-left"
+  }), new Expand({
+    content: new BasemapToggle({
+      view,
+      nextBasemap: "dark-gray"
+    }),
+    view,
+    expandIconClass: "esri-icon-basemap",
+    group: "top-left"
+  })], "top-left");
 
   await view.when();
 
@@ -99,6 +119,7 @@ import { DotDensityRenderer } from "esri/renderers";
       const option = document.createElement("option");
       option.value = field.name;
       option.text = field.alias;
+      option.title = field.alias;
       option.selected = i < 1;
       fieldList.appendChild(option);
     });
@@ -129,8 +150,15 @@ import { DotDensityRenderer } from "esri/renderers";
   });
 
   // create a predominance renderer once the app loads
-  await createFieldOptions();
-  updateRenderer();
+  const supportedLayer = await supportsDotDensity(layer);
+
+  if(!supportedLayer){
+    alert(`Invalid layer. Please provide a valid polygon layer.`)
+  } else {
+    await createFieldOptions();
+    zoomToLayer(layer);
+    updateRenderer();
+  }
 
   /**
    * Creates a predominance renderer if 2 or more fields are selected,
@@ -174,6 +202,17 @@ import { DotDensityRenderer } from "esri/renderers";
     };
 
     return new DotDensityRenderer(params);
+  }
+
+  async function supportsDotDensity(layer: FeatureLayer): Promise<boolean> {
+    await layer.load();
+    return layer.geometryType === "polygon";
+  }
+
+  async function zoomToLayer(layer: FeatureLayer) {
+    await layer.load();
+    const extentResponse = await layer.queryExtent();
+    view.goTo(extentResponse.extent);
   }
 
 })();

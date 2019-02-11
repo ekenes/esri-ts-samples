@@ -10,7 +10,7 @@ body {
 #viewDiv {
   position: absolute;
   left: 0;
-  right: 250px;
+  right: 350px;
   top: 0;
   bottom: 0;
   height: 100%;
@@ -20,7 +20,7 @@ body {
   position: absolute;
   right: 0;
   height: 100%;
-  width: 250px;
+  width: 350px;
   overflow: scroll;
   text-align: center;
 }

@@ -33,24 +33,24 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers"], function (require, exports, EsriMap, MapView, Legend, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
     (function () { return __awaiter(_this, void 0, void 0, function () {
         // function to retrieve query parameters (in this case only id)
-        function getIdParam() {
+        function getUrlParam() {
             var queryParams = document.location.search.substr(1);
             var result = {};
             queryParams.split("&").forEach(function (part) {
                 var item = part.split("=");
                 result[item[0]] = decodeURIComponent(item[1]);
             });
-            return result.id;
+            return result.url;
         }
         // function to set an id as a url param
-        function setId(id) {
-            window.history.pushState("", "", window.location.pathname + "?id=" + id);
+        function setUrlParam(url) {
+            window.history.pushState("", "", window.location.pathname + "?url=" + url);
         }
         function createFieldOptions() {
             return __awaiter(this, void 0, void 0, function () {
@@ -69,6 +69,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 var option = document.createElement("option");
                                 option.value = field.name;
                                 option.text = field.alias;
+                                option.title = field.alias;
                                 option.selected = i < 1;
                                 fieldList.appendChild(option);
                             });
@@ -117,17 +118,46 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
             };
             return new renderers_1.DotDensityRenderer(params);
         }
-        var id, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, seed, availableTypeSchemes, fieldList, schemes;
+        function supportsDotDensity(layer) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, layer.load()];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/, layer.geometryType === "polygon"];
+                    }
+                });
+            });
+        }
+        function zoomToLayer(layer) {
+            return __awaiter(this, void 0, void 0, function () {
+                var extentResponse;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, layer.load()];
+                        case 1:
+                            _a.sent();
+                            return [4 /*yield*/, layer.queryExtent()];
+                        case 2:
+                            extentResponse = _a.sent();
+                            view.goTo(extentResponse.extent);
+                            return [2 /*return*/];
+                    }
+                });
+            });
+        }
+        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, seed, availableTypeSchemes, fieldList, schemes, supportedLayer;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    id = getIdParam();
-                    if (!id) {
-                        id = "e1f194d5f3184402a8a39b60b44693f4";
-                        setId(id);
+                    url = getUrlParam();
+                    if (!url) {
+                        url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Boise_housing/FeatureServer/0";
+                        setUrlParam(url);
                     }
                     layer = new FeatureLayer({
-                        portalItem: { id: id },
+                        url: url,
                         outFields: ["*"],
                         opacity: 0.9
                     });
@@ -145,7 +175,23 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         center: [-116.3126, 43.60703],
                         zoom: 11
                     });
-                    view.ui.add(new Legend({ view: view }), "bottom-left");
+                    view.ui.add([new Expand({
+                            content: new Legend({ view: view }),
+                            view: view,
+                            group: "top-left"
+                        }), new Expand({
+                            content: new Search({ view: view }),
+                            view: view,
+                            group: "top-left"
+                        }), new Expand({
+                            content: new BasemapToggle({
+                                view: view,
+                                nextBasemap: "dark-gray"
+                            }),
+                            view: view,
+                            expandIconClass: "esri-icon-basemap",
+                            group: "top-left"
+                        })], "top-left");
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
@@ -186,13 +232,19 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         geometryType: "polygon",
                         numColors: 10
                     });
-                    // create a predominance renderer once the app loads
-                    return [4 /*yield*/, createFieldOptions()];
+                    return [4 /*yield*/, supportsDotDensity(layer)];
                 case 2:
-                    // create a predominance renderer once the app loads
+                    supportedLayer = _a.sent();
+                    if (!!supportedLayer) return [3 /*break*/, 3];
+                    alert("Invalid layer. Please provide a valid polygon layer.");
+                    return [3 /*break*/, 5];
+                case 3: return [4 /*yield*/, createFieldOptions()];
+                case 4:
                     _a.sent();
+                    zoomToLayer(layer);
                     updateRenderer();
-                    return [2 /*return*/];
+                    _a.label = 5;
+                case 5: return [2 /*return*/];
             }
         });
     }); })();
