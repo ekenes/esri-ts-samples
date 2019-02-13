@@ -47,11 +47,7 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   });
 
   const map = new EsriMap({
-    basemap: {
-      portalItem: {
-        id: "75a3ce8990674a5ebd5b9ab66bdab893"
-      }
-    },
+    basemap: "gray-vector",
     layers: [ layer ]
   });
 

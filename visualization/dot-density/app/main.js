@@ -175,11 +175,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         opacity: 0.9
                     });
                     map = new EsriMap({
-                        basemap: {
-                            portalItem: {
-                                id: "75a3ce8990674a5ebd5b9ab66bdab893"
-                            }
-                        },
+                        basemap: "gray-vector",
                         layers: [layer]
                     });
                     view = new MapView({
