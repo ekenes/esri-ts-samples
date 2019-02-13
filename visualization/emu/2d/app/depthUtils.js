@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports"], function (require, exports) {
+define(["require", "exports", "esri/views/layers/support/FeatureFilter"], function (require, exports, FeatureFilter) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     function createDepthSlider(params) {
@@ -90,9 +90,9 @@ define(["require", "exports"], function (require, exports) {
         }).sort(function (a, b) {
             return a.difference - b.difference;
         });
-        layerView.filter = {
+        layerView.filter = new FeatureFilter({
             where: "UnitTop = " + sortedValuesByDifference[0].value
-        };
+        });
     }
 });
 //# sourceMappingURL=depthUtils.js.map

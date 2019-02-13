@@ -28,8 +28,7 @@ import { destroyColorSlider } from "./colorSliderUtils";
     ymax: 952292
   });
 
-  // const url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
-  const url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/EMUMaster_Indian_Ocean_all/FeatureServer/1"
+  const url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
 
   // Create SceneLayer and add to the map
   const layer = new FeatureLayer({

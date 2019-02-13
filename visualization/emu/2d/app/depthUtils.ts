@@ -2,6 +2,7 @@ import esri = __esri;
 
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import MapView = require("esri/views/MapView");
+import FeatureFilter = require("esri/views/layers/support/FeatureFilter");
 
 interface DepthSliderParams {
   layer: FeatureLayer,
@@ -43,12 +44,12 @@ function filterByDepth(slider: HTMLInputElement, uniqueDepthValues: number[], la
     return {
       difference: Math.abs(value - sliderValue),
       value
-    }
+    };
   }).sort( (a, b) => {
     return a.difference - b.difference; 
   });
 
-  layerView.filter = {
+  layerView.filter = new FeatureFilter({
     where: `UnitTop = ${sortedValuesByDifference[0].value}`
-  };
+  });
 }

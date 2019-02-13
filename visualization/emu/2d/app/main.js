@@ -100,7 +100,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                         xmax: -31196210,
                         ymax: 952292
                     });
-                    url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/EMUMaster_Indian_Ocean_all/FeatureServer/1";
+                    url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/ArcGIS/rest/services/EMU_master_3857_2/FeatureServer/0";
                     layer = new FeatureLayer({
                         title: "EMU data points",
                         url: url,
