@@ -1,11 +1,6 @@
 import esri = __esri;
 import PopupTemplate = require("esri/PopupTemplate");
 
-interface predominanceFields {
-  name: string,
-  label?: string
-}
-
 function createArcadeFields (fieldNames: string[]): string[] {
   return fieldNames.map( fieldName => `$feature["${fieldName}"]`);
 }

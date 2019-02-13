@@ -8,7 +8,6 @@ import Search = require("esri/widgets/Search");
 import Expand = require("esri/widgets/Expand");
 
 import FeatureLayer = require("esri/layers/FeatureLayer");
-import PopupTemplate = require("esri/PopupTemplate");
 
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
@@ -208,10 +207,8 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
    */
   function createDotDensityRenderer(): DotDensityRenderer {
 
-    
-
     const unit = unitValueInput.value;
-    const outline = outlineInput.checked ? { width: "1px", color: [ 128,128,128,0.8 ] } : null;
+    const outline = outlineInput.checked ? { width: "0.5px", color: [ 128,128,128,0.4 ] } : null;
     const blendDots = blendDotsInput.checked;
     const dotSize = 1;
     const referenceDotValue = parseInt(dotValueInput.value);
@@ -228,7 +225,18 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
       dotSize,
       referenceDotValue,
       referenceScale,  //
-      seed
+      seed,
+      // visualVariables: [{
+      //   type: "size",
+      //   target: "outline",
+      //   valueExpression: "$view.scale",
+      //   stops: [
+      //     { size: 3, value: 70000},
+      //     { size: 2, value: 70000*2},
+      //     { size: 1, value: 70000*4},
+      //     { size: 0, value: 70000*8}
+      //   ]
+      // }]
     };
 
     return new DotDensityRenderer(params);

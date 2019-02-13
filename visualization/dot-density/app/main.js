@@ -111,7 +111,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
          */
         function createDotDensityRenderer() {
             var unit = unitValueInput.value;
-            var outline = outlineInput.checked ? { width: "1px", color: [128, 128, 128, 0.8] } : null;
+            var outline = outlineInput.checked ? { width: "0.5px", color: [128, 128, 128, 0.4] } : null;
             var blendDots = blendDotsInput.checked;
             var dotSize = 1;
             var referenceDotValue = parseInt(dotValueInput.value);
@@ -127,7 +127,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 dotSize: dotSize,
                 referenceDotValue: referenceDotValue,
                 referenceScale: referenceScale,
-                seed: seed
+                seed: seed,
             };
             return new renderers_1.DotDensityRenderer(params);
         }
