@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1, ArcadeExpressions_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -90,28 +90,33 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 schemeList.appendChild(option);
             });
         }
-        function updateRenderer() {
-            layer.renderer = createDotDensityRenderer();
-        }
-        /**
-         * Creates a predominance renderer if 2 or more fields are selected,
-         * or a continuous size renderer if 1 field is selected
-         */
-        function createDotDensityRenderer() {
+        function getAttibutes() {
             var selectedOptions = [].slice.call(fieldList.selectedOptions);
-            var attributes = selectedOptions.map(function (option, i) {
+            return selectedOptions.map(function (option, i) {
                 return {
                     field: option.value,
                     label: option.text,
                     color: allSchemes[selectedSchemeIndex].colors[i]
                 };
             });
+        }
+        function updateRenderer() {
+            attributes = getAttibutes();
+            layer.renderer = createDotDensityRenderer();
+            layer.popupTemplate = ArcadeExpressions_1.generateTopListPopupTemplate(attributes);
+        }
+        /**
+         * Creates a predominance renderer if 2 or more fields are selected,
+         * or a continuous size renderer if 1 field is selected
+         */
+        function createDotDensityRenderer() {
             var unit = unitValueInput.value;
-            var outline = outlineInput.checked ? { width: "0.4px", color: [128, 128, 128, 0.8] } : null;
+            var outline = outlineInput.checked ? { width: "1px", color: [128, 128, 128, 0.8] } : null;
             var blendDots = blendDotsInput.checked;
             var dotSize = 1;
             var referenceDotValue = parseInt(dotValueInput.value);
             var referenceScale = dotValueScaleInput.checked ? view.scale : null;
+            seed = parseInt(seedInput.value);
             var params = {
                 attributes: attributes,
                 blendDots: blendDots,
@@ -155,7 +160,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, supportedLayer;
+        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -211,14 +216,15 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     unitValueInput = document.getElementById("unit-value-input");
                     refreshDotPlacement = document.getElementById("refresh-dot-placement");
                     schemeList = document.getElementById("scheme-list");
-                    seed = 1000;
+                    seedInput = document.getElementById("seed-input");
+                    seed = parseInt(seedInput.value);
                     refreshDotPlacement.addEventListener("click", function () {
                         seed = Math.round(Math.random() * 100000);
+                        seedInput.value = seed.toString();
                         var oldRenderer = layer.renderer;
                         var newRenderer = oldRenderer.clone();
                         newRenderer.seed = seed;
                         layer.renderer = newRenderer;
-                        console.log(newRenderer.seed);
                     });
                     availableTypeSchemes = typeSchemes.getSchemes({
                         basemap: view.map.basemap,
@@ -246,6 +252,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         selectedSchemeIndex = parseInt(event.target.value);
                         updateRenderer();
                     });
+                    seedInput.addEventListener("change", updateRenderer);
                     return [4 /*yield*/, supportsDotDensity(layer)];
                 case 2:
                     supportedLayer = _a.sent();

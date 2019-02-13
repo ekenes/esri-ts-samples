@@ -37,14 +37,15 @@
         </div>
         <div class="checkbox-div div-padding">
           <input type="checkbox" id="dot-value-scale-input"> Vary dot value by scale<br>
-          <input type="checkbox" id="blend-dots-input"> Blend dots?<br>
+          <input type="checkbox" id="blend-dots-input" checked=true> Blend dots?<br>
           <input type="checkbox" id="outline-input"> Show outline?
         </div>
         <div class="checkbox-div div-padding">
           Units: <input id="unit-value-input" type="text" value="">
         </div>
         <div class="checkbox-div div-padding">
-          <span id="refresh-dot-placement" class="font-size-3 esri-icon-refresh"></span><span class="center-text">Redraw dots</span>
+          <span id="refresh-dot-placement" class="font-size-3 esri-icon-refresh"></span>
+          <span class="center-text"><input id="seed-input" type="number" value="1000"></span>
         </div>
         <div id="color-select">
           <select id="scheme-list" class="esri-widget"></select>

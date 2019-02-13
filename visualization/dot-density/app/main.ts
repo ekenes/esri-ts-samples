@@ -13,6 +13,7 @@ import PopupTemplate = require("esri/PopupTemplate");
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 import { DotDensityRenderer } from "esri/renderers";
+import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
 
 ( async () => {
 
@@ -89,16 +90,17 @@ import { DotDensityRenderer } from "esri/renderers";
   const unitValueInput = document.getElementById("unit-value-input") as HTMLInputElement;
   const refreshDotPlacement = document.getElementById("refresh-dot-placement") as HTMLSpanElement;
   const schemeList = document.getElementById("scheme-list") as HTMLSelectElement;
+  const seedInput = document.getElementById("seed-input") as HTMLInputElement;
 
-  let seed = 1000;
+  let seed = parseInt(seedInput.value);
 
   refreshDotPlacement.addEventListener("click", () => {
     seed = Math.round(Math.random()*100000);
+    seedInput.value = seed.toString();
     const oldRenderer = layer.renderer as DotDensityRenderer;
     const newRenderer = oldRenderer.clone();
     newRenderer.seed = seed;
     layer.renderer = newRenderer;
-    console.log(newRenderer.seed);
   });
 
   const availableTypeSchemes = typeSchemes.getSchemes({
@@ -167,9 +169,25 @@ import { DotDensityRenderer } from "esri/renderers";
     selectedSchemeIndex = parseInt(event.target.value);
     updateRenderer();
   });
+  seedInput.addEventListener("change", updateRenderer);
+
+  let attributes: esri.AttributeColorInfo[];
+
+  function getAttibutes() {
+    const selectedOptions = [].slice.call(fieldList.selectedOptions);
+    return selectedOptions.map( (option: HTMLOptionElement, i:number) => {
+      return {
+        field: option.value,
+        label: option.text,
+        color: allSchemes[selectedSchemeIndex].colors[i]
+      };
+    });
+  }
 
   function updateRenderer(){
+    attributes = getAttibutes();
     layer.renderer = createDotDensityRenderer();
+    layer.popupTemplate = generateTopListPopupTemplate(attributes);
   }
 
   // create a predominance renderer once the app loads
@@ -190,21 +208,15 @@ import { DotDensityRenderer } from "esri/renderers";
    */
   function createDotDensityRenderer(): DotDensityRenderer {
 
-    const selectedOptions = [].slice.call(fieldList.selectedOptions);
-    let attributes = selectedOptions.map( (option: HTMLOptionElement, i:number) => {
-      return {
-        field: option.value,
-        label: option.text,
-        color: allSchemes[selectedSchemeIndex].colors[i]
-      };
-    });
+    
 
     const unit = unitValueInput.value;
-    const outline = outlineInput.checked ? { width: "0.4px", color: [ 128,128,128,0.8 ] } : null;
+    const outline = outlineInput.checked ? { width: "1px", color: [ 128,128,128,0.8 ] } : null;
     const blendDots = blendDotsInput.checked;
     const dotSize = 1;
     const referenceDotValue = parseInt(dotValueInput.value);
     const referenceScale = dotValueScaleInput.checked ? view.scale : null;
+    seed = parseInt(seedInput.value);
 
     const params = {
       attributes,
@@ -215,7 +227,7 @@ import { DotDensityRenderer } from "esri/renderers";
       outline,
       dotSize,
       referenceDotValue,
-      referenceScale,
+      referenceScale,  //
       seed
     };
 
