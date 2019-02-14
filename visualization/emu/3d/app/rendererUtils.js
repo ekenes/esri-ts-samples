@@ -36,9 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/creators/relationship", "./colorSliderUtils", "esri/renderers/visualVariables/SizeVariable"], function (require, exports, renderers_1, symbols_1, colorRendererCreator, relationshipRendererCreator, colorSliderUtils_1, SizeVisualVariable) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    var filterMinElement = document.getElementById("filter-lower-bound");
+    var filterMaxElement = document.getElementById("filter-upper-bound");
+    var filterField = document.getElementById("filter-field");
+    var filterSlider = document.getElementById("filter-slider");
     function generateContinuousVisualization(params) {
         return __awaiter(this, void 0, void 0, function () {
-            var symbolType, options, renderer, colorResponse, colorVV;
+            var symbolType, options, renderer, colorResponse, colorVV, sliderMin, sliderMax;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -67,6 +71,13 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                         else {
                             renderer.visualVariables = [colorVV];
                         }
+                        sliderMin = colorResponse.statistics.min;
+                        sliderMax = colorResponse.statistics.max;
+                        filterMinElement.innerText = (Math.round(sliderMin * 100) / 100).toString();
+                        filterMaxElement.innerText = (Math.round(sliderMax * 100) / 100).toString();
+                        filterSlider.min = sliderMin.toString();
+                        filterSlider.max = sliderMax.toString();
+                        filterSlider.value = sliderMin.toString();
                         // apply input renderer back on layer
                         params.layer.renderer = renderer;
                         colorSliderUtils_1.updateColorSlider({

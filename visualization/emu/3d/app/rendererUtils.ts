@@ -20,6 +20,11 @@ interface ContinuousVisParams {
   symbolType?: "object" | "icon"
 }
 
+const filterMinElement = document.getElementById("filter-lower-bound") as HTMLSpanElement;
+const filterMaxElement = document.getElementById("filter-upper-bound") as HTMLSpanElement;
+const filterField = document.getElementById("filter-field") as HTMLSpanElement;
+const filterSlider = document.getElementById("filter-slider") as HTMLInputElement;
+
 export async function generateContinuousVisualization (params: ContinuousVisParams){
   const symbolType = params.symbolType ? params.symbolType : getSymbolType(params.layer.renderer as Renderer);
 
@@ -49,6 +54,13 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
     renderer.visualVariables = [ colorVV ];
   }
 
+  const sliderMin = colorResponse.statistics.min;
+  const sliderMax = colorResponse.statistics.max;
+  filterMinElement.innerText = (Math.round(sliderMin*100)/100).toString();
+  filterMaxElement.innerText = (Math.round(sliderMax*100)/100).toString();
+  filterSlider.min = sliderMin.toString();
+  filterSlider.max = sliderMax.toString();
+  filterSlider.value = sliderMin.toString();
   // apply input renderer back on layer
   params.layer.renderer = renderer;
 

@@ -14,9 +14,11 @@ import Legend = require("esri/widgets/Legend");
 import LayerList = require("esri/widgets/LayerList");
 import Expand = require("esri/widgets/Expand");
 import Slice = require("esri/widgets/Slice");
+import FeatureFilter = require("esri/views/layers/support/FeatureFilter");
 
 import { destroyColorSlider } from "./colorSliderUtils";
 import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/renderers";
+import { filterLayerView } from "./filterUtils";
 
 ( async () => {
 
@@ -26,6 +28,10 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
   const displayMean = document.getElementById("display-mean");
   const displayVariable = document.getElementById("display-variable");
   const displayUnit = document.getElementById("display-unit");
+  const filterField = document.getElementById("filter-field") as HTMLSpanElement;
+  const filterSlider = document.getElementById("filter-slider") as HTMLInputElement;
+  const filterValue = document.getElementById("filter-value") as HTMLSpanElement;
+
   const exaggeration = 100;
   let changeSymbolType: "object" | "icon";
 
@@ -170,7 +176,8 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
     view,
     layer,
     exaggeration,
-    field: colorField1Select.value
+    field: colorField1Select.value,
+    theme: "above-and-below"
   });
 
   emuFilter.addEventListener("change", filterChange);
@@ -180,6 +187,19 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
     const expression = `${emuExpression}`;
     layer.definitionExpression = expression;
   }
+
+  filterSlider.addEventListener("input", () => {
+    filterValue.innerText = (Math.round(parseFloat(filterSlider.value)*100)/100).toString();
+    const options = new FeatureFilter({
+      where: `${colorField1Select.value} >= ${filterSlider.value}`
+    });
+
+    filterLayerView({
+      layer,
+      view,
+      options
+    });
+  });
 
   ///////////////////////////////////////
   //
@@ -302,8 +322,10 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
       setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
     } else {
       if(colorField2Select.value === ""){
+        const filterField = document.getElementById("filter-field") as HTMLSpanElement;
+        filterField.innerText = colorField1Select.selectedOptions[0].text;
         colorField2Select.disabled = false;
-        displayMean.style.visibility = "hidden";
+        // displayMean.style.visibility = "hidden";
         displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
 
         if(colorField1Select.value === "salinity"){
@@ -317,7 +339,8 @@ import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/r
           layer,
           exaggeration,
           field: colorField1Select.value,
-          symbolType: changeSymbolType
+          symbolType: changeSymbolType,
+          theme: "above-and-below"
         });
       } else {
         destroyColorSlider();
