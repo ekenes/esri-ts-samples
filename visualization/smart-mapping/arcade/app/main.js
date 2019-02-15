@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/statistics/histogram", "esri/widgets/ColorSlider", "esri/renderers", "esri/core/lang"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, histogram, ColorSlider, renderers_1, lang) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/statistics/histogram", "esri/widgets/ColorSlider", "esri/core/lang"], function (require, exports, EsriMap, MapView, FeatureLayer, colorRendererCreator, histogram, ColorSlider, lang) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -165,7 +165,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 value = "$feature." + fields[0];
             }
             else {
-                value = fields.reduce(function (a, c, i) { return i === 1 ? "$feature." + a + " + $feature." + c : a + " + $feature." + c; });
+                value = fields.reduce(function (a, c, i) {
+                    return i === 1 ? "$feature." + a + " + $feature." + c :
+                        a + " + $feature." + c;
+                });
             }
             var percentValue = normalizationField ? "( ( " + value + " ) / $feature." + normalizationField + " ) * 100" : value;
             return "Round( " + percentValue + " )";
@@ -282,7 +285,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     }]
             };
         }
-        var layer, map, view, title, appDescription, variables, normalizationVariable, nameField, colorSlider, vv;
+        var layer, map, view, title, appDescription, variables, normalizationVariable, nameField, colorSlider;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -337,7 +340,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 case 1:
                     _a.sent();
                     updatePanel();
-                    vv = new renderers_1.UniqueValueRenderer();
                     ;
                     return [2 /*return*/];
             }
