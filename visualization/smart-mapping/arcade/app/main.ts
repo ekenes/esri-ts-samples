@@ -240,16 +240,17 @@ import lang = require("esri/core/lang");
    * 
    * @returns {string}
    */
+
   function generateArcade(fields: string[], normalizationField?: string): string {
     let value: string;
     if (fields.length === 1) {
       value = `$feature.${fields[0]}`;
     } else {
-      value = fields.reduce( (a: string, c: string, i: number) => 
-        i === 1 ? `$feature.${a} + $feature.${c}` : 
-                  `${a} + $feature.${c}` );
+      value = fields.reduce( (a: string, c: string, i: number) => i === 1 ? 
+        `$feature.${a} + $feature.${c}` : `${a} + $feature.${c}` );
     }
-    const percentValue = normalizationField ? `( ( ${value} ) / $feature.${normalizationField} ) * 100` : value;
+    const percentValue = normalizationField ? 
+      `( ( ${value} ) / $feature.${normalizationField} ) * 100` : value;
     return `Round( ${percentValue} )`;
   }
 

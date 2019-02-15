@@ -165,12 +165,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                 value = "$feature." + fields[0];
             }
             else {
-                value = fields.reduce(function (a, c, i) {
-                    return i === 1 ? "$feature." + a + " + $feature." + c :
-                        a + " + $feature." + c;
-                });
+                value = fields.reduce(function (a, c, i) { return i === 1 ?
+                    "$feature." + a + " + $feature." + c : a + " + $feature." + c; });
             }
-            var percentValue = normalizationField ? "( ( " + value + " ) / $feature." + normalizationField + " ) * 100" : value;
+            var percentValue = normalizationField ?
+                "( ( " + value + " ) / $feature." + normalizationField + " ) * 100" : value;
             return "Round( " + percentValue + " )";
         }
         /**
