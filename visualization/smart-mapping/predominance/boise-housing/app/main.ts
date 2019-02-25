@@ -15,11 +15,11 @@ import { top10Arcade, totalArcade } from "app/ArcadeExpressions";
 
   const layer = new FeatureLayer({
     portalItem: {
-      id: "e1f194d5f3184402a8a39b60b44693f4"
+      id: "453a70e1e36b4318a5af017d7d0188de"
     },
     outFields: ["*"],
     title: "Boise Block Groups",
-    opacity: 0.9
+    opacity: 1
   });
 
   const map = new EsriMap({

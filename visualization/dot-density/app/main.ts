@@ -36,7 +36,7 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
 
   let url = getUrlParam();
   if(!url){
-    url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Boise_housing/FeatureServer/0";
+    url = "http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/USA_County_Crops_2007/FeatureServer/0";
     setUrlParam(url);
   }
 
@@ -47,7 +47,11 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   });
 
   const map = new EsriMap({
-    basemap: "gray-vector",
+    basemap: {
+      portalItem: {
+        id: "9d5cf81cf8ce437584cedc8a2ee4ea4e"
+      }
+    },
     layers: [ layer ]
   });
 
@@ -68,7 +72,7 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   }), new Expand({
     content: new BasemapToggle({
       view,
-      nextBasemap: "dark-gray"
+      nextBasemap: "gray-vector"
     }),
     view,
     expandIconClass: "esri-icon-basemap",

@@ -166,7 +166,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 case 0:
                     url = getUrlParam();
                     if (!url) {
-                        url = "https://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/Boise_housing/FeatureServer/0";
+                        url = "http://services.arcgis.com/V6ZHFr6zdgNZuVG0/arcgis/rest/services/USA_County_Crops_2007/FeatureServer/0";
                         setUrlParam(url);
                     }
                     layer = new FeatureLayer({
@@ -175,7 +175,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         opacity: 0.9
                     });
                     map = new EsriMap({
-                        basemap: "gray-vector",
+                        basemap: {
+                            portalItem: {
+                                id: "9d5cf81cf8ce437584cedc8a2ee4ea4e"
+                            }
+                        },
                         layers: [layer]
                     });
                     view = new MapView({
@@ -195,7 +199,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         }), new Expand({
                             content: new BasemapToggle({
                                 view: view,
-                                nextBasemap: "dark-gray"
+                                nextBasemap: "gray-vector"
                             }),
                             view: view,
                             expandIconClass: "esri-icon-basemap",
