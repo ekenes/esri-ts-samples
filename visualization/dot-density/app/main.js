@@ -154,7 +154,6 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             return [4 /*yield*/, layer.queryExtent()];
                         case 2:
                             extentResponse = _a.sent();
-                            console.log(extentResponse);
                             return [2 /*return*/, view.goTo(extentResponse.extent)];
                     }
                 });

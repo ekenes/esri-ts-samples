@@ -252,7 +252,6 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   async function zoomToLayer(layer: FeatureLayer) {
     await layer.load();
     const extentResponse = await layer.queryExtent();
-    console.log(extentResponse);
     return view.goTo(extentResponse.extent);
   }
 
