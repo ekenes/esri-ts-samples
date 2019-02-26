@@ -43,7 +43,9 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   let layer = new FeatureLayer({
     url,
     outFields: ["*"],
-    opacity: 0.9
+    opacity: 0.9,
+    maxScale: 0,
+    minScale: 0
   });
 
   const map = new EsriMap({
@@ -250,7 +252,8 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   async function zoomToLayer(layer: FeatureLayer) {
     await layer.load();
     const extentResponse = await layer.queryExtent();
-    view.goTo(extentResponse.extent);
+    console.log(extentResponse);
+    return view.goTo(extentResponse.extent);
   }
 
 })();

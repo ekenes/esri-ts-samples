@@ -154,8 +154,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             return [4 /*yield*/, layer.queryExtent()];
                         case 2:
                             extentResponse = _a.sent();
-                            view.goTo(extentResponse.extent);
-                            return [2 /*return*/];
+                            console.log(extentResponse);
+                            return [2 /*return*/, view.goTo(extentResponse.extent)];
                     }
                 });
             });
@@ -172,7 +172,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     layer = new FeatureLayer({
                         url: url,
                         outFields: ["*"],
-                        opacity: 0.9
+                        opacity: 0.9,
+                        maxScale: 0,
+                        minScale: 0
                     });
                     map = new EsriMap({
                         basemap: {
