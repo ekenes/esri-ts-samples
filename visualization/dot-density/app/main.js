@@ -90,7 +90,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 schemeList.appendChild(option);
             });
         }
-        function getAttibutes() {
+        function getAttributes() {
             var selectedOptions = [].slice.call(fieldList.selectedOptions);
             return selectedOptions.map(function (option, i) {
                 return {
@@ -101,7 +101,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
             });
         }
         function updateRenderer() {
-            attributes = getAttibutes();
+            attributes = getAttributes();
             layer.renderer = createDotDensityRenderer();
             layer.popupTemplate = ArcadeExpressions_1.generateTopListPopupTemplate(attributes);
         }

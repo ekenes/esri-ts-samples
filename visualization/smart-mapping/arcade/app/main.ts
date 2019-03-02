@@ -8,7 +8,7 @@ import colorRendererCreator = require("esri/renderers/smartMapping/creators/colo
 import histogram = require("esri/renderers/smartMapping/statistics/histogram");
 import ColorSlider = require("esri/widgets/ColorSlider");
 
-import lang = require("esri/core/lang");
+import { ClassBreaksRenderer } from "esri/renderers";
 
 (async () => {
 
@@ -310,7 +310,7 @@ import lang = require("esri/core/lang");
   interface UpdateSliderParams {
     statistics: esri.SummaryStatisticsResult,
     histogram: esri.HistogramResult,
-    visualVariable: esri.ColorVisualVariable
+    visualVariable: esri.ColorVariable
   }
 
   /**
@@ -336,10 +336,10 @@ import lang = require("esri/core/lang");
         visualVariable: params.visualVariable
       });
 
-      slider.on("data-change", (event: any) => {
-        const renderer = layer.renderer as esri.ClassBreaksRenderer;
+      slider.on("handle-value-change", () => {
+        const renderer = layer.renderer as ClassBreaksRenderer;
         const rendererClone = renderer.clone();
-        rendererClone.visualVariables = [ lang.clone( slider.visualVariable ) ];
+        rendererClone.visualVariables = [ slider.visualVariable.clone() ];
         layer.renderer = rendererClone;
       });
     } else {

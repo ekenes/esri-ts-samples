@@ -174,7 +174,7 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
 
   let attributes: esri.AttributeColorInfo[];
 
-  function getAttibutes() {
+  function getAttributes() {
     const selectedOptions = [].slice.call(fieldList.selectedOptions);
     return selectedOptions.map( (option: HTMLOptionElement, i:number) => {
       return {
@@ -186,7 +186,7 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   }
 
   function updateRenderer(){
-    attributes = getAttibutes();
+    attributes = getAttributes();
     layer.renderer = createDotDensityRenderer();
     layer.popupTemplate = generateTopListPopupTemplate(attributes);
   }
