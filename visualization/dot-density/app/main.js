@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/tasks/support/StatisticDefinition", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions", "./DotDensityUtils"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, StatisticDefinition, typeSchemes, renderers_1, ArcadeExpressions_1, DotDensityUtils_1) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/widgets/Slider", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/tasks/support/StatisticDefinition", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions", "./DotDensityUtils"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, Slider, FeatureLayer, predominanceSchemes, StatisticDefinition, typeSchemes, renderers_1, ArcadeExpressions_1, DotDensityUtils_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -107,14 +107,13 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             }
             function updateSliderMax(max) {
-                dotValueInput.max = max.toString();
+                dotValueInput.max = max;
             }
             function updateSliderValue(value) {
-                dotValueInput.value = value.toString();
-                dotValueDisplay.innerText = value.toString();
-                var max = parseInt(dotValueInput.max);
+                dotValueInput.values = [value];
+                var max = dotValueInput.max;
                 if (value >= max) {
-                    dotValueInput.max = value.toString();
+                    dotValueInput.max = value;
                 }
             }
             function createSchemeOptions() {
@@ -153,7 +152,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 var outline = outlineInput.checked ? { width: "0.5px", color: [128, 128, 128, 0.4] } : null;
                 var blendDots = blendDotsInput.checked;
                 var dotSize = 1;
-                var referenceDotValue = parseInt(dotValueInput.value);
+                var referenceDotValue = dotValueInput.values[0];
                 var referenceScale = dotValueScaleInput.checked ? view.scale : null;
                 seed = parseInt(seedInput.value);
                 var params = {
@@ -198,7 +197,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     });
                 });
             }
-            var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, suggestedDotValue;
+            var url, layer, map, view, dotValueInput, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, suggestedDotValue;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -249,8 +248,20 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         return [4 /*yield*/, view.when()];
                     case 1:
                         _a.sent();
-                        dotValueInput = document.getElementById("dot-value-input");
-                        dotValueDisplay = document.getElementById("dot-value-display");
+                        dotValueInput = new Slider({
+                            container: "dot-value-input",
+                            min: 1,
+                            max: 5000,
+                            values: [1],
+                            rangeLabelsVisible: true,
+                            rangeLabelInputsEnabled: true,
+                            labelsVisible: true,
+                            labelInputsEnabled: true,
+                            precision: 0,
+                            labelFormatFunction: function (value, type) {
+                                return value.toFixed(0);
+                            }
+                        });
                         dotValueScaleInput = document.getElementById("dot-value-scale-input");
                         blendDotsInput = document.getElementById("blend-dots-input");
                         outlineInput = document.getElementById("outline-input");
@@ -290,7 +301,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                         return [4 /*yield*/, maxFieldsAverage(fields)];
                                     case 1:
                                         maxAverage = _a.sent();
-                                        updateSliderMax(maxAverage);
+                                        updateSliderMax(Math.round(maxAverage));
                                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                                 layer: layer,
                                                 view: view,
@@ -304,9 +315,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 }
                             });
                         }); });
-                        dotValueInput.addEventListener("input", function () {
+                        dotValueInput.on("value-change", function (event) {
                             updateRenderer();
-                            dotValueDisplay.innerText = dotValueInput.value;
                         });
                         dotValueScaleInput.addEventListener("change", updateRenderer);
                         blendDotsInput.addEventListener("change", updateRenderer);
@@ -331,7 +341,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         return [4 /*yield*/, maxFieldsAverage(selectedFields)];
                     case 5:
                         maxAverage = _a.sent();
-                        updateSliderMax(maxAverage);
+                        updateSliderMax(Math.round(maxAverage));
                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                 layer: layer,
                                 view: view,

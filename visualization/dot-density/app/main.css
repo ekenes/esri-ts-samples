@@ -62,3 +62,8 @@ body {
   position: relative;
   bottom: 3px;
 }
+
+#dot-value-input {
+  width: 100%;
+  height: 100px;
+}

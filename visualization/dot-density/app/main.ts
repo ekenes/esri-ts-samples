@@ -6,6 +6,7 @@ import Legend = require("esri/widgets/Legend");
 import BasemapToggle = require("esri/widgets/BasemapToggle");
 import Search = require("esri/widgets/Search");
 import Expand = require("esri/widgets/Expand");
+import Slider = require("esri/widgets/Slider");
 
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
@@ -89,8 +90,21 @@ try{
 
     await view.when();
 
-    const dotValueInput = document.getElementById("dot-value-input") as HTMLInputElement;
-    const dotValueDisplay = document.getElementById("dot-value-display") as HTMLSpanElement;
+    const dotValueInput = new Slider({
+      container: "dot-value-input",
+      min: 1,
+      max: 5000,
+      values: [ 1 ],
+      rangeLabelsVisible: true,
+      rangeLabelInputsEnabled: true,
+      labelsVisible: true,
+      labelInputsEnabled: true,
+      precision: 0,
+      labelFormatFunction: (value, type) => {
+        return value.toFixed(0);
+      }
+    })
+   
     const dotValueScaleInput = document.getElementById("dot-value-scale-input") as HTMLInputElement;
     const blendDotsInput = document.getElementById("blend-dots-input") as HTMLInputElement;
     const outlineInput = document.getElementById("outline-input") as HTMLInputElement;
@@ -166,15 +180,14 @@ try{
     }
 
     function updateSliderMax(max: number){
-      dotValueInput.max = max.toString();
+      dotValueInput.max = max;
     }
 
     function updateSliderValue(value: number){
-      dotValueInput.value = value.toString();
-      dotValueDisplay.innerText = value.toString();
-      let max = parseInt(dotValueInput.max);
+      dotValueInput.values = [ value ];
+      let max = dotValueInput.max;
       if(value >= max){
-        dotValueInput.max = value.toString();
+        dotValueInput.max = value;
       }
     }
 
@@ -202,7 +215,7 @@ try{
       updateRenderer();
       const fields = attributes.map( attribute => attribute.field );
       const maxAverage = await maxFieldsAverage(fields);
-      updateSliderMax(maxAverage);
+      updateSliderMax(Math.round(maxAverage));
       const suggestedDotValue = await calculateSuggestedDotValue({
         layer,
         view,
@@ -211,9 +224,8 @@ try{
       console.log(`suggested dot value: ${suggestedDotValue}`);
       updateSliderValue(suggestedDotValue);
     });
-    dotValueInput.addEventListener("input", () => {
+    dotValueInput.on("value-change", (event) => {
       updateRenderer();
-      dotValueDisplay.innerText = dotValueInput.value;
     });
     dotValueScaleInput.addEventListener("change", updateRenderer);
     blendDotsInput.addEventListener("change", updateRenderer);
@@ -254,8 +266,7 @@ try{
       createSchemeOptions();
       const selectedFields = await createFieldOptions()
       const maxAverage = await maxFieldsAverage(selectedFields);
-      updateSliderMax(maxAverage);
-
+      updateSliderMax(Math.round(maxAverage));
 
       const suggestedDotValue = await calculateSuggestedDotValue({
         layer,
@@ -279,7 +290,7 @@ try{
       const outline = outlineInput.checked ? { width: "0.5px", color: [ 128,128,128,0.4 ] } : null;
       const blendDots = blendDotsInput.checked;
       const dotSize = 1;
-      const referenceDotValue = parseInt(dotValueInput.value);
+      const referenceDotValue = dotValueInput.values[0];
       const referenceScale = dotValueScaleInput.checked ? view.scale : null;
       seed = parseInt(seedInput.value);
 
