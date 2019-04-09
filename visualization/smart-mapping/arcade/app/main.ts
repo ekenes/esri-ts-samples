@@ -336,7 +336,7 @@ import { ClassBreaksRenderer } from "esri/renderers";
         visualVariable: params.visualVariable
       });
 
-      slider.on("handle-value-change", () => {
+      slider.on("data-change", () => {
         const renderer = layer.renderer as ClassBreaksRenderer;
         const rendererClone = renderer.clone();
         rendererClone.visualVariables = [ slider.visualVariable.clone() ];

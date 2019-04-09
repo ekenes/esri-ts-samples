@@ -1,5 +1,11 @@
 {
   "cSpell.words": [
     "EDUCA"
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#f29d09",
+    "titleBar.inactiveBackground": "#f29d0999",
+    "titleBar.activeForeground": "#15202b",
+    "titleBar.inactiveForeground": "#15202b99"
+  }
 }

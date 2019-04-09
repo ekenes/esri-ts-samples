@@ -214,7 +214,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                                     expression: "Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'"
                                 }]
                         },
-                        // outFields: ["*"],
                         screenSizePerspectiveEnabled: false,
                         elevationInfo: {
                             mode: "absolute-height",

@@ -150,7 +150,6 @@ import { filterLayerView } from "./filterUtils";
         expression: `Text(Abs($feature.UnitTop), '#,###') + 'm - ' + Text(Abs($feature.UnitBottom), '#,###') + 'm'`
       }]
     },
-    // outFields: ["*"],
     screenSizePerspectiveEnabled: false,
     elevationInfo: {
       mode: "absolute-height",

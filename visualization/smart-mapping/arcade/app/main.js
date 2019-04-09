@@ -243,7 +243,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/layers/Fea
                     histogram: params.histogram,
                     visualVariable: params.visualVariable
                 });
-                slider.on("handle-value-change", function () {
+                slider.on("data-change", function () {
                     var renderer = layer.renderer;
                     var rendererClone = renderer.clone();
                     rendererClone.visualVariables = [slider.visualVariable.clone()];
