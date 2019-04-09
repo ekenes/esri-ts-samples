@@ -62,7 +62,7 @@ function calculateDotValue(params: CalculateDotValueParams): number {
   const { avgFieldValue, numPixels } = params;
   const suggestedDotValue = Math.round(avgFieldValue / numPixels);
 
-  return suggestedDotValue < 1 ? 1 : suggestedDotValue;
+  return suggestedDotValue;// < 1 ? 1 : suggestedDotValue;
 }
 
 interface AverageFields {
@@ -99,5 +99,13 @@ export async function calculateSuggestedDotValue(params: SuggestedDotValueParams
   });
   
   const suggestedDotValue = calculateDotValue({ avgFieldValue, numPixels });
-  return suggestedDotValue;
+  return snapNumber( suggestedDotValue );
+}
+
+function snapNumber (value: number) {
+  const inputValue = Math.round(value);
+  const numDigits = inputValue.toString().length;
+  const factor = Math.pow(10, (numDigits-2));
+  const snappedValue = Math.round( inputValue / factor ) * factor;
+  return snappedValue < 1 ? 1 : snappedValue;
 }

@@ -83,7 +83,7 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
     function calculateDotValue(params) {
         var avgFieldValue = params.avgFieldValue, numPixels = params.numPixels;
         var suggestedDotValue = Math.round(avgFieldValue / numPixels);
-        return suggestedDotValue < 1 ? 1 : suggestedDotValue;
+        return suggestedDotValue; // < 1 ? 1 : suggestedDotValue;
     }
     function getAverageFieldValue(params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -129,11 +129,18 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
                     case 2:
                         avgFieldValue = _a.sent();
                         suggestedDotValue = calculateDotValue({ avgFieldValue: avgFieldValue, numPixels: numPixels });
-                        return [2 /*return*/, suggestedDotValue];
+                        return [2 /*return*/, snapNumber(suggestedDotValue)];
                 }
             });
         });
     }
     exports.calculateSuggestedDotValue = calculateSuggestedDotValue;
+    function snapNumber(value) {
+        var inputValue = Math.round(value);
+        var numDigits = inputValue.toString().length;
+        var factor = Math.pow(10, (numDigits - 2));
+        var snappedValue = Math.round(inputValue / factor) * factor;
+        return snappedValue < 1 ? 1 : snappedValue;
+    }
 });
 //# sourceMappingURL=DotDensityUtils.js.map
