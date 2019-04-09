@@ -10,9 +10,12 @@ import Expand = require("esri/widgets/Expand");
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
+import summaryStatistics = require("esri/renderers/smartMapping/statistics/summaryStatistics");
+import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 import { DotDensityRenderer } from "esri/renderers";
 import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
+import { calculateSuggestedDotValue } from "./DotDensityUtils";
 
 ( async () => {
 
@@ -124,6 +127,8 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
     const validFieldTypes = [ "small-integer", "integer", "single", "double", "long" ];
     const excludedFieldNames = [ "HasData", "ENRICH_FID" ];
 
+    let selectedFields: string[] = [];
+
     layer.fields.filter( field => {
       return ( validFieldTypes.indexOf( field.type ) > -1 ) && 
              ( excludedFieldNames.indexOf(field.name) === -1 );
@@ -134,7 +139,45 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
       option.title = field.alias;
       option.selected = i < 1;
       fieldList.appendChild(option);
+      if(option.selected){
+        selectedFields.push(field.name);
+      }
     });
+
+    return selectedFields;
+  }
+
+  async function maxFieldsAverage (fields: string[]): Promise<number> {
+    const statsQuery = layer.createQuery();
+    statsQuery.outStatistics = [new StatisticDefinition({
+      onStatisticField: fields.reduce( (a, c) => {
+        return `${a} + ${c}`
+      }),
+      outStatisticFieldName: "avg_value",
+      statisticType: "avg"
+    })];
+
+    const statsResponse = await layer.queryFeatures(statsQuery);
+    console.log(statsResponse);
+    return statsResponse.features[0].attributes.avg_value;
+  }
+
+  function updateSliderMax(max: number){
+    dotValueInput.max = max.toString();
+    const sliderValue = parseInt(dotValueInput.value);
+    if(sliderValue >= max){
+      dotValueInput.value = max.toString();
+      dotValueDisplay.innerText = max.toString();
+    }
+  }
+
+  function updateSliderValue(value: number){
+    dotValueInput.value = value.toString();
+    dotValueDisplay.innerText = value.toString();
+    let max = parseInt(dotValueInput.max);
+    if(value >= max){
+      dotValueInput.max = value.toString();
+    }
   }
 
   let selectedSchemeIndex = 0;
@@ -157,7 +200,19 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
 
   // Each time the user changes the value of one of the DOM elements
   // (list box and two checkboxes), then generate a new predominance visualization
-  fieldList.addEventListener("change", updateRenderer);
+  fieldList.addEventListener("change", async () => {
+    updateRenderer();
+    const fields = attributes.map( attribute => attribute.field );
+    const maxAverage = await maxFieldsAverage(fields);
+    updateSliderMax(maxAverage);
+    const suggestedDotValue = await calculateSuggestedDotValue({
+      layer,
+      view,
+      fields
+    });
+    console.log(`suggested dot value: ${suggestedDotValue}`);
+    updateSliderValue(suggestedDotValue);
+  });
   dotValueInput.addEventListener("input", () => {
     updateRenderer();
     dotValueDisplay.innerText = dotValueInput.value;
@@ -197,8 +252,21 @@ import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
   if(!supportedLayer){
     alert(`Invalid layer. Please provide a valid polygon layer.`)
   } else {
+    
     createSchemeOptions();
-    await createFieldOptions();
+    const selectedFields = await createFieldOptions()
+    const maxAverage = await maxFieldsAverage(selectedFields);
+    updateSliderMax(maxAverage);
+
+
+    const suggestedDotValue = await calculateSuggestedDotValue({
+      layer,
+      view,
+      fields: selectedFields
+    });
+    console.log(`suggested dot value: ${suggestedDotValue}`);
+    updateSliderValue(suggestedDotValue);
+    
     zoomToLayer(layer);
     updateRenderer();
   }

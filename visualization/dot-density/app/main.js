@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, typeSchemes, renderers_1, ArcadeExpressions_1) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/tasks/support/StatisticDefinition", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions", "./DotDensityUtils"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, FeatureLayer, predominanceSchemes, StatisticDefinition, typeSchemes, renderers_1, ArcadeExpressions_1, DotDensityUtils_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -54,7 +54,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
         }
         function createFieldOptions() {
             return __awaiter(this, void 0, void 0, function () {
-                var validFieldTypes, excludedFieldNames;
+                var validFieldTypes, excludedFieldNames, selectedFields;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0: return [4 /*yield*/, layer.load()];
@@ -62,6 +62,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             _a.sent();
                             validFieldTypes = ["small-integer", "integer", "single", "double", "long"];
                             excludedFieldNames = ["HasData", "ENRICH_FID"];
+                            selectedFields = [];
                             layer.fields.filter(function (field) {
                                 return (validFieldTypes.indexOf(field.type) > -1) &&
                                     (excludedFieldNames.indexOf(field.name) === -1);
@@ -72,11 +73,53 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 option.title = field.alias;
                                 option.selected = i < 1;
                                 fieldList.appendChild(option);
+                                if (option.selected) {
+                                    selectedFields.push(field.name);
+                                }
                             });
-                            return [2 /*return*/];
+                            return [2 /*return*/, selectedFields];
                     }
                 });
             });
+        }
+        function maxFieldsAverage(fields) {
+            return __awaiter(this, void 0, void 0, function () {
+                var statsQuery, statsResponse;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            statsQuery = layer.createQuery();
+                            statsQuery.outStatistics = [new StatisticDefinition({
+                                    onStatisticField: fields.reduce(function (a, c) {
+                                        return a + " + " + c;
+                                    }),
+                                    outStatisticFieldName: "avg_value",
+                                    statisticType: "avg"
+                                })];
+                            return [4 /*yield*/, layer.queryFeatures(statsQuery)];
+                        case 1:
+                            statsResponse = _a.sent();
+                            console.log(statsResponse);
+                            return [2 /*return*/, statsResponse.features[0].attributes.avg_value];
+                    }
+                });
+            });
+        }
+        function updateSliderMax(max) {
+            dotValueInput.max = max.toString();
+            var sliderValue = parseInt(dotValueInput.value);
+            if (sliderValue >= max) {
+                dotValueInput.value = max.toString();
+                dotValueDisplay.innerText = max.toString();
+            }
+        }
+        function updateSliderValue(value) {
+            dotValueInput.value = value.toString();
+            dotValueDisplay.innerText = value.toString();
+            var max = parseInt(dotValueInput.max);
+            if (value >= max) {
+                dotValueInput.max = value.toString();
+            }
         }
         function createSchemeOptions() {
             var typeSchemes = [availableTypeSchemes.primaryScheme].concat(availableTypeSchemes.secondarySchemes);
@@ -159,7 +202,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 });
             });
         }
-        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer;
+        var url, layer, map, view, dotValueInput, dotValueDisplay, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, suggestedDotValue;
+        var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -240,7 +284,30 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     selectedSchemeIndex = 0;
                     // Each time the user changes the value of one of the DOM elements
                     // (list box and two checkboxes), then generate a new predominance visualization
-                    fieldList.addEventListener("change", updateRenderer);
+                    fieldList.addEventListener("change", function () { return __awaiter(_this, void 0, void 0, function () {
+                        var fields, maxAverage, suggestedDotValue;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    updateRenderer();
+                                    fields = attributes.map(function (attribute) { return attribute.field; });
+                                    return [4 /*yield*/, maxFieldsAverage(fields)];
+                                case 1:
+                                    maxAverage = _a.sent();
+                                    updateSliderMax(maxAverage);
+                                    return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
+                                            layer: layer,
+                                            view: view,
+                                            fields: fields
+                                        })];
+                                case 2:
+                                    suggestedDotValue = _a.sent();
+                                    console.log("suggested dot value: " + suggestedDotValue);
+                                    updateSliderValue(suggestedDotValue);
+                                    return [2 /*return*/];
+                            }
+                        });
+                    }); });
                     dotValueInput.addEventListener("input", function () {
                         updateRenderer();
                         dotValueDisplay.innerText = dotValueInput.value;
@@ -259,16 +326,29 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     supportedLayer = _a.sent();
                     if (!!supportedLayer) return [3 /*break*/, 3];
                     alert("Invalid layer. Please provide a valid polygon layer.");
-                    return [3 /*break*/, 5];
+                    return [3 /*break*/, 7];
                 case 3:
                     createSchemeOptions();
                     return [4 /*yield*/, createFieldOptions()];
                 case 4:
-                    _a.sent();
+                    selectedFields = _a.sent();
+                    return [4 /*yield*/, maxFieldsAverage(selectedFields)];
+                case 5:
+                    maxAverage = _a.sent();
+                    updateSliderMax(maxAverage);
+                    return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
+                            layer: layer,
+                            view: view,
+                            fields: selectedFields
+                        })];
+                case 6:
+                    suggestedDotValue = _a.sent();
+                    console.log("suggested dot value: " + suggestedDotValue);
+                    updateSliderValue(suggestedDotValue);
                     zoomToLayer(layer);
                     updateRenderer();
-                    _a.label = 5;
-                case 5: return [2 /*return*/];
+                    _a.label = 7;
+                case 7: return [2 /*return*/];
             }
         });
     }); })();
