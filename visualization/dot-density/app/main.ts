@@ -49,7 +49,7 @@ try{
 
     let layer = new FeatureLayer({
       url,
-      outFields: ["*"],
+      // outFields: ["*"],
       opacity: 0.9,
       maxScale: 0,
       minScale: 0
@@ -60,8 +60,7 @@ try{
         portalItem: {
           id: "9d5cf81cf8ce437584cedc8a2ee4ea4e"
         }
-      },
-      layers: [ layer ]
+      }
     });
 
     const view = new MapView({
@@ -140,7 +139,7 @@ try{
     const fieldList = document.getElementById("fieldList") as HTMLSelectElement;
 
     async function createFieldOptions () {
-      await layer.load();
+      // await layer.load();
       const validFieldTypes = [ "small-integer", "integer", "single", "double", "long" ];
       const excludedFieldNames = [ "HasData", "ENRICH_FID" ];
 
@@ -179,16 +178,9 @@ try{
       return statsResponse.features[0].attributes.avg_value;
     }
 
-    function updateSliderMax(max: number){
-      dotValueInput.max = max;
-    }
-
-    function updateSliderValue(value: number){
+    function updateSlider(value: number, max: number){
       dotValueInput.values = [ value ];
-      let max = dotValueInput.max;
-      if(value >= max){
-        dotValueInput.max = value;
-      }
+      dotValueInput.max = max;
     }
 
     let selectedSchemeIndex = 0;
@@ -212,17 +204,17 @@ try{
     // Each time the user changes the value of one of the DOM elements
     // (list box and two checkboxes), then generate a new predominance visualization
     fieldList.addEventListener("change", async () => {
-      updateRenderer();
+      attributes = getAttributes();
       const fields = attributes.map( attribute => attribute.field );
       const maxAverage = await maxFieldsAverage(fields);
-      updateSliderMax(Math.round(maxAverage));
-      const suggestedDotValue = await calculateSuggestedDotValue({
+      const { dotValue, dotMax} = await calculateSuggestedDotValue({
         layer,
         view,
         fields
       });
-      console.log(`suggested dot value: ${suggestedDotValue}`);
-      updateSliderValue(suggestedDotValue);
+      console.log(`suggested dot value: ${dotValue}`);
+      updateSlider(dotValue, dotMax);
+      updateRenderer();
     });
     dotValueInput.on("value-change", (event) => {
       updateRenderer();
@@ -252,8 +244,13 @@ try{
 
     function updateRenderer(){
       attributes = getAttributes();
-      layer.renderer = createDotDensityRenderer();
+      const ddRenderer = createDotDensityRenderer();
+      layer.renderer = ddRenderer;
       layer.popupTemplate = generateTopListPopupTemplate(attributes);
+
+      if(!map.layers.includes(layer)){
+        map.add(layer);
+      }
     }
 
     // create a predominance renderer once the app loads
@@ -262,22 +259,27 @@ try{
     if(!supportedLayer){
       alert(`Invalid layer. Please provide a valid polygon layer.`)
     } else {
+
+      await layer.load();
+      await zoomToLayer(layer);
       
       createSchemeOptions();
-      const selectedFields = await createFieldOptions()
+      console.log("createSchemeOptions done");
+      const selectedFields = await createFieldOptions();
+      console.log("selectedFields done");
       const maxAverage = await maxFieldsAverage(selectedFields);
-      updateSliderMax(Math.round(maxAverage));
+      console.log("maxAverage done");
 
-      const suggestedDotValue = await calculateSuggestedDotValue({
+      const { dotValue, dotMax} = await calculateSuggestedDotValue({
         layer,
         view,
         fields: selectedFields
       });
-      console.log(`suggested dot value: ${suggestedDotValue}`);
-      updateSliderValue(suggestedDotValue);
+      console.log(`suggested dot value: ${dotValue}`);
+      updateSlider(dotValue, dotMax);
       
-      zoomToLayer(layer);
       updateRenderer();
+      console.log("updaterenderer done");
     }
 
     /**

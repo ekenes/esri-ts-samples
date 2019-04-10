@@ -83,7 +83,7 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
     function calculateDotValue(params) {
         var avgFieldValue = params.avgFieldValue, numPixels = params.numPixels;
         var suggestedDotValue = Math.round(avgFieldValue / numPixels);
-        return suggestedDotValue; // < 1 ? 1 : suggestedDotValue;
+        return suggestedDotValue;
     }
     function getAverageFieldValue(params) {
         return __awaiter(this, void 0, void 0, function () {
@@ -119,17 +119,24 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
                         return [4 /*yield*/, getAveragePolygonSize(params)];
                     case 1:
                         averagePolygonSize = _a.sent();
+                        console.log("avg polygon size done");
                         numPixels = getPixelCountByAverage({
                             averagePolygonSize: averagePolygonSize,
                             view: view
                         });
+                        console.log("num pixels: ", numPixels);
                         return [4 /*yield*/, getAverageFieldValue({
                                 layer: layer, fields: fields
                             })];
                     case 2:
                         avgFieldValue = _a.sent();
+                        console.log("avg field value: ", avgFieldValue);
                         suggestedDotValue = calculateDotValue({ avgFieldValue: avgFieldValue, numPixels: numPixels });
-                        return [2 /*return*/, snapNumber(suggestedDotValue)];
+                        console.log("suggested dot value: ", suggestedDotValue);
+                        return [2 /*return*/, {
+                                dotValue: snapNumber(suggestedDotValue),
+                                dotMax: avgFieldValue
+                            }];
                 }
             });
         });

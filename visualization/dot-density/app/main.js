@@ -57,29 +57,24 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 return __awaiter(this, void 0, void 0, function () {
                     var validFieldTypes, excludedFieldNames, selectedFields;
                     return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0: return [4 /*yield*/, layer.load()];
-                            case 1:
-                                _a.sent();
-                                validFieldTypes = ["small-integer", "integer", "single", "double", "long"];
-                                excludedFieldNames = ["HasData", "ENRICH_FID"];
-                                selectedFields = [];
-                                layer.fields.filter(function (field) {
-                                    return (validFieldTypes.indexOf(field.type) > -1) &&
-                                        (excludedFieldNames.indexOf(field.name) === -1);
-                                }).forEach(function (field, i) {
-                                    var option = document.createElement("option");
-                                    option.value = field.name;
-                                    option.text = field.alias;
-                                    option.title = field.alias;
-                                    option.selected = i < 1;
-                                    fieldList.appendChild(option);
-                                    if (option.selected) {
-                                        selectedFields.push(field.name);
-                                    }
-                                });
-                                return [2 /*return*/, selectedFields];
-                        }
+                        validFieldTypes = ["small-integer", "integer", "single", "double", "long"];
+                        excludedFieldNames = ["HasData", "ENRICH_FID"];
+                        selectedFields = [];
+                        layer.fields.filter(function (field) {
+                            return (validFieldTypes.indexOf(field.type) > -1) &&
+                                (excludedFieldNames.indexOf(field.name) === -1);
+                        }).forEach(function (field, i) {
+                            var option = document.createElement("option");
+                            option.value = field.name;
+                            option.text = field.alias;
+                            option.title = field.alias;
+                            option.selected = i < 1;
+                            fieldList.appendChild(option);
+                            if (option.selected) {
+                                selectedFields.push(field.name);
+                            }
+                        });
+                        return [2 /*return*/, selectedFields];
                     });
                 });
             }
@@ -106,15 +101,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     });
                 });
             }
-            function updateSliderMax(max) {
-                dotValueInput.max = max;
-            }
-            function updateSliderValue(value) {
+            function updateSlider(value, max) {
                 dotValueInput.values = [value];
-                var max = dotValueInput.max;
-                if (value >= max) {
-                    dotValueInput.max = value;
-                }
+                dotValueInput.max = max;
             }
             function createSchemeOptions() {
                 var typeSchemes = [availableTypeSchemes.primaryScheme].concat(availableTypeSchemes.secondarySchemes);
@@ -140,8 +129,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
             }
             function updateRenderer() {
                 attributes = getAttributes();
-                layer.renderer = createDotDensityRenderer();
+                var ddRenderer = createDotDensityRenderer();
+                layer.renderer = ddRenderer;
                 layer.popupTemplate = ArcadeExpressions_1.generateTopListPopupTemplate(attributes);
+                if (!map.layers.includes(layer)) {
+                    map.add(layer);
+                }
             }
             /**
              * Creates a predominance renderer if 2 or more fields are selected,
@@ -197,10 +190,10 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     });
                 });
             }
-            var url, layer, map, view, dotValueInput, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, suggestedDotValue;
+            var url, layer, map, view, dotValueInput, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, _a, dotValue, dotMax;
             var _this = this;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         url = getUrlParam();
                         if (!url) {
@@ -209,7 +202,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         }
                         layer = new FeatureLayer({
                             url: url,
-                            outFields: ["*"],
+                            // outFields: ["*"],
                             opacity: 0.9,
                             maxScale: 0,
                             minScale: 0
@@ -219,8 +212,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 portalItem: {
                                     id: "9d5cf81cf8ce437584cedc8a2ee4ea4e"
                                 }
-                            },
-                            layers: [layer]
+                            }
                         });
                         view = new MapView({
                             map: map,
@@ -247,7 +239,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             })], "top-left");
                         return [4 /*yield*/, view.when()];
                     case 1:
-                        _a.sent();
+                        _b.sent();
                         dotValueInput = new Slider({
                             container: "dot-value-input",
                             min: 1,
@@ -292,25 +284,25 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         // Each time the user changes the value of one of the DOM elements
                         // (list box and two checkboxes), then generate a new predominance visualization
                         fieldList.addEventListener("change", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var fields, maxAverage, suggestedDotValue;
-                            return __generator(this, function (_a) {
-                                switch (_a.label) {
+                            var fields, maxAverage, _a, dotValue, dotMax;
+                            return __generator(this, function (_b) {
+                                switch (_b.label) {
                                     case 0:
-                                        updateRenderer();
+                                        attributes = getAttributes();
                                         fields = attributes.map(function (attribute) { return attribute.field; });
                                         return [4 /*yield*/, maxFieldsAverage(fields)];
                                     case 1:
-                                        maxAverage = _a.sent();
-                                        updateSliderMax(Math.round(maxAverage));
+                                        maxAverage = _b.sent();
                                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                                 layer: layer,
                                                 view: view,
                                                 fields: fields
                                             })];
                                     case 2:
-                                        suggestedDotValue = _a.sent();
-                                        console.log("suggested dot value: " + suggestedDotValue);
-                                        updateSliderValue(suggestedDotValue);
+                                        _a = _b.sent(), dotValue = _a.dotValue, dotMax = _a.dotMax;
+                                        console.log("suggested dot value: " + dotValue);
+                                        updateSlider(dotValue, dotMax);
+                                        updateRenderer();
                                         return [2 /*return*/];
                                 }
                             });
@@ -329,32 +321,39 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         seedInput.addEventListener("change", updateRenderer);
                         return [4 /*yield*/, supportsDotDensity(layer)];
                     case 2:
-                        supportedLayer = _a.sent();
+                        supportedLayer = _b.sent();
                         if (!!supportedLayer) return [3 /*break*/, 3];
                         alert("Invalid layer. Please provide a valid polygon layer.");
-                        return [3 /*break*/, 7];
-                    case 3:
-                        createSchemeOptions();
-                        return [4 /*yield*/, createFieldOptions()];
+                        return [3 /*break*/, 9];
+                    case 3: return [4 /*yield*/, layer.load()];
                     case 4:
-                        selectedFields = _a.sent();
-                        return [4 /*yield*/, maxFieldsAverage(selectedFields)];
+                        _b.sent();
+                        return [4 /*yield*/, zoomToLayer(layer)];
                     case 5:
-                        maxAverage = _a.sent();
-                        updateSliderMax(Math.round(maxAverage));
+                        _b.sent();
+                        createSchemeOptions();
+                        console.log("createSchemeOptions done");
+                        return [4 /*yield*/, createFieldOptions()];
+                    case 6:
+                        selectedFields = _b.sent();
+                        console.log("selectedFields done");
+                        return [4 /*yield*/, maxFieldsAverage(selectedFields)];
+                    case 7:
+                        maxAverage = _b.sent();
+                        console.log("maxAverage done");
                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                 layer: layer,
                                 view: view,
                                 fields: selectedFields
                             })];
-                    case 6:
-                        suggestedDotValue = _a.sent();
-                        console.log("suggested dot value: " + suggestedDotValue);
-                        updateSliderValue(suggestedDotValue);
-                        zoomToLayer(layer);
+                    case 8:
+                        _a = _b.sent(), dotValue = _a.dotValue, dotMax = _a.dotMax;
+                        console.log("suggested dot value: " + dotValue);
+                        updateSlider(dotValue, dotMax);
                         updateRenderer();
-                        _a.label = 7;
-                    case 7: return [2 /*return*/];
+                        console.log("updaterenderer done");
+                        _b.label = 9;
+                    case 9: return [2 /*return*/];
                 }
             });
         }); })();

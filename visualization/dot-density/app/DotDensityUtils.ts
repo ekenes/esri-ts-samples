@@ -62,7 +62,7 @@ function calculateDotValue(params: CalculateDotValueParams): number {
   const { avgFieldValue, numPixels } = params;
   const suggestedDotValue = Math.round(avgFieldValue / numPixels);
 
-  return suggestedDotValue;// < 1 ? 1 : suggestedDotValue;
+  return suggestedDotValue;
 }
 
 interface AverageFields {
@@ -86,20 +86,31 @@ async function getAverageFieldValue (params: AverageFields): Promise<number> {
   return statsResponse.features[0].attributes.avg_value;
 }
 
-export async function calculateSuggestedDotValue(params: SuggestedDotValueParams): Promise<number> {
+interface SuggestedDotValueResult {
+  dotValue: number,
+  dotMax: number
+}
+export async function calculateSuggestedDotValue(params: SuggestedDotValueParams): Promise<SuggestedDotValueResult> {
   const { view, layer, fields } = params;
   const averagePolygonSize = await getAveragePolygonSize(params);
+  console.log("avg polygon size done");
   const numPixels = getPixelCountByAverage({
     averagePolygonSize,
     view
   });
+  console.log("num pixels: ", numPixels);
 
   const avgFieldValue = await getAverageFieldValue({
     layer, fields
   });
+  console.log("avg field value: ", avgFieldValue);
   
   const suggestedDotValue = calculateDotValue({ avgFieldValue, numPixels });
-  return snapNumber( suggestedDotValue );
+  console.log("suggested dot value: ", suggestedDotValue);
+  return {
+    dotValue: snapNumber( suggestedDotValue ),
+    dotMax: avgFieldValue
+  };
 }
 
 function snapNumber (value: number) {
