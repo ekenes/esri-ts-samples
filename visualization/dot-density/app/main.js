@@ -33,7 +33,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/widgets/Slider", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/tasks/support/StatisticDefinition", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions", "./DotDensityUtils"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, Slider, FeatureLayer, predominanceSchemes, StatisticDefinition, typeSchemes, renderers_1, ArcadeExpressions_1, DotDensityUtils_1) {
+define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Legend", "esri/widgets/BasemapToggle", "esri/widgets/Search", "esri/widgets/Expand", "esri/widgets/Slider", "esri/layers/FeatureLayer", "esri/renderers/smartMapping/symbology/predominance", "esri/renderers/smartMapping/heuristics/scaleRange", "esri/tasks/support/StatisticDefinition", "esri/renderers/smartMapping/symbology/type", "esri/renderers", "app/ArcadeExpressions", "./DotDensityUtils"], function (require, exports, EsriMap, MapView, Legend, BasemapToggle, Search, Expand, Slider, FeatureLayer, predominanceSchemes, scaleRange, StatisticDefinition, typeSchemes, renderers_1, ArcadeExpressions_1, DotDensityUtils_1) {
     "use strict";
     var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -142,7 +142,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
              */
             function createDotDensityRenderer() {
                 var unit = unitValueInput.value;
-                var outline = outlineInput.checked ? { width: "0.5px", color: [128, 128, 128, 0.4] } : null;
+                var outline = outlineInput.checked ? { width: "0.5px", color: [128, 128, 128, 0.2] } : null;
                 var blendDots = blendDotsInput.checked;
                 var dotSize = 1;
                 var referenceDotValue = dotValueInput.values[0];
@@ -190,7 +190,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                     });
                 });
             }
-            var url, layer, map, view, dotValueInput, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, maxAverage, _a, dotValue, dotMax;
+            var url, layer, map, view, dotValueInput, scaleRangeSuggestion, scaleRangeSlider, dotValueScaleInput, blendDotsInput, outlineInput, unitValueInput, refreshDotPlacement, schemeList, seedInput, toggleScale, seed, availableTypeSchemes, availablePredominanceSchemes, fieldList, selectedSchemeIndex, allSchemes, attributes, supportedLayer, selectedFields, _a, dotValue, dotMax;
             var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
@@ -254,6 +254,39 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 return value.toFixed(0);
                             }
                         });
+                        return [4 /*yield*/, scaleRange({ layer: layer, view: view })];
+                    case 2:
+                        scaleRangeSuggestion = _b.sent();
+                        scaleRangeSlider = new Slider({
+                            container: "scale-range-slider",
+                            min: Math.round(scaleRangeSuggestion.maxScale * 0.25),
+                            max: Math.round(scaleRangeSuggestion.minScale * 5),
+                            values: [scaleRangeSuggestion.maxScale, scaleRangeSuggestion.minScale],
+                            rangeLabelsVisible: true,
+                            rangeLabelInputsEnabled: true,
+                            labelsVisible: true,
+                            labelInputsEnabled: true,
+                            precision: 0,
+                            labelFormatFunction: function (value, type) {
+                                if (type === "min") {
+                                    return "house";
+                                }
+                                else if (type === "max") {
+                                    return "country";
+                                }
+                                else {
+                                    return value.toFixed(0);
+                                }
+                            }
+                        });
+                        scaleRangeSlider.on("value-change", function (event) {
+                            if (event.index === 1) {
+                                layer.minScale = event.value;
+                            }
+                            if (event.index === 0) {
+                                layer.maxScale = event.value;
+                            }
+                        });
                         dotValueScaleInput = document.getElementById("dot-value-scale-input");
                         blendDotsInput = document.getElementById("blend-dots-input");
                         outlineInput = document.getElementById("outline-input");
@@ -261,6 +294,18 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         refreshDotPlacement = document.getElementById("refresh-dot-placement");
                         schemeList = document.getElementById("scheme-list");
                         seedInput = document.getElementById("seed-input");
+                        toggleScale = document.getElementById("toggle-scale");
+                        toggleScale.addEventListener("change", function (event) {
+                            var checked = event.target.checked;
+                            if (checked) {
+                                layer.minScale = scaleRangeSlider.values[1];
+                                layer.maxScale = scaleRangeSlider.values[0];
+                            }
+                            else {
+                                layer.minScale = 0;
+                                layer.maxScale = 0;
+                            }
+                        });
                         seed = parseInt(seedInput.value);
                         refreshDotPlacement.addEventListener("click", function () {
                             seed = Math.round(Math.random() * 100000);
@@ -284,21 +329,18 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         // Each time the user changes the value of one of the DOM elements
                         // (list box and two checkboxes), then generate a new predominance visualization
                         fieldList.addEventListener("change", function () { return __awaiter(_this, void 0, void 0, function () {
-                            var fields, maxAverage, _a, dotValue, dotMax;
+                            var fields, _a, dotValue, dotMax;
                             return __generator(this, function (_b) {
                                 switch (_b.label) {
                                     case 0:
                                         attributes = getAttributes();
                                         fields = attributes.map(function (attribute) { return attribute.field; });
-                                        return [4 /*yield*/, maxFieldsAverage(fields)];
-                                    case 1:
-                                        maxAverage = _b.sent();
                                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                                 layer: layer,
                                                 view: view,
                                                 fields: fields
                                             })];
-                                    case 2:
+                                    case 1:
                                         _a = _b.sent(), dotValue = _a.dotValue, dotMax = _a.dotMax;
                                         console.log("suggested dot value: " + dotValue);
                                         updateSlider(dotValue, dotMax);
@@ -320,27 +362,23 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         });
                         seedInput.addEventListener("change", updateRenderer);
                         return [4 /*yield*/, supportsDotDensity(layer)];
-                    case 2:
+                    case 3:
                         supportedLayer = _b.sent();
-                        if (!!supportedLayer) return [3 /*break*/, 3];
+                        if (!!supportedLayer) return [3 /*break*/, 4];
                         alert("Invalid layer. Please provide a valid polygon layer.");
                         return [3 /*break*/, 9];
-                    case 3: return [4 /*yield*/, layer.load()];
-                    case 4:
+                    case 4: return [4 /*yield*/, layer.load()];
+                    case 5:
                         _b.sent();
                         return [4 /*yield*/, zoomToLayer(layer)];
-                    case 5:
+                    case 6:
                         _b.sent();
                         createSchemeOptions();
                         console.log("createSchemeOptions done");
                         return [4 /*yield*/, createFieldOptions()];
-                    case 6:
+                    case 7:
                         selectedFields = _b.sent();
                         console.log("selectedFields done");
-                        return [4 /*yield*/, maxFieldsAverage(selectedFields)];
-                    case 7:
-                        maxAverage = _b.sent();
-                        console.log("maxAverage done");
                         return [4 /*yield*/, DotDensityUtils_1.calculateSuggestedDotValue({
                                 layer: layer,
                                 view: view,
@@ -352,6 +390,12 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         updateSlider(dotValue, dotMax);
                         updateRenderer();
                         console.log("updaterenderer done");
+                        view.watch("scale", function (scale) {
+                            // Update dot value on slider as view scale changes
+                            var renderer = layer.renderer;
+                            var dotValue = renderer.calculateDotValue(scale);
+                            dotValueInput.values = [Math.round(dotValue)];
+                        });
                         _b.label = 9;
                     case 9: return [2 /*return*/];
                 }

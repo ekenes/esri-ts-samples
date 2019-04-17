@@ -12,6 +12,7 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 
 import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
 import summaryStatistics = require("esri/renderers/smartMapping/statistics/summaryStatistics");
+import scaleRange = require("esri/renderers/smartMapping/heuristics/scaleRange");
 import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 import { DotDensityRenderer } from "esri/renderers";
@@ -102,7 +103,39 @@ try{
       labelFormatFunction: (value, type) => {
         return value.toFixed(0);
       }
-    })
+    });
+
+    const scaleRangeSuggestion = await scaleRange({ layer, view });
+
+    const scaleRangeSlider = new Slider({
+      container: "scale-range-slider",
+      min: Math.round(scaleRangeSuggestion.maxScale * 0.25),
+      max: Math.round(scaleRangeSuggestion.minScale * 5),
+      values: [ scaleRangeSuggestion.maxScale, scaleRangeSuggestion.minScale  ],
+      rangeLabelsVisible: true,
+      rangeLabelInputsEnabled: true,
+      labelsVisible: true,
+      labelInputsEnabled: true,
+      precision: 0,
+      labelFormatFunction: (value, type) => {
+        if (type === "min"){
+          return "house";
+        } else if (type === "max"){
+          return "country";
+        } else {
+          return value.toFixed(0);
+        }
+      }
+    });
+
+    scaleRangeSlider.on("value-change", function(event){
+      if(event.index === 1){
+        layer.minScale = event.value;
+      }
+      if(event.index === 0){
+        layer.maxScale = event.value;
+      }
+    });
    
     const dotValueScaleInput = document.getElementById("dot-value-scale-input") as HTMLInputElement;
     const blendDotsInput = document.getElementById("blend-dots-input") as HTMLInputElement;
@@ -111,6 +144,21 @@ try{
     const refreshDotPlacement = document.getElementById("refresh-dot-placement") as HTMLSpanElement;
     const schemeList = document.getElementById("scheme-list") as HTMLSelectElement;
     const seedInput = document.getElementById("seed-input") as HTMLInputElement;
+    const toggleScale = document.getElementById("toggle-scale") as HTMLInputElement;
+
+    toggleScale.addEventListener("change", function(event:any){
+      const checked = event.target.checked;
+
+      if(checked){
+        layer.minScale = scaleRangeSlider.values[1];
+        layer.maxScale = scaleRangeSlider.values[0];
+      } else {
+        layer.minScale = 0;
+        layer.maxScale = 0;
+      }
+
+    });
+
 
     let seed = parseInt(seedInput.value);
 
@@ -206,7 +254,7 @@ try{
     fieldList.addEventListener("change", async () => {
       attributes = getAttributes();
       const fields = attributes.map( attribute => attribute.field );
-      const maxAverage = await maxFieldsAverage(fields);
+      // const maxAverage = await maxFieldsAverage(fields);
       const { dotValue, dotMax} = await calculateSuggestedDotValue({
         layer,
         view,
@@ -267,8 +315,8 @@ try{
       console.log("createSchemeOptions done");
       const selectedFields = await createFieldOptions();
       console.log("selectedFields done");
-      const maxAverage = await maxFieldsAverage(selectedFields);
-      console.log("maxAverage done");
+      // const maxAverage = await maxFieldsAverage(selectedFields);
+      // console.log("maxAverage done");
 
       const { dotValue, dotMax} = await calculateSuggestedDotValue({
         layer,
@@ -280,6 +328,13 @@ try{
       
       updateRenderer();
       console.log("updaterenderer done");
+
+      view.watch("scale", function(scale){
+        // Update dot value on slider as view scale changes
+        const renderer = layer.renderer as esri.DotDensityRenderer;
+        const dotValue = renderer.calculateDotValue(scale);
+        dotValueInput.values = [ Math.round(dotValue) ];
+      });
     }
 
     /**
@@ -289,7 +344,7 @@ try{
     function createDotDensityRenderer(): DotDensityRenderer {
 
       const unit = unitValueInput.value;
-      const outline = outlineInput.checked ? { width: "0.5px", color: [ 128,128,128,0.4 ] } : null;
+      const outline = outlineInput.checked ? { width: "0.5px", color: [ 128,128,128,0.2 ] } : null;
       const blendDots = blendDotsInput.checked;
       const dotSize = 1;
       const referenceDotValue = dotValueInput.values[0];

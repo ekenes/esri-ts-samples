@@ -50,11 +50,7 @@ body {
 }
 
 .div-padding{
-  padding: 0px 8px 8px 8px;
-}
-
-#dot-value-input{
-  width: 100%;
+  padding: 8px 8px 8px 8px;
 }
 
 .center-text{
@@ -66,4 +62,37 @@ body {
 #dot-value-input {
   width: 100%;
   height: 100px;
+}
+
+#scale-range-slider {
+  width: 100%;
+  height: 50px;
+}
+
+#scale-range-slider .esri-slider__track {
+  background-color: black;
+  height: 1px;
+}
+
+#scale-range-slider .esri-slider__thumb {
+  height: 20px;
+  position: absolute;
+  width: 10px;
+}
+
+#scale-range-slider .esri-slider__label {
+  top: 16px;
+  transform: rotate(45deg);
+}
+
+#scale-range-slider .esri-slider__range-input {
+  padding: 5px 0;
+}
+
+#scale-range-slider .esri-slider__min {
+  padding-right: 10px;
+}
+
+#scale-range-slider .esri-slider__max {
+  padding-left: 6px;
 }
