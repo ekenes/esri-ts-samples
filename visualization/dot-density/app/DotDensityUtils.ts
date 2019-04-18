@@ -73,10 +73,15 @@ interface AverageFields {
 async function getAverageFieldValue (params: AverageFields): Promise<number> {
   const { layer, fields } = params;
   const statsQuery = layer.createQuery();
+
+  const summedFields = fields.reduce( (a, c) => {
+    return `${a} + ${c}`
+  });
+
+  statsQuery.where = `( ${summedFields} ) > 0`;
+
   statsQuery.outStatistics = [new StatisticDefinition({
-    onStatisticField: fields.reduce( (a, c) => {
-      return `${a} + ${c}`
-    }),
+    onStatisticField: summedFields,
     outStatisticFieldName: "avg_value",
     statisticType: "avg"
   })];

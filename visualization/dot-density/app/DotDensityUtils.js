@@ -87,16 +87,18 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
     }
     function getAverageFieldValue(params) {
         return __awaiter(this, void 0, void 0, function () {
-            var layer, fields, statsQuery, statsResponse;
+            var layer, fields, statsQuery, summedFields, statsResponse;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         layer = params.layer, fields = params.fields;
                         statsQuery = layer.createQuery();
+                        summedFields = fields.reduce(function (a, c) {
+                            return a + " + " + c;
+                        });
+                        statsQuery.where = "( " + summedFields + " ) > 0";
                         statsQuery.outStatistics = [new StatisticDefinition({
-                                onStatisticField: fields.reduce(function (a, c) {
-                                    return a + " + " + c;
-                                }),
+                                onStatisticField: summedFields,
                                 outStatisticFieldName: "avg_value",
                                 statisticType: "avg"
                             })];
