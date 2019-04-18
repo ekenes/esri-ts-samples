@@ -114,11 +114,11 @@ export async function calculateSuggestedDotValue(params: SuggestedDotValueParams
   console.log("suggested dot value: ", suggestedDotValue);
   return {
     dotValue: snapNumber( suggestedDotValue ),
-    dotMax: avgFieldValue
+    dotMax: snapNumber( avgFieldValue )
   };
 }
 
-function snapNumber (value: number) {
+export function snapNumber (value: number) {
   const inputValue = Math.round(value);
   const numDigits = inputValue.toString().length;
   const factor = Math.pow(10, (numDigits-2));

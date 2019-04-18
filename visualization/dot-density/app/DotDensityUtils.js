@@ -137,7 +137,7 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
                         console.log("suggested dot value: ", suggestedDotValue);
                         return [2 /*return*/, {
                                 dotValue: snapNumber(suggestedDotValue),
-                                dotMax: avgFieldValue
+                                dotMax: snapNumber(avgFieldValue)
                             }];
                 }
             });
@@ -151,5 +151,6 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
         var snappedValue = Math.round(inputValue / factor) * factor;
         return snappedValue < 1 ? 1 : snappedValue;
     }
+    exports.snapNumber = snapNumber;
 });
 //# sourceMappingURL=DotDensityUtils.js.map

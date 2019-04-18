@@ -17,7 +17,7 @@ import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
 import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
 import { DotDensityRenderer } from "esri/renderers";
 import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
-import { calculateSuggestedDotValue } from "./DotDensityUtils";
+import { calculateSuggestedDotValue, snapNumber } from "./DotDensityUtils";
 
 try{
   
@@ -329,7 +329,7 @@ try{
       updateRenderer();
       console.log("updaterenderer done");
 
-      view.watch("scale", function(scale){
+      view.watch("scale", function(scale, oldScale){
         // Update dot value on slider as view scale changes
         const renderer = layer.renderer as esri.DotDensityRenderer;
         const dotValue = renderer.calculateDotValue(scale);

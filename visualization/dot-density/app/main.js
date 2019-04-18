@@ -390,7 +390,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                         updateSlider(dotValue, dotMax);
                         updateRenderer();
                         console.log("updaterenderer done");
-                        view.watch("scale", function (scale) {
+                        view.watch("scale", function (scale, oldScale) {
                             // Update dot value on slider as view scale changes
                             var renderer = layer.renderer;
                             var dotValue = renderer.calculateDotValue(scale);
