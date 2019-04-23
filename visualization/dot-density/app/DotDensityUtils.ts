@@ -49,7 +49,7 @@ interface PixelCountByAverageParams {
 function getPixelCountByAverage(params: PixelCountByAverageParams) : number {
   const { view, averagePolygonSize } = params;
   const sizePerPixel = scaleUtils.getResolutionForScale(view.scale, view.spatialReference);
-  const averagePolygonSizePixels = (averagePolygonSize / sizePerPixel) * 0.8;
+  const averagePolygonSizePixels = ((averagePolygonSize * averagePolygonSize) / (sizePerPixel * sizePerPixel)) * 0.8;
   return averagePolygonSizePixels;
 }
 

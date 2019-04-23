@@ -77,7 +77,7 @@ define(["require", "exports", "esri/renderers/smartMapping/statistics/spatialSta
     function getPixelCountByAverage(params) {
         var view = params.view, averagePolygonSize = params.averagePolygonSize;
         var sizePerPixel = scaleUtils.getResolutionForScale(view.scale, view.spatialReference);
-        var averagePolygonSizePixels = (averagePolygonSize / sizePerPixel) * 0.8;
+        var averagePolygonSizePixels = ((averagePolygonSize * averagePolygonSize) / (sizePerPixel * sizePerPixel)) * 0.8;
         return averagePolygonSizePixels;
     }
     function calculateDotValue(params) {
