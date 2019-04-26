@@ -59,6 +59,9 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                 jsResponse = window.xmlToJSON.parseXML(xmlResponse);
                                 console.log("js response", jsResponse);
                                 rawResults = jsResponse.sokRes[0].stedsnavn;
+                                if (rawResults.length < 1) {
+                                    return [2 /*return*/, []];
+                                }
                                 searchResults = rawResults.map(function (item) {
                                     var x = item.aust[0]._text;
                                     var y = item.nord[0]._text;
@@ -175,7 +178,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                                 console.log("suggestions: ", params);
                                                 suggestTerm = params.suggestTerm, sourceIndex = params.sourceIndex;
                                                 console.log("term: ", suggestTerm);
-                                                return [4 /*yield*/, searchPlaceNames({ propertyName: suggestTerm })];
+                                                return [4 /*yield*/, searchPlaceNames({ propertyName: suggestTerm + "*" })];
                                             case 1:
                                                 searchResults = _a.sent();
                                                 // searchTerm = suggestTerm;

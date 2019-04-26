@@ -50,7 +50,7 @@ try {
         console.log("suggestions: ", params);
         const { suggestTerm, sourceIndex } = params;
         console.log("term: ", suggestTerm);
-        const searchResults = await searchPlaceNames({ propertyName: suggestTerm });
+        const searchResults = await searchPlaceNames({ propertyName: `${suggestTerm}*` });
 
         // searchTerm = suggestTerm;
 
@@ -139,6 +139,10 @@ try {
       console.log("js response", jsResponse);
 
       const rawResults = jsResponse.sokRes[0].stedsnavn;
+
+      if(rawResults.length < 1){
+        return [];
+      }
 
       let searchResults: esri.SearchResult[] = rawResults.map( (item: any) => {
         const x = item.aust[0]._text;
