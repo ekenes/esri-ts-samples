@@ -39,12 +39,13 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
     Object.defineProperty(exports, "__esModule", { value: true });
     try {
         (function () { return __awaiter(_this, void 0, void 0, function () {
-            function searchPlaceNames(propertyName, suggestMunicipality, suggestCounty) {
+            function searchPlaceNames(params) {
                 return __awaiter(this, void 0, void 0, function () {
-                    var searchUrl, searchResponse, xmlResponse, jsResponse, rawResults, searchResults;
+                    var propertyName, suggestMunicipality, suggestCounty, filterGeometry, searchUrl, searchResponse, xmlResponse, jsResponse, rawResults, searchResults;
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:
+                                propertyName = params.propertyName, suggestMunicipality = params.suggestMunicipality, suggestCounty = params.suggestCounty, filterGeometry = params.filterGeometry;
                                 searchUrl = "https://ws.geonorge.no/SKWS3Index/ssr/sok";
                                 return [4 /*yield*/, esriRequest(searchUrl, {
                                         responseType: "xml",
@@ -114,6 +115,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                     };
                                 });
                                 console.log("results: ", searchResults);
+                                if (filterGeometry) {
+                                    searchResults = searchResults.filter(function (result) {
+                                        return filterGeometry.contains(result.feature.geometry);
+                                    });
+                                }
                                 if (suggestMunicipality) {
                                     searchResults = searchResults.filter(function (result) {
                                         return result.feature.attributes.municipality === suggestMunicipality;
@@ -168,7 +174,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                             case 0:
                                                 console.log("suggestions: ", params);
                                                 suggestTerm = params.suggestTerm, sourceIndex = params.sourceIndex;
-                                                return [4 /*yield*/, searchPlaceNames(suggestTerm)];
+                                                return [4 /*yield*/, searchPlaceNames({ propertyName: suggestTerm })];
                                             case 1:
                                                 searchResults = _a.sent();
                                                 // searchTerm = suggestTerm;
@@ -200,7 +206,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                                 county = terms[2].trim();
                                             }
                                             console.log(terms);
-                                            return [4 /*yield*/, searchPlaceNames(propertyName, municipality, county)];
+                                            return [4 /*yield*/, searchPlaceNames({
+                                                    propertyName: propertyName,
+                                                    suggestMunicipality: municipality,
+                                                    suggestCounty: county
+                                                })];
                                         case 1: return [2 /*return*/, _a.sent()];
                                     }
                                 });

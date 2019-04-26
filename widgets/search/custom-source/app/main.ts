@@ -13,7 +13,7 @@ import PopupTemplate = require("esri/PopupTemplate");
 
 import Graphic = require("esri/Graphic");
 
-import { Point, Extent } from "esri/geometry";
+import { Point, Extent, Polygon } from "esri/geometry";
 
 try {
   ( async () => {
@@ -49,7 +49,7 @@ try {
       getSuggestions: async function (params: esri.GetSuggestionsParameters): Promise<esri.SuggestResult[]> {
         console.log("suggestions: ", params);
         const { suggestTerm, sourceIndex } = params;
-        const searchResults = await searchPlaceNames(suggestTerm);
+        const searchResults = await searchPlaceNames({ propertyName: suggestTerm});
 
         // searchTerm = suggestTerm;
 
@@ -78,7 +78,11 @@ try {
         }
         
         console.log(terms);
-        return await searchPlaceNames(propertyName, municipality, county);
+        return await searchPlaceNames({ 
+          propertyName, 
+          suggestMunicipality: municipality, 
+          suggestCounty: county 
+        });
       },
 
       popupTemplate: new PopupTemplate({
@@ -108,8 +112,16 @@ try {
       })
     } as any);
 
-    async function searchPlaceNames (propertyName: string, suggestMunicipality?: string, suggestCounty?: string): Promise<esri.SearchResult[]> {
-      
+    interface SearchPlaceNamesParams {
+      propertyName: string,
+      suggestMunicipality?: string,
+      suggestCounty?: string,
+      filterGeometry?: Polygon
+    }
+
+    async function searchPlaceNames (params: SearchPlaceNamesParams): Promise<esri.SearchResult[]> {
+      const { propertyName, suggestMunicipality, suggestCounty, filterGeometry } = params;
+
       const searchUrl = `https://ws.geonorge.no/SKWS3Index/ssr/sok`;
 
       const searchResponse = await esriRequest(searchUrl, {
@@ -189,6 +201,12 @@ try {
       });
 
       console.log("results: ", searchResults);
+
+      if(filterGeometry){
+        searchResults = searchResults.filter( result => {
+          return filterGeometry.contains(result.feature.geometry as Point);
+        });
+      }
 
       if(suggestMunicipality){
         searchResults = searchResults.filter( result => {
