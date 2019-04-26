@@ -49,11 +49,11 @@ try {
       getSuggestions: async function (params: esri.GetSuggestionsParameters): Promise<esri.SuggestResult[]> {
         console.log("suggestions: ", params);
         const { suggestTerm, sourceIndex } = params;
-        const searchResults = await searchPlaceNames({ propertyName: suggestTerm});
+        console.log("term: ", suggestTerm);
+        const searchResults = await searchPlaceNames({ propertyName: suggestTerm });
 
         // searchTerm = suggestTerm;
 
-        // console.log("suggestions: ", suggestTerm);
         return searchResults.map( result => {
           const { name, municipality, county } = result.feature.attributes;
 
@@ -67,7 +67,6 @@ try {
 
       getResults: async (params: esri.GetResultsParameters) => {
         console.log("results params", params);
-        const propertyName = params.suggestResult.key || params.suggestResult.text;
         const terms = params.suggestResult.text.split(",");
 
         let municipality:string = null;
@@ -76,6 +75,8 @@ try {
           municipality = terms[1].trim();
           county = terms[2].trim();
         }
+
+        const propertyName = params.suggestResult.key || terms[0].trim();
         
         console.log(terms);
         return await searchPlaceNames({ 

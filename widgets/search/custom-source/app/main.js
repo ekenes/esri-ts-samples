@@ -174,11 +174,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                             case 0:
                                                 console.log("suggestions: ", params);
                                                 suggestTerm = params.suggestTerm, sourceIndex = params.sourceIndex;
+                                                console.log("term: ", suggestTerm);
                                                 return [4 /*yield*/, searchPlaceNames({ propertyName: suggestTerm })];
                                             case 1:
                                                 searchResults = _a.sent();
                                                 // searchTerm = suggestTerm;
-                                                // console.log("suggestions: ", suggestTerm);
                                                 return [2 /*return*/, searchResults.map(function (result) {
                                                         var _a = result.feature.attributes, name = _a.name, municipality = _a.municipality, county = _a.county;
                                                         return {
@@ -192,12 +192,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                 });
                             },
                             getResults: function (params) { return __awaiter(_this, void 0, void 0, function () {
-                                var propertyName, terms, municipality, county;
+                                var terms, municipality, county, propertyName;
                                 return __generator(this, function (_a) {
                                     switch (_a.label) {
                                         case 0:
                                             console.log("results params", params);
-                                            propertyName = params.suggestResult.key || params.suggestResult.text;
                                             terms = params.suggestResult.text.split(",");
                                             municipality = null;
                                             county = null;
@@ -205,6 +204,7 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Se
                                                 municipality = terms[1].trim();
                                                 county = terms[2].trim();
                                             }
+                                            propertyName = params.suggestResult.key || terms[0].trim();
                                             console.log(terms);
                                             return [4 /*yield*/, searchPlaceNames({
                                                     propertyName: propertyName,
