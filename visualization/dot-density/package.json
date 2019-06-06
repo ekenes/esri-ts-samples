@@ -9,7 +9,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "@types/arcgis-js-api": "4.10.0"
+  "dependencies": {},
+  "devDependencies": {
+    "@types/arcgis-js-api": "http://kristian.esri.com/javascript/latest/api-reference/typings/arcgis-js-api-4.12.tgz"
   }
 }

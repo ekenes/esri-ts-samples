@@ -10,14 +10,11 @@ import Slider = require("esri/widgets/Slider");
 
 import FeatureLayer = require("esri/layers/FeatureLayer");
 
-import predominanceSchemes = require("esri/renderers/smartMapping/symbology/predominance");
-import summaryStatistics = require("esri/renderers/smartMapping/statistics/summaryStatistics");
+import dotDensitySchemes = require("esri/renderers/smartMapping/symbology/dotDensity");
+import dotDensityRendererCreator = require("esri/renderers/smartMapping/creators/dotDensity");
+
 import scaleRange = require("esri/renderers/smartMapping/heuristics/scaleRange");
-import StatisticDefinition = require("esri/tasks/support/StatisticDefinition");
-import typeSchemes = require("esri/renderers/smartMapping/symbology/type");
-import { DotDensityRenderer } from "esri/renderers";
 import { generateTopListPopupTemplate } from "app/ArcadeExpressions";
-import { calculateSuggestedDotValue, snapNumber } from "./DotDensityUtils";
 
 try{
   
@@ -50,7 +47,7 @@ try{
 
     let layer = new FeatureLayer({
       url,
-      // outFields: ["*"],
+      outFields: ["*"],
       opacity: 0.9,
       maxScale: 0,
       minScale: 0
@@ -66,9 +63,7 @@ try{
 
     const view = new MapView({
       map: map,
-      container: "viewDiv",
-      center: [ -116.3126, 43.60703 ],
-      zoom: 11
+      container: "viewDiv"
     });
     view.ui.add([ new Expand({
       content: new Legend({ view }),
@@ -90,16 +85,27 @@ try{
 
     await view.when();
 
+    let dotValueTick: HTMLElement;
+    let dotValueTickLabel: HTMLElement;
     const dotValueInput = new Slider({
       container: "dot-value-input",
       min: 1,
       max: 5000,
-      values: [ 1 ],
+      values: [ 2 ],
       rangeLabelsVisible: true,
       rangeLabelInputsEnabled: true,
       labelsVisible: true,
       labelInputsEnabled: true,
       precision: 0,
+      tickConfigs: [{
+        mode: "position",
+        labelsVisible: true,
+        values: [ 1 ],
+        tickCreatedFunction: (value, tickElement, labelElement) => {
+          dotValueTick = tickElement;
+          dotValueTickLabel = labelElement;
+        },
+      }],
       labelFormatFunction: (value, type) => {
         return value.toFixed(0);
       }
@@ -165,22 +171,14 @@ try{
     refreshDotPlacement.addEventListener("click", () => {
       seed = Math.round(Math.random()*100000);
       seedInput.value = seed.toString();
-      const oldRenderer = layer.renderer as DotDensityRenderer;
+      const oldRenderer = layer.renderer as esri.DotDensityRenderer;
       const newRenderer = oldRenderer.clone();
       newRenderer.seed = seed;
       layer.renderer = newRenderer;
     });
 
-    const availableTypeSchemes = typeSchemes.getSchemes({
+    const availableSchemes = dotDensitySchemes.getSchemes({
       basemap: view.map.basemap,
-      geometryType: "polygon"
-    });
-
-    // Gets all the predominance schemes available in the JS API
-
-    const availablePredominanceSchemes = predominanceSchemes.getSchemes({
-      basemap: map.basemap,
-      geometryType: "polygon",
       numColors: 10
     });
 
@@ -211,38 +209,32 @@ try{
       return selectedFields;
     }
 
-    async function maxFieldsAverage (fields: string[]): Promise<number> {
-      const statsQuery = layer.createQuery();
-      statsQuery.outStatistics = [new StatisticDefinition({
-        onStatisticField: fields.reduce( (a, c) => {
-          return `${a} + ${c}`
-        }),
-        outStatisticFieldName: "avg_value",
-        statisticType: "avg"
-      })];
-
-      const statsResponse = await layer.queryFeatures(statsQuery);
-      console.log(statsResponse);
-      return statsResponse.features[0].attributes.avg_value;
-    }
-
     function updateSlider(value: number, max: number){
-      dotValueInput.values = [ value ];
+      if(value >= max || dotValueInput.min >= max){
+        max = value + dotValueInput.min + max;
+      }
+      dotValueInput.values = null;
       dotValueInput.max = max;
+      dotValueInput.values = [ value ];
+      dotValueInput.tickConfigs[0].values = [ value ];
+      dotValueTick.onclick = function(){
+        dotValueInput.viewModel.setValue(0,value);
+      }
+      dotValueTickLabel.onclick = () => {
+        dotValueInput.viewModel.setValue(0,value);
+      }
     }
 
     let selectedSchemeIndex = 0;
-    let allSchemes: Array<any>;
+    let allSchemes: esri.DotDensityScheme[];// Array<any>;
 
     function createSchemeOptions () {
-      const typeSchemes = [ availableTypeSchemes.primaryScheme ].concat(availableTypeSchemes.secondarySchemes);
-      const predominanceSchemes = [ availablePredominanceSchemes.primaryScheme ].concat(availablePredominanceSchemes.secondarySchemes);
-      allSchemes = typeSchemes.concat(predominanceSchemes);
+      allSchemes = [ availableSchemes.primaryScheme ].concat(availableSchemes.secondarySchemes);
 
       allSchemes.forEach( (scheme, i) => {
         const option = document.createElement("option");
         option.value = i.toString();
-        option.text = `Color scheme No. ${i}`;
+        option.text = scheme.name;
         option.selected = selectedSchemeIndex === i;
         schemeList.appendChild(option);
       });
@@ -253,22 +245,24 @@ try{
     // (list box and two checkboxes), then generate a new predominance visualization
     fieldList.addEventListener("change", async () => {
       attributes = getAttributes();
-      const fields = attributes.map( attribute => attribute.field );
-      // const maxAverage = await maxFieldsAverage(fields);
-      const { dotValue, dotMax} = await calculateSuggestedDotValue({
-        layer,
-        view,
-        fields
-      });
-      console.log(`suggested dot value: ${dotValue}`);
-      updateSlider(dotValue, dotMax);
       updateRenderer();
     });
-    dotValueInput.on("value-change", (event) => {
-      updateRenderer();
-    });
+    dotValueInput.on("value-change", updateRendererFromDotValue);
+
+    function updateRendererFromDotValue () {
+      const oldRenderer = layer.renderer as esri.DotDensityRenderer;
+      const newRenderer = oldRenderer.clone();
+      newRenderer.dotValue = dotValueInput.values[0];
+      layer.renderer = newRenderer;
+    }
+
     dotValueScaleInput.addEventListener("change", updateRenderer);
-    blendDotsInput.addEventListener("change", updateRenderer);
+    blendDotsInput.addEventListener("change", () => {
+      const oldRenderer = layer.renderer as esri.DotDensityRenderer;
+      const newRenderer = oldRenderer.clone();
+      newRenderer.dotBlendingEnabled = blendDotsInput.checked;
+      layer.renderer = newRenderer;
+    });
     outlineInput.addEventListener("change", updateRenderer);
     unitValueInput.addEventListener("change", updateRenderer);
     schemeList.addEventListener("change", (event: any) => {
@@ -284,21 +278,27 @@ try{
       return selectedOptions.map( (option: HTMLOptionElement, i:number) => {
         return {
           field: option.value,
-          label: option.text,
-          color: allSchemes[selectedSchemeIndex].colors[i]
+          // valueExpression: `$feature.${option.value}`,
+          label: option.text
         };
       });
     }
 
-    function updateRenderer(){
+    async function updateRenderer(){
       attributes = getAttributes();
-      const ddRenderer = createDotDensityRenderer();
-      layer.renderer = ddRenderer;
+      const ddRendererResponse = await createDotDensityRenderer();
+      console.log(ddRendererResponse);
+      const renderer = ddRendererResponse.renderer;
+      const dotValue = renderer.dotValue;
+      const dotMax = renderer.authoringInfo.maxSliderValue;
+      layer.renderer = renderer;
       layer.popupTemplate = generateTopListPopupTemplate(attributes);
 
       if(!map.layers.includes(layer)){
         map.add(layer);
       }
+
+      updateSlider(dotValue, dotMax);
     }
 
     // create a predominance renderer once the app loads
@@ -312,24 +312,11 @@ try{
       await zoomToLayer(layer);
       
       createSchemeOptions();
-      console.log("createSchemeOptions done");
       const selectedFields = await createFieldOptions();
-      console.log("selectedFields done");
-      // const maxAverage = await maxFieldsAverage(selectedFields);
-      // console.log("maxAverage done");
 
-      const { dotValue, dotMax} = await calculateSuggestedDotValue({
-        layer,
-        view,
-        fields: selectedFields
-      });
-      console.log(`suggested dot value: ${dotValue}`);
-      updateSlider(dotValue, dotMax);
-      
       updateRenderer();
-      console.log("updaterenderer done");
 
-      view.watch("scale", function(scale, oldScale){
+      view.watch("scale", function(scale){
         // Update dot value on slider as view scale changes
         const renderer = layer.renderer as esri.DotDensityRenderer;
         const dotValue = renderer.calculateDotValue(scale);
@@ -341,41 +328,31 @@ try{
      * Creates a predominance renderer if 2 or more fields are selected,
      * or a continuous size renderer if 1 field is selected
      */
-    function createDotDensityRenderer(): DotDensityRenderer {
+    async function createDotDensityRenderer(): Promise<esri.RendererResult> {
 
       const unit = unitValueInput.value;
-      const outline = outlineInput.checked ? { width: "0.5px", color: [ 128,128,128,0.2 ] } : null;
-      const blendDots = blendDotsInput.checked;
-      const dotSize = 1;
-      const referenceDotValue = dotValueInput.values[0];
-      const referenceScale = dotValueScaleInput.checked ? view.scale : null;
-      seed = parseInt(seedInput.value);
+      const outlineOptimizationEnabled = outlineInput.checked;
+      const dotBlendingEnabled = blendDotsInput.checked;
+      const dotValueOptimizationEnabled = dotValueScaleInput.checked;
+      const dotDensityScheme = allSchemes[selectedSchemeIndex];
 
       const params = {
+        layer,
+        view,
         attributes,
-        blendDots,
+        basemap: view.map.basemap,
+        dotValueOptimizationEnabled, 
+        dotBlendingEnabled,
+        outlineOptimizationEnabled,
         legendOptions: {
           unit
         },
-        outline,
-        dotSize,
-        referenceDotValue,
-        referenceScale,  //
-        seed,
-        // visualVariables: [{
-        //   type: "size",
-        //   target: "outline",
-        //   valueExpression: "$view.scale",
-        //   stops: [
-        //     { size: 3, value: 70000},
-        //     { size: 2, value: 70000*2},
-        //     { size: 1, value: 70000*4},
-        //     { size: 0, value: 70000*8}
-        //   ]
-        // }]
+        dotDensityScheme,
+        // sampleSize: 3000,
+        // trueDensity: true
       };
 
-      return new DotDensityRenderer(params);
+      return dotDensityRendererCreator.createRenderer(params);
     }
 
     async function supportsDotDensity(layer: FeatureLayer): Promise<boolean> {
