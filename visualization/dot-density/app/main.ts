@@ -122,6 +122,8 @@ try{
       rangeLabelInputsEnabled: true,
       labelsVisible: true,
       labelInputsEnabled: true,
+      snapOnClickEnabled: false,
+      // sna
       precision: 0,
       labelFormatFunction: (value, type) => {
         if (type === "min"){
@@ -134,7 +136,8 @@ try{
       }
     });
 
-    scaleRangeSlider.on("value-change", function(event){
+    scaleRangeSlider.on("values-change", function(event){
+      console.log(event.type, event)
       if(event.index === 1){
         layer.minScale = event.value;
       }
@@ -219,9 +222,11 @@ try{
       dotValueInput.tickConfigs[0].values = [ value ];
       dotValueTick.onclick = function(){
         dotValueInput.viewModel.setValue(0,value);
+        updateRendererFromDotValue();
       }
       dotValueTickLabel.onclick = () => {
         dotValueInput.viewModel.setValue(0,value);
+        updateRendererFromDotValue();
       }
     }
 

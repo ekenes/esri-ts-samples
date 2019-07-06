@@ -69,7 +69,7 @@ body {
   height: 50px;
 }
 
-#scale-range-slider .esri-slider__track {
+/* #scale-range-slider .esri-slider__track {
   background-color: black;
   height: 1px;
 }
@@ -95,4 +95,4 @@ body {
 
 #scale-range-slider .esri-slider__max {
   padding-left: 6px;
-}
+} */

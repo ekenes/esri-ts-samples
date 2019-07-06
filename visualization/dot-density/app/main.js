@@ -88,9 +88,11 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                 dotValueInput.tickConfigs[0].values = [value];
                 dotValueTick.onclick = function () {
                     dotValueInput.viewModel.setValue(0, value);
+                    updateRendererFromDotValue();
                 };
                 dotValueTickLabel.onclick = function () {
                     dotValueInput.viewModel.setValue(0, value);
+                    updateRendererFromDotValue();
                 };
             }
             function createSchemeOptions() {
@@ -285,6 +287,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                             rangeLabelInputsEnabled: true,
                             labelsVisible: true,
                             labelInputsEnabled: true,
+                            snapOnClickEnabled: false,
+                            // sna
                             precision: 0,
                             labelFormatFunction: function (value, type) {
                                 if (type === "min") {
@@ -298,7 +302,8 @@ define(["require", "exports", "esri/Map", "esri/views/MapView", "esri/widgets/Le
                                 }
                             }
                         });
-                        scaleRangeSlider.on("value-change", function (event) {
+                        scaleRangeSlider.on("values-change", function (event) {
+                            console.log(event.type, event);
                             if (event.index === 1) {
                                 layer.minScale = event.value;
                             }
