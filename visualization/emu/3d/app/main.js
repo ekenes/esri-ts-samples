@@ -1,8 +1,9 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -33,15 +34,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/geometry", "../app/ExaggeratedBathymetryLayer", "./depthUtils", "./rendererUtils", "esri/widgets/Home", "esri/widgets/BasemapToggle", "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Slice", "esri/views/layers/support/FeatureFilter", "./colorSliderUtils", "./filterUtils"], function (require, exports, EsriMap, SceneView, FeatureLayer, geometry_1, ExaggeratedBathymetryLayer_1, depthUtils_1, rendererUtils_1, Home, BasemapToggle, Legend, LayerList, Expand, Slice, FeatureFilter, colorSliderUtils_1, filterUtils_1) {
+define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/FeatureLayer", "esri/geometry", "../app/ExaggeratedBathymetryLayer", "./depthUtils", "./rendererUtils", "esri/widgets/Home", "esri/widgets/BasemapToggle", "esri/widgets/Legend", "esri/widgets/LayerList", "esri/widgets/Expand", "esri/widgets/Slice", "./colorSliderUtils", "./filterUtils"], function (require, exports, EsriMap, SceneView, FeatureLayer, geometry_1, ExaggeratedBathymetryLayer_1, depthUtils_1, rendererUtils_1, Home, BasemapToggle, Legend, LayerList, Expand, Slice, colorSliderUtils_1, filterUtils_1) {
     "use strict";
-    var _this = this;
     Object.defineProperty(exports, "__esModule", { value: true });
-    (function () { return __awaiter(_this, void 0, void 0, function () {
+    (function () { return __awaiter(void 0, void 0, void 0, function () {
         function filterChange() {
             var emuExpression = emuFilter.value;
             var expression = "" + emuExpression;
             layer.definitionExpression = expression;
+            // layerView.filter = new FeatureFilter({
+            //   where: expression
+            // })
         }
         function changeEventListener() {
             if (colorField1Select.value === "Cluster37") {
@@ -51,8 +54,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             }
             else {
                 if (colorField2Select.value === "") {
-                    var filterField_1 = document.getElementById("filter-field");
-                    filterField_1.innerText = colorField1Select.selectedOptions[0].text;
                     colorField2Select.disabled = false;
                     // displayMean.style.visibility = "hidden";
                     displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
@@ -91,7 +92,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             }
             changeSymbolType = null;
         }
-        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, filterField, filterSlider, filterValue, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand, sliceWidget;
+        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, clearFilterBtn, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand, sliceWidget;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -101,9 +102,6 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     displayMean = document.getElementById("display-mean");
                     displayVariable = document.getElementById("display-variable");
                     displayUnit = document.getElementById("display-unit");
-                    filterField = document.getElementById("filter-field");
-                    filterSlider = document.getElementById("filter-slider");
-                    filterValue = document.getElementById("filter-value");
                     exaggeration = 100;
                     studyArea = new geometry_1.Extent({
                         spatialReference: {
@@ -227,7 +225,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     return [4 /*yield*/, view.when()];
                 case 1:
                     _a.sent();
-                    depthRuler = depthUtils_1.createDepthRulerLayer(view, studyArea, depth, exaggeration);
+                    depthRuler = depthUtils_1.createMeasurementReferenceLayer(view, studyArea, depth, exaggeration);
                     map.add(depthRuler);
                     return [4 /*yield*/, layer.when()];
                 case 2:
@@ -244,16 +242,10 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         theme: "above-and-below"
                     });
                     emuFilter.addEventListener("change", filterChange);
-                    filterSlider.addEventListener("input", function () {
-                        filterValue.innerText = (Math.round(parseFloat(filterSlider.value) * 100) / 100).toString();
-                        var options = new FeatureFilter({
-                            where: colorField1Select.value + " >= " + filterSlider.value
-                        });
-                        filterUtils_1.filterLayerView({
-                            layer: layer,
-                            view: view,
-                            options: options
-                        });
+                    clearFilterBtn = document.getElementById("clear-filter-btn");
+                    clearFilterBtn.addEventListener("click", function () {
+                        filterUtils_1.clearLayerViewFilter(layerView);
+                        filterUtils_1.clearDefinitionExpression(layer);
                     });
                     ///////////////////////////////////////
                     //
@@ -328,9 +320,8 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     sliceExpand = new Expand({
                         view: view,
                         expandIconClass: "esri-icon-drag-vertical",
-                        group: "top-left"
                     });
-                    view.ui.add(sliceExpand, "top-left");
+                    view.ui.add(sliceExpand, "top-right");
                     sliceExpand.watch("expanded", function (expanded) {
                         if (expanded) {
                             sliceWidget = new Slice({ view: view });
@@ -338,6 +329,8 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         }
                         else {
                             sliceWidget.destroy();
+                            sliceWidget = null;
+                            sliceExpand.content = null;
                         }
                     });
                     colorField1Select.addEventListener("change", changeEventListener);

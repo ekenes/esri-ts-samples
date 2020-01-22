@@ -5,7 +5,7 @@ import FeatureLayer = require("esri/layers/FeatureLayer");
 import { Extent } from "esri/geometry";
 
 import { createBathymetryLayer } from "../app/ExaggeratedBathymetryLayer";
-import { createDepthRulerLayer } from "./depthUtils";
+import { createMeasurementReferenceLayer } from "./depthUtils";
 import { generateContinuousVisualization, setEMUClusterVisualization, generateRelationshipVisualization, getSymbolType } from "./rendererUtils";
 
 import Home = require("esri/widgets/Home");
@@ -15,10 +15,11 @@ import LayerList = require("esri/widgets/LayerList");
 import Expand = require("esri/widgets/Expand");
 import Slice = require("esri/widgets/Slice");
 import FeatureFilter = require("esri/views/layers/support/FeatureFilter");
+import Slider = require("esri/widgets/Slider");
 
 import { destroyColorSlider } from "./colorSliderUtils";
 import { SimpleRenderer, ClassBreaksRenderer, UniqueValueRenderer } from "esri/renderers";
-import { filterLayerView } from "./filterUtils";
+import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
 
 ( async () => {
 
@@ -28,9 +29,6 @@ import { filterLayerView } from "./filterUtils";
   const displayMean = document.getElementById("display-mean");
   const displayVariable = document.getElementById("display-variable");
   const displayUnit = document.getElementById("display-unit");
-  const filterField = document.getElementById("filter-field") as HTMLSpanElement;
-  const filterSlider = document.getElementById("filter-slider") as HTMLInputElement;
-  const filterValue = document.getElementById("filter-value") as HTMLSpanElement;
 
   const exaggeration = 100;
   let changeSymbolType: "object" | "icon";
@@ -163,9 +161,9 @@ import { filterLayerView } from "./filterUtils";
 
   await view.when();
 
-  const depthRuler = createDepthRulerLayer(view, studyArea, depth, exaggeration);
+  const depthRuler = createMeasurementReferenceLayer(view, studyArea, depth, exaggeration);
   map.add(depthRuler);
-    
+
   await layer.when();
 
   const layerView = await view.whenLayerView(layer) as esri.FeatureLayerView;
@@ -185,20 +183,16 @@ import { filterLayerView } from "./filterUtils";
     const emuExpression = emuFilter.value;
     const expression = `${emuExpression}`;
     layer.definitionExpression = expression;
+    // layerView.filter = new FeatureFilter({
+    //   where: expression
+    // })
   }
 
-  filterSlider.addEventListener("input", () => {
-    filterValue.innerText = (Math.round(parseFloat(filterSlider.value)*100)/100).toString();
-    const options = new FeatureFilter({
-      where: `${colorField1Select.value} >= ${filterSlider.value}`
-    });
-
-    filterLayerView({
-      layer,
-      view,
-      options
-    });
-  });
+  const clearFilterBtn = document.getElementById("clear-filter-btn");
+  clearFilterBtn.addEventListener("click", () => {
+    clearLayerViewFilter(layerView);
+    clearDefinitionExpression(layer);
+  })
 
   ///////////////////////////////////////
   //
@@ -297,9 +291,9 @@ import { filterLayerView } from "./filterUtils";
   const sliceExpand = new Expand({
     view,
     expandIconClass: "esri-icon-drag-vertical",
-    group: "top-left"
+    // group: "top-left"
   });
-  view.ui.add(sliceExpand, "top-left");
+  view.ui.add(sliceExpand, "top-right");
   let sliceWidget: Slice;
 
   sliceExpand.watch("expanded", (expanded) => {
@@ -308,6 +302,8 @@ import { filterLayerView } from "./filterUtils";
       sliceExpand.content = sliceWidget;
     } else {
       sliceWidget.destroy();
+      sliceWidget = null;
+      sliceExpand.content = null;
     }
   });
 
@@ -321,8 +317,6 @@ import { filterLayerView } from "./filterUtils";
       setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
     } else {
       if(colorField2Select.value === ""){
-        const filterField = document.getElementById("filter-field") as HTMLSpanElement;
-        filterField.innerText = colorField1Select.selectedOptions[0].text;
         colorField2Select.disabled = false;
         // displayMean.style.visibility = "hidden";
         displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
@@ -332,7 +326,7 @@ import { filterLayerView } from "./filterUtils";
         } else {
           displayUnit.innerHTML = colorField1Select.value === "temp" ? " °C" : " µmol/l";
         }
-        
+
         generateContinuousVisualization({
           view,
           layer,
@@ -349,7 +343,7 @@ import { filterLayerView } from "./filterUtils";
           field1: {
             fieldName: colorField1Select.value,
             label: colorField1Select.selectedOptions[0].text
-          }, 
+          },
           field2: {
             fieldName: colorField2Select.value,
             label: colorField2Select.selectedOptions[0].text
@@ -357,7 +351,7 @@ import { filterLayerView } from "./filterUtils";
           exaggeration,
           symbolType: changeSymbolType
         });
-        
+
       }
 
     }

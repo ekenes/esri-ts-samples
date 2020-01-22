@@ -20,6 +20,16 @@ body,
   text-align: center;
 }
 
+#emu-filter-container{
+  padding-bottom: 20px;
+}
+
+.filter-element-container{
+  padding: 10px;
+  /* width: 250px; */
+  text-align: center;
+}
+
 #filter-container {
   padding: 5px;
   width: 250px;

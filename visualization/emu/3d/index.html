@@ -3,8 +3,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
     <title>EMU explorer (3d)</title>
-    <link rel="stylesheet" href="https://jsdev.arcgis.com/4.11/esri/themes/dark-blue/main.css">
-    <link rel="stylesheet" href="https://jsdev.arcgis.com/4.11/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.14/esri/themes/dark-blue/main.css">
     <link rel="stylesheet" href="app/main.css">
     <script>
       var locationPath = location.pathname.replace(/\/[^\/]+$/, "");
@@ -17,7 +16,7 @@
         ]
       };
     </script>
-    <script src="https://jsdev.arcgis.com/4.11"></script>
+    <script src="https://js.arcgis.com/4.14"></script>
   </head>
   <body class="claro">
     <div id="viewDiv">
@@ -52,7 +51,8 @@
       </select>
     </div>
     <div id="filter-container" class="esri-widget">
-    <div class="esri-widget">
+
+    <div class="esri-widget" id="emu-filter-container">
         EMU Cluster: <select id="emu-filter" class="esri-widget">
           <option value="1=1" selected>all</option>
           <option value="Cluster37 = 10">EMU 10</option>
@@ -65,14 +65,18 @@
           <option value="Cluster37 = 36">EMU 36</option>
         </select>
       </div>
-      <div class="esri-widget">
-        <div style="text-align: center">
-          Show values in <span id="filter-field"></span> greater than
-          <span id="filter-value"></span>
-        </div>
-        <span id="filter-lower-bound"></span>
-        <input type="range" class="esri-widget" id="filter-slider" min="0" max="100" step="0.0001", value="0">
-        <span id="filter-upper-bound"></span>
+      <div class="filter-element-container">
+        <div id="filter-slider"></div>
+      </div>
+      <div class="filter-element-container">
+        <button id="clear-filter-btn" class="esri-button">Clear Filter</div>
+      </div>
+    </div>
+    <div id="slice-element-container">
+      Chello
+      <div id="slice-container"></div>
+      <div>
+        <button id="clear-slice-btn" class="esri-button">Reset Slice</div>
       </div>
     </div>
     <div id="display-mean" class="esri-widget">

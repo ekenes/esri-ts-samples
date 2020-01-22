@@ -1,8 +1,9 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -33,14 +34,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartMapping/statistics/histogram", "esri/core/lang"], function (require, exports, ColorSlider, histogram, lang) {
+define(["require", "exports", "esri/widgets/smartMapping/ColorSlider", "esri/renderers/smartMapping/statistics/histogram", "esri/Color"], function (require, exports, ColorSlider, histogram, Color) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     var colorSlider;
     var colorSlideChangeEvent, colorSlideSlideEvent;
+    var bars = [];
     function updateColorSlider(params) {
         return __awaiter(this, void 0, void 0, function () {
-            var layer, colorSliderContainer, colorHistogram, colorSliderParams, colorSliderParent;
+            var layer, colorSliderContainer, colorHistogram, colorStops, colorSliderParams, colorSliderParent;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -49,19 +51,28 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
                         return [4 /*yield*/, histogram({
                                 layer: params.layer,
                                 field: params.field,
-                                numBins: 30
+                                numBins: 50
                             })];
                     case 1:
                         colorHistogram = _a.sent();
+                        colorStops = params.colorResponse.visualVariable.stops;
                         colorSliderParams = {
-                            statistics: params.colorResponse.statistics,
-                            maxValue: params.colorResponse.statistics.max,
-                            minValue: params.colorResponse.statistics.min,
-                            histogram: colorHistogram,
-                            visualVariable: params.colorResponse.visualVariable,
-                            numHandles: getNumHandles(params.theme),
-                            syncedHandles: getNumHandles(params.theme) > 2,
-                            container: colorSliderContainer
+                            max: params.colorResponse.statistics.max,
+                            min: params.colorResponse.statistics.min,
+                            stops: colorStops,
+                            primaryHandleEnabled: params.theme === "above-and-below",
+                            handlesSyncedToPrimary: params.theme === "above-and-below",
+                            container: colorSliderContainer,
+                            histogramConfig: {
+                                bins: colorHistogram.bins,
+                                barCreatedFunction: function (index, element) {
+                                    var bin = colorHistogram.bins[index];
+                                    var midValue = (bin.maxValue - bin.minValue) / 2 + bin.minValue;
+                                    var color = getColorFromValue(colorStops, midValue);
+                                    element.setAttribute("fill", color.toHex());
+                                    bars.push(element);
+                                }
+                            }
                         };
                         if (!colorSlider) {
                             colorSliderParent = document.getElementById("color-container");
@@ -70,36 +81,50 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
                             colorSlider = new ColorSlider(colorSliderParams);
                             // when the user slides the handle(s), update the renderer
                             // with the updated color visual variable object
-                            colorSlideChangeEvent = colorSlider.on("handle-value-change", function () {
+                            colorSlideChangeEvent = colorSlider.on(["thumb-change", "thumb-drag", "min-change", "max-change"], function () {
                                 var oldRenderer = layer.renderer;
                                 var newRenderer = oldRenderer.clone();
-                                if (newRenderer.visualVariables.length <= 1) {
+                                if (newRenderer.visualVariables.length < 1) {
                                     return;
                                 }
-                                var visualVariables = lang.clone(newRenderer.visualVariables);
+                                var visualVariables = newRenderer.visualVariables;
                                 oldRenderer.visualVariables = [];
+                                var unchangedVVs = [];
+                                var colorVariable = null;
                                 if (visualVariables) {
-                                    var unchangedVVs = visualVariables.filter(function (vv) {
-                                        return vv.type !== "color";
+                                    visualVariables.forEach(function (vv) {
+                                        if (vv.type === "color") {
+                                            colorVariable = vv;
+                                        }
+                                        else {
+                                            unchangedVVs.push(vv);
+                                        }
                                     });
-                                    newRenderer.visualVariables = unchangedVVs.concat([lang.clone(colorSlider.visualVariable)]);
                                 }
-                                else {
-                                    newRenderer.visualVariables.push(lang.clone(colorSlider.visualVariable));
-                                }
+                                // else {
+                                //   newRenderer.visualVariables.push(lang.clone(colorSlider.visualVariable));
+                                // }
+                                colorVariable.stops = colorSlider.stops;
+                                newRenderer.visualVariables = unchangedVVs.concat(colorVariable);
                                 updateMeanValue();
                                 layer.renderer = newRenderer;
+                                bars.forEach(function (bar, index) {
+                                    var bin = colorSlider.histogramConfig.bins[index];
+                                    var midValue = (bin.maxValue - bin.minValue) / 2 + bin.minValue;
+                                    var color = getColorFromValue(colorSlider.stops, midValue);
+                                    bar.setAttribute("fill", color.toHex());
+                                });
                             });
-                            colorSlideSlideEvent = colorSlider.on("data-change", function () {
-                                var oldRenderer = layer.renderer;
-                                var newRenderer = oldRenderer.clone();
-                                if (newRenderer.visualVariables.length > 1) {
-                                    return;
-                                }
-                                newRenderer.visualVariables = [lang.clone(colorSlider.visualVariable)];
-                                updateMeanValue();
-                                layer.renderer = newRenderer;
-                            });
+                            // colorSlideSlideEvent = colorSlider.on("data-change", function() {
+                            //   const oldRenderer = layer.renderer as SimpleRenderer;
+                            //   const newRenderer = oldRenderer.clone();
+                            //   if(newRenderer.visualVariables.length > 1){
+                            //     return;
+                            //   }
+                            //   newRenderer.visualVariables = [ lang.clone(colorSlider.visualVariable) ];
+                            //   updateMeanValue();
+                            //   layer.renderer = newRenderer;
+                            // });
                         }
                         else {
                             colorSlider.set(colorSliderParams);
@@ -115,16 +140,44 @@ define(["require", "exports", "esri/widgets/ColorSlider", "esri/renderers/smartM
     }
     function updateMeanValue() {
         var displayMeanValue = document.getElementById("display-mean-value");
-        displayMeanValue.innerHTML = (Math.round(colorSlider.visualVariable.stops[2].value * 100) / 100).toString();
+        displayMeanValue.innerHTML = (Math.round(colorSlider.stops[2].value * 100) / 100).toString();
     }
     function destroyColorSlider() {
         if (colorSlider) {
-            colorSlider.destroy();
             colorSlideChangeEvent.remove();
-            colorSlideSlideEvent.remove();
             colorSlider = null;
         }
     }
     exports.destroyColorSlider = destroyColorSlider;
+    // infers the color for a given value
+    // based on the stops from a ColorVariable
+    function getColorFromValue(stops, value) {
+        var minStop = stops[0];
+        var maxStop = stops[stops.length - 1];
+        var minStopValue = minStop.value;
+        var maxStopValue = maxStop.value;
+        if (value < minStopValue) {
+            return minStop.color;
+        }
+        if (value > maxStopValue) {
+            return maxStop.color;
+        }
+        var exactMatches = stops.filter(function (stop) {
+            return stop.value === value;
+        });
+        if (exactMatches.length > 0) {
+            return exactMatches[0].color;
+        }
+        minStop = null;
+        maxStop = null;
+        stops.forEach(function (stop, i) {
+            if (!minStop && !maxStop && stop.value >= value) {
+                minStop = stops[i - 1];
+                maxStop = stop;
+            }
+        });
+        var weightedPosition = (value - minStop.value) / (maxStop.value - minStop.value);
+        return Color.blendColors(minStop.color, maxStop.color, weightedPosition);
+    }
 });
 //# sourceMappingURL=colorSliderUtils.js.map

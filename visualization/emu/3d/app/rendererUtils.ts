@@ -3,6 +3,9 @@ import { Renderer, SimpleRenderer, UniqueValueRenderer, ClassBreaksRenderer } fr
 import { ObjectSymbol3DLayer, IconSymbol3DLayer, PointSymbol3D, SimpleMarkerSymbol } from "esri/symbols";
 import FeatureLayer = require("esri/layers/FeatureLayer");
 import SceneView = require("esri/views/SceneView");
+import Slider = require("esri/widgets/Slider");
+import FeatureFilter = require("esri/views/layers/support/FeatureFilter");
+import { filterLayerView } from "./filterUtils";
 
 import colorRendererCreator = require("esri/renderers/smartMapping/creators/color");
 import relationshipRendererCreator = require("esri/renderers/smartMapping/creators/relationship");
@@ -20,12 +23,27 @@ interface ContinuousVisParams {
   symbolType?: "object" | "icon"
 }
 
-const filterMinElement = document.getElementById("filter-lower-bound") as HTMLSpanElement;
-const filterMaxElement = document.getElementById("filter-upper-bound") as HTMLSpanElement;
-const filterField = document.getElementById("filter-field") as HTMLSpanElement;
-const filterSlider = document.getElementById("filter-slider") as HTMLInputElement;
+const colorField1Select = document.getElementById("color-field1-select") as HTMLSelectElement;
+const colorField2Select = document.getElementById("color-field2-select") as HTMLSelectElement;
+
+const filterSlider = new Slider({
+  min: 0,
+  max: 100,
+  values: [0,100],
+  container: document.getElementById("filter-slider"),
+  labelInputsEnabled: true,
+  labelsVisible: true,
+  rangeLabelInputsEnabled: true,
+  rangeLabelsVisible: true
+});
+
+let filterSliderEventHandle: any;
 
 export async function generateContinuousVisualization (params: ContinuousVisParams){
+  if (filterSliderEventHandle){
+    filterSliderEventHandle.remove();
+    filterSliderEventHandle = null;
+  }
   const symbolType = params.symbolType ? params.symbolType : getSymbolType(params.layer.renderer as Renderer);
 
   const options = {
@@ -56,11 +74,27 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
 
   const sliderMin = colorResponse.statistics.min;
   const sliderMax = colorResponse.statistics.max;
-  filterMinElement.innerText = (Math.round(sliderMin*100)/100).toString();
-  filterMaxElement.innerText = (Math.round(sliderMax*100)/100).toString();
-  filterSlider.min = sliderMin.toString();
-  filterSlider.max = sliderMax.toString();
-  filterSlider.value = sliderMin.toString();
+
+  // filterSlider.max = sliderMax;
+  // filterSlider.min = sliderMin;
+  filterSlider.set({
+    min: sliderMin,
+    max: sliderMax
+  })
+  filterSlider.values = [ sliderMin, sliderMax ];
+
+  filterSliderEventHandle = filterSlider.on(["thumb-change", "thumb-drag", "segment-drag"] as any, () => {
+    const options = new FeatureFilter({
+      where: `${colorField1Select.value} >= ${filterSlider.values[0]} AND ${colorField1Select.value} <= ${filterSlider.values[1]}`
+    });
+
+    filterLayerView({
+      layer: params.layer,
+      view: params.view,
+      options
+    });
+  });
+
   // apply input renderer back on layer
   params.layer.renderer = renderer;
 
@@ -74,7 +108,7 @@ export async function generateContinuousVisualization (params: ContinuousVisPara
 }
 
 export function getSymbolType (renderer: Renderer): "object" | "icon" {
-  
+
   let symbolType: "object" | "icon";
   const symbol = getSymbolFromRenderer(renderer);
 
@@ -101,7 +135,7 @@ function createSymbol(color: esri.Color | string | number[], type: "object" | "i
     anchor: type === "object" ? "top" : null
   };
 
-  const symbolLayer = type === "object" ? new ObjectSymbol3DLayer(symbolLayerOptions) : new IconSymbol3DLayer(symbolLayerOptions);
+  const symbolLayer = type === "object" ? new ObjectSymbol3DLayer(symbolLayerOptions as esri.ObjectSymbol3DLayerProperties) : new IconSymbol3DLayer(symbolLayerOptions as esri.IconSymbol3DLayerProperties);
 
   return new PointSymbol3D({
     symbolLayers: [
@@ -223,7 +257,7 @@ export async function generateRelationshipVisualization(params: RelationshipVisP
   const relationshipRendererResponse = await relationshipRendererCreator.createRenderer(options);
   const oldRenderer = options.layer.renderer as SimpleRenderer | ClassBreaksRenderer | UniqueValueRenderer;
   const symbolType = params.symbolType ? params.symbolType : getSymbolType(oldRenderer);
-  
+
   const renderer = relationshipRendererResponse.renderer;
   let uniqueValueInfos;
 

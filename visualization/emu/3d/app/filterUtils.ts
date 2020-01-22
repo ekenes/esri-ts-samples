@@ -15,3 +15,7 @@ export async function filterLayerView(params: FilterLayerViewParams){
 export function clearLayerViewFilter(layerView: esri.FeatureLayerView){
   layerView.filter = null;
 }
+
+export function clearDefinitionExpression(layer: esri.FeatureLayer){
+  layer.definitionExpression = null;
+}

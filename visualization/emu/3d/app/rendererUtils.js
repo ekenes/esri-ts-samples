@@ -1,8 +1,9 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -33,19 +34,32 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/creators/relationship", "./colorSliderUtils", "esri/renderers/visualVariables/SizeVariable"], function (require, exports, renderers_1, symbols_1, colorRendererCreator, relationshipRendererCreator, colorSliderUtils_1, SizeVisualVariable) {
+define(["require", "exports", "esri/renderers", "esri/symbols", "esri/widgets/Slider", "esri/views/layers/support/FeatureFilter", "./filterUtils", "esri/renderers/smartMapping/creators/color", "esri/renderers/smartMapping/creators/relationship", "./colorSliderUtils", "esri/renderers/visualVariables/SizeVariable"], function (require, exports, renderers_1, symbols_1, Slider, FeatureFilter, filterUtils_1, colorRendererCreator, relationshipRendererCreator, colorSliderUtils_1, SizeVisualVariable) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var filterMinElement = document.getElementById("filter-lower-bound");
-    var filterMaxElement = document.getElementById("filter-upper-bound");
-    var filterField = document.getElementById("filter-field");
-    var filterSlider = document.getElementById("filter-slider");
+    var colorField1Select = document.getElementById("color-field1-select");
+    var colorField2Select = document.getElementById("color-field2-select");
+    var filterSlider = new Slider({
+        min: 0,
+        max: 100,
+        values: [0, 100],
+        container: document.getElementById("filter-slider"),
+        labelInputsEnabled: true,
+        labelsVisible: true,
+        rangeLabelInputsEnabled: true,
+        rangeLabelsVisible: true
+    });
+    var filterSliderEventHandle;
     function generateContinuousVisualization(params) {
         return __awaiter(this, void 0, void 0, function () {
             var symbolType, options, renderer, colorResponse, colorVV, sliderMin, sliderMax;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        if (filterSliderEventHandle) {
+                            filterSliderEventHandle.remove();
+                            filterSliderEventHandle = null;
+                        }
                         symbolType = params.symbolType ? params.symbolType : getSymbolType(params.layer.renderer);
                         options = {
                             layer: params.layer,
@@ -73,11 +87,23 @@ define(["require", "exports", "esri/renderers", "esri/symbols", "esri/renderers/
                         }
                         sliderMin = colorResponse.statistics.min;
                         sliderMax = colorResponse.statistics.max;
-                        filterMinElement.innerText = (Math.round(sliderMin * 100) / 100).toString();
-                        filterMaxElement.innerText = (Math.round(sliderMax * 100) / 100).toString();
-                        filterSlider.min = sliderMin.toString();
-                        filterSlider.max = sliderMax.toString();
-                        filterSlider.value = sliderMin.toString();
+                        // filterSlider.max = sliderMax;
+                        // filterSlider.min = sliderMin;
+                        filterSlider.set({
+                            min: sliderMin,
+                            max: sliderMax
+                        });
+                        filterSlider.values = [sliderMin, sliderMax];
+                        filterSliderEventHandle = filterSlider.on(["thumb-change", "thumb-drag", "segment-drag"], function () {
+                            var options = new FeatureFilter({
+                                where: colorField1Select.value + " >= " + filterSlider.values[0] + " AND " + colorField1Select.value + " <= " + filterSlider.values[1]
+                            });
+                            filterUtils_1.filterLayerView({
+                                layer: params.layer,
+                                view: params.view,
+                                options: options
+                            });
+                        });
                         // apply input renderer back on layer
                         params.layer.renderer = renderer;
                         colorSliderUtils_1.updateColorSlider({
