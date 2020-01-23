@@ -55,7 +55,7 @@ body,
   /* font-weight: 600; */
   font-size: 36px;
   text-align: right;
-  visibility: hidden;
+  /* visibility: hidden; */
   background-color: rgba(36,36,36,0.2);
 }
 

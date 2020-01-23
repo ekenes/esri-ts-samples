@@ -33,8 +33,8 @@ export async function updateColorSlider(params: ColorSliderParams){
     max: params.colorResponse.statistics.max,
     min: params.colorResponse.statistics.min,
     stops: colorStops,
-    primaryHandleEnabled: params.theme === "above-and-below",
-    handlesSyncedToPrimary: params.theme === "above-and-below",
+    primaryHandleEnabled: params.theme !== "high-to-low",
+    handlesSyncedToPrimary: params.theme !== "high-to-low",
     container: colorSliderContainer,
     histogramConfig: {
       bins: colorHistogram.bins,
@@ -55,6 +55,7 @@ export async function updateColorSlider(params: ColorSliderParams){
     colorSliderParent.appendChild(colorSliderContainer);
 
     colorSlider = new ColorSlider(colorSliderParams);
+    updateMeanValue();
 
     // when the user slides the handle(s), update the renderer
     // with the updated color visual variable object
@@ -119,18 +120,16 @@ export async function updateColorSlider(params: ColorSliderParams){
 
 }
 
-function getNumHandles(theme: string): number {
-  return theme === "high-to-low" ? 2 : 3;
-}
+const displayMeanValue = document.getElementById("display-mean-value");
 
 function updateMeanValue(){
-  const displayMeanValue = document.getElementById("display-mean-value");
-  displayMeanValue.innerHTML = (Math.round(colorSlider.stops[2].value*100)/100).toString();
+  displayMeanValue.innerText = colorSlider.stops[2].value.toFixed(2).toString();
 }
 
 export function destroyColorSlider(){
   if(colorSlider){
     colorSlideChangeEvent.remove();
+    colorSlider.destroy();
     colorSlider = null;
   }
 }

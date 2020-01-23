@@ -60,8 +60,8 @@ define(["require", "exports", "esri/widgets/smartMapping/ColorSlider", "esri/ren
                             max: params.colorResponse.statistics.max,
                             min: params.colorResponse.statistics.min,
                             stops: colorStops,
-                            primaryHandleEnabled: params.theme === "above-and-below",
-                            handlesSyncedToPrimary: params.theme === "above-and-below",
+                            primaryHandleEnabled: params.theme !== "high-to-low",
+                            handlesSyncedToPrimary: params.theme !== "high-to-low",
                             container: colorSliderContainer,
                             histogramConfig: {
                                 bins: colorHistogram.bins,
@@ -79,6 +79,7 @@ define(["require", "exports", "esri/widgets/smartMapping/ColorSlider", "esri/ren
                             colorSliderContainer.className = "esri-widget";
                             colorSliderParent.appendChild(colorSliderContainer);
                             colorSlider = new ColorSlider(colorSliderParams);
+                            updateMeanValue();
                             // when the user slides the handle(s), update the renderer
                             // with the updated color visual variable object
                             colorSlideChangeEvent = colorSlider.on(["thumb-change", "thumb-drag", "min-change", "max-change"], function () {
@@ -135,16 +136,14 @@ define(["require", "exports", "esri/widgets/smartMapping/ColorSlider", "esri/ren
         });
     }
     exports.updateColorSlider = updateColorSlider;
-    function getNumHandles(theme) {
-        return theme === "high-to-low" ? 2 : 3;
-    }
+    var displayMeanValue = document.getElementById("display-mean-value");
     function updateMeanValue() {
-        var displayMeanValue = document.getElementById("display-mean-value");
-        displayMeanValue.innerHTML = (Math.round(colorSlider.stops[2].value * 100) / 100).toString();
+        displayMeanValue.innerText = colorSlider.stops[2].value.toFixed(2).toString();
     }
     function destroyColorSlider() {
         if (colorSlider) {
             colorSlideChangeEvent.remove();
+            colorSlider.destroy();
             colorSlider = null;
         }
     }

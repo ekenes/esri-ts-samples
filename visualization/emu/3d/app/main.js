@@ -48,6 +48,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
         }
         function changeEventListener() {
             if (colorField1Select.value === "Cluster37") {
+                displayMeanValueInfo.style.visibility = "hidden";
                 colorField2Select.disabled = true;
                 colorSliderUtils_1.destroyColorSlider();
                 rendererUtils_1.setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
@@ -55,7 +56,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             else {
                 if (colorField2Select.value === "") {
                     colorField2Select.disabled = false;
-                    // displayMean.style.visibility = "hidden";
+                    displayMeanValueInfo.style.visibility = "visible";
                     displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
                     if (colorField1Select.value === "salinity") {
                         displayUnit.innerHTML = "";
@@ -69,10 +70,11 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         exaggeration: exaggeration,
                         field: colorField1Select.value,
                         symbolType: changeSymbolType,
-                        theme: "above-and-below"
+                        theme: "centered-on"
                     });
                 }
                 else {
+                    displayMeanValueInfo.style.visibility = "hidden";
                     colorSliderUtils_1.destroyColorSlider();
                     rendererUtils_1.generateRelationshipVisualization({
                         layer: layer,
@@ -92,16 +94,16 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
             }
             changeSymbolType = null;
         }
-        var colorField1Select, colorField2Select, emuFilter, displayMean, displayVariable, displayUnit, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, clearFilterBtn, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand, sliceWidget;
+        var colorField1Select, colorField2Select, emuFilter, displayVariable, displayUnit, displayMeanValueInfo, exaggeration, changeSymbolType, studyArea, depth, bathymetryLayer, map, view, layer, depthRuler, layerView, clearFilterBtn, layerList, layerListExpand, legend, legendExpand, colorSliderExpand, filtersExpand, sliceExpand, sliceWidget;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     colorField1Select = document.getElementById("color-field1-select");
                     colorField2Select = document.getElementById("color-field2-select");
                     emuFilter = document.getElementById("emu-filter");
-                    displayMean = document.getElementById("display-mean");
                     displayVariable = document.getElementById("display-variable");
                     displayUnit = document.getElementById("display-unit");
+                    displayMeanValueInfo = document.getElementById("display-mean");
                     exaggeration = 100;
                     studyArea = new geometry_1.Extent({
                         spatialReference: {
@@ -234,13 +236,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                 case 3:
                     layerView = _a.sent();
                     layerView.maximumNumberOfFeatures = 100000;
-                    rendererUtils_1.generateContinuousVisualization({
-                        view: view,
-                        layer: layer,
-                        exaggeration: exaggeration,
-                        field: colorField1Select.value,
-                        theme: "above-and-below"
-                    });
+                    changeEventListener();
                     emuFilter.addEventListener("change", filterChange);
                     clearFilterBtn = document.getElementById("clear-filter-btn");
                     clearFilterBtn.addEventListener("click", function () {
@@ -253,7 +249,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                     //
                     //////////////////////////////////////
                     // Display mean
-                    view.ui.add(displayMean, "top-right");
+                    view.ui.add(displayMeanValueInfo, "top-right");
                     // Home
                     view.ui.add(new Home({
                         view: view
@@ -321,7 +317,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         view: view,
                         expandIconClass: "esri-icon-drag-vertical",
                     });
-                    view.ui.add(sliceExpand, "top-right");
+                    view.ui.add(sliceExpand, "bottom-left");
                     sliceExpand.watch("expanded", function (expanded) {
                         if (expanded) {
                             sliceWidget = new Slice({ view: view });

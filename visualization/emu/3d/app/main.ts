@@ -26,9 +26,9 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
   const colorField1Select = document.getElementById("color-field1-select") as HTMLSelectElement;
   const colorField2Select = document.getElementById("color-field2-select") as HTMLSelectElement;
   const emuFilter = document.getElementById("emu-filter") as HTMLInputElement;
-  const displayMean = document.getElementById("display-mean");
   const displayVariable = document.getElementById("display-variable");
   const displayUnit = document.getElementById("display-unit");
+  const displayMeanValueInfo = document.getElementById("display-mean")
 
   const exaggeration = 100;
   let changeSymbolType: "object" | "icon";
@@ -169,13 +169,7 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
   const layerView = await view.whenLayerView(layer) as esri.FeatureLayerView;
   layerView.maximumNumberOfFeatures = 100000;
 
-  generateContinuousVisualization({
-    view,
-    layer,
-    exaggeration,
-    field: colorField1Select.value,
-    theme: "above-and-below"
-  });
+  changeEventListener();
 
   emuFilter.addEventListener("change", filterChange);
 
@@ -202,7 +196,7 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
 
   // Display mean
 
-  view.ui.add(displayMean, "top-right");
+  view.ui.add(displayMeanValueInfo, "top-right");
 
   // Home
 
@@ -293,7 +287,7 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
     expandIconClass: "esri-icon-drag-vertical",
     // group: "top-left"
   });
-  view.ui.add(sliceExpand, "top-right");
+  view.ui.add(sliceExpand, "bottom-left");
   let sliceWidget: Slice;
 
   sliceExpand.watch("expanded", (expanded) => {
@@ -312,13 +306,14 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
 
   function changeEventListener(){
     if(colorField1Select.value === "Cluster37"){
+      displayMeanValueInfo.style.visibility = "hidden";
       colorField2Select.disabled = true;
       destroyColorSlider();
       setEMUClusterVisualization(layer, exaggeration, changeSymbolType);
     } else {
       if(colorField2Select.value === ""){
         colorField2Select.disabled = false;
-        // displayMean.style.visibility = "hidden";
+        displayMeanValueInfo.style.visibility = "visible";
         displayVariable.innerHTML = colorField1Select.selectedOptions[0].text;
 
         if(colorField1Select.value === "salinity"){
@@ -333,9 +328,10 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
           exaggeration,
           field: colorField1Select.value,
           symbolType: changeSymbolType,
-          theme: "above-and-below"
+          theme: "centered-on"
         });
       } else {
+        displayMeanValueInfo.style.visibility = "hidden";
         destroyColorSlider();
         generateRelationshipVisualization({
           layer,
