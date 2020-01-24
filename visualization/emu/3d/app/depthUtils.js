@@ -3,7 +3,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/Graphic", "esri/
     Object.defineProperty(exports, "__esModule", { value: true });
     function createMeasurementReferenceLayer(view, extent, depth, exaggeration) {
         var cornersLayer = createVerticalCorners(view, extent, depth);
-        var tickLabelLayer = createTickLabelLayer(view, extent, depth, exaggeration, 200);
+        var tickLabelLayer = createTickLabelLayer(view, extent, depth, exaggeration, 400);
         var horizontalPlanesLayer = createHorizontalMeasurementPlanes(view, extent, depth, exaggeration, 400);
         var measurementReferenceLayer = new GroupLayer({
             title: "Depth Reference",
@@ -148,7 +148,6 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/Graphic", "esri/
                 })
             })
         });
-        console.log("ticks ", tickLabelLayer);
         return tickLabelLayer;
     }
     function createTicks(extent, interval, depth, exaggeration) {
@@ -254,7 +253,7 @@ define(["require", "exports", "esri/layers/FeatureLayer", "esri/Graphic", "esri/
                 symbol: new symbols_1.PolygonSymbol3D({
                     symbolLayers: [new symbols_1.FillSymbol3DLayer({
                             material: {
-                                color: [105, 220, 255, 0.5]
+                                color: [105, 220, 255, 0.25]
                             },
                             outline: {
                                 color: [105, 220, 255, 0.5],

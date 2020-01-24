@@ -12,7 +12,7 @@ import { SimpleRenderer } from "esri/renderers";
 export function createMeasurementReferenceLayer (view: SceneView, extent: Extent, depth: number, exaggeration: number): GroupLayer {
   const cornersLayer = createVerticalCorners(view, extent, depth);
 
-  const tickLabelLayer = createTickLabelLayer (view, extent, depth, exaggeration, 200);
+  const tickLabelLayer = createTickLabelLayer (view, extent, depth, exaggeration, 400);
   const horizontalPlanesLayer = createHorizontalMeasurementPlanes(view, extent, depth, exaggeration, 400);
 
   const measurementReferenceLayer = new GroupLayer({
@@ -166,7 +166,6 @@ function createTickLabelLayer (view: SceneView, extent: Extent, depth: number, e
     })
   });
 
-  console.log("ticks ", tickLabelLayer)
   return tickLabelLayer;
 }
 
@@ -279,7 +278,7 @@ function createHorizontalMeasurementPlanes (view: SceneView, extent: Extent, dep
       symbol: new PolygonSymbol3D({
         symbolLayers: [ new FillSymbol3DLayer({
           material: {
-            color: [105, 220, 255, 0.5]
+            color: [105, 220, 255, 0.25]
           },
           outline: {
             color: [105, 220, 255, 0.5],

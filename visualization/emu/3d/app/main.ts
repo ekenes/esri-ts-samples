@@ -328,7 +328,7 @@ import { clearLayerViewFilter, clearDefinitionExpression } from "./filterUtils";
           exaggeration,
           field: colorField1Select.value,
           symbolType: changeSymbolType,
-          theme: "centered-on"
+          theme: "above-and-below" //"centered-on"
         });
       } else {
         displayMeanValueInfo.style.visibility = "hidden";

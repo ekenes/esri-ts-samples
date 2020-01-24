@@ -70,7 +70,7 @@ define(["require", "exports", "esri/Map", "esri/views/SceneView", "esri/layers/F
                         exaggeration: exaggeration,
                         field: colorField1Select.value,
                         symbolType: changeSymbolType,
-                        theme: "centered-on"
+                        theme: "above-and-below" //"centered-on"
                     });
                 }
                 else {
