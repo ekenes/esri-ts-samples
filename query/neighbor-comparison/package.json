@@ -11,7 +11,7 @@
   "dependencies": {
     "@types/arcgis-js-api": "^4.7.0",
     "@types/chart.js": "^2.7.18",
-    "chart.js": "^2.7.2"
+    "chart.js": "^2.9.4"
   },
   "description": ""
 }
